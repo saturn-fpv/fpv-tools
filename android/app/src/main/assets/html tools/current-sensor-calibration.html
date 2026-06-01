@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Betaflight Current Sensor Calibration Tool</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #111827; color: white; padding: 1.5rem; min-height: 100vh;
+        }
+        .container { max-width: 1280px; margin: 0 auto; }
+        h1 { font-size: 1.875rem; font-weight: bold; margin-bottom: 0.5rem; text-align: center; }
+        .subtitle { text-align: center; color: #9ca3af; font-size: 0.875rem; margin-bottom: 1.5rem; }
+
+        /* ── Togglable results tabs ── */
+        .results-tabs {
+            display: flex;
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 0.75rem 0.75rem 0 0;
+            overflow: hidden;
+            border-bottom: none;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+        .results-tab {
+            flex: 1;
+            background: #111827;
+            border: none;
+            color: #9ca3af;
+            padding: 0.85rem 1rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            border-bottom: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-family: inherit;
+        }
+        .results-tab:hover {
+            color: white;
+            background: rgba(255,255,255,0.02);
+        }
+        .results-tab.active {
+            background: #1f2937;
+        }
+        .results-tab.active.current-active {
+            color: #3b82f6;
+            border-bottom: 2px solid #3b82f6;
+        }
+        .results-tab.active.voltage-active {
+            color: #10b981;
+            border-bottom: 2px solid #10b981;
+        }
+        .results-tab.active.current-active .vbadge-tab {
+            background: rgba(59,130,246,0.15);
+            color: #3b82f6;
+        }
+        .results-tab.active.voltage-active .vbadge-tab {
+            background: rgba(16,185,129,0.15);
+            color: #10b981;
+        }
+        .vbadge-tab {
+            font-size: 0.6875rem;
+            font-weight: 500;
+            background: rgba(55,65,81,0.5);
+            padding: 0.15rem 0.5rem;
+            border-radius: 0.25rem;
+            color: #9ca3af;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            transition: all 0.2s;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* ── Panels ── */
+        .panel {
+            background-color: #1f2937; border-radius: 0.5rem; padding: 1.25rem;
+            border: 1px solid #374151;
+        }
+        .panel-title { font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: #f9fafb; }
+        .panel-accent { border-color: rgba(59,130,246,.3); }
+
+        /* ── Grid layouts ── */
+        .grid-2 { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+        @media (min-width: 768px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+        .grid-3 { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+        @media (min-width: 768px) { .grid-3 { grid-template-columns: 1fr 1fr; } }
+        @media (min-width: 1024px) { .grid-3 { grid-template-columns: 1fr 1fr 1fr; } }
+        .full-width { margin-bottom: 1.5rem; }
+
+        /* ── Form groups ── */
+        .sg { margin-bottom: 1.125rem; }
+        .sg:last-of-type { margin-bottom: 0; }
+        .sg label {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 0.3rem; font-size: 0.8125rem;
+        }
+        .sg .pn { color: #d1d5db; }
+        .val { font-family: 'Courier New', monospace; font-weight: bold; font-size: 0.875rem; color: #3b82f6; }
+
+        .ni {
+            background-color: #374151; color: white; border: 1px solid #4b5563; border-radius: 0.25rem;
+            padding: 0.4rem 0.5rem; font-family: 'Courier New', monospace; font-weight: bold;
+            font-size: 0.875rem; width: 100%; text-align: right; outline: none;
+        }
+        .ni:focus { border-color: #3b82f6; }
+        .ni-lg { font-size: 1.125rem; padding: 0.6rem 0.75rem; }
+
+        input[type="range"] {
+            width: 100%; height: 0.3rem; background-color: #374151; border-radius: 0.5rem;
+            outline: none; cursor: pointer; -webkit-appearance: none; appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 0.8rem; height: 0.8rem; border-radius: 50%;
+            background-color: #3b82f6; cursor: pointer;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 0.8rem; height: 0.8rem; border-radius: 50%;
+            background-color: #3b82f6; cursor: pointer; border: none;
+        }
+        .rl { display: flex; justify-content: space-between; font-size: 0.625rem; color: #6b7280; margin-top: 0.1rem; }
+
+        /* ── Result box ── */
+        .result-box {
+            background: linear-gradient(135deg, rgba(59,130,246,.1) 0%, rgba(16,185,129,.1) 100%);
+            border: 2px solid #3b82f6; border-radius: 0.5rem; padding: 1.25rem;
+            text-align: center; margin-top: 1rem;
+        }
+        .result-label { font-size: 0.8125rem; color: #9ca3af; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .result-value {
+            font-family: 'Courier New', monospace; font-size: 2rem; font-weight: bold;
+            color: #3b82f6; line-height: 1.2;
+        }
+        .result-sub { font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem; }
+
+        /* ── CLI output ── */
+        .cli-box {
+            background-color: #0f172a; border: 1px solid #1e293b; border-radius: 0.375rem;
+            padding: 0.75rem 1rem; margin-top: 0.75rem; font-family: 'Courier New', monospace;
+            font-size: 0.8125rem; color: #10b981; position: relative; cursor: pointer;
+        }
+        .cli-box:hover { border-color: #334155; }
+        .cli-box .copy-hint {
+            position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%);
+            font-size: 0.6875rem; color: #4b5563; font-family: -apple-system, sans-serif;
+        }
+        .cli-box.copied .copy-hint { color: #10b981; }
+
+        /* ── Steps / Instructions ── */
+        .step {
+            display: flex; gap: 0.75rem; padding: 0.75rem 0;
+            border-bottom: 1px solid #374151; font-size: 0.8125rem; color: #d1d5db;
+        }
+        .step:last-child { border-bottom: none; }
+        .step-num {
+            flex-shrink: 0; width: 1.5rem; height: 1.5rem; border-radius: 50%;
+            background: #3b82f6; color: white; display: flex; align-items: center;
+            justify-content: center; font-size: 0.6875rem; font-weight: 700;
+        }
+        .step-text { line-height: 1.5; }
+
+
+        .btn-primary {
+            padding: 0.5rem 1rem; border: 1px solid #3b82f6; background: #3b82f6;
+            color: white; border-radius: 0.375rem; cursor: pointer; font-size: 0.8125rem;
+            font-weight: 600; transition: all .15s; width: 100%;
+        }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-row { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+
+        /* ── Voltage section colors ── */
+        .volt-accent .result-box { border-color: #f59e0b; }
+        .volt-accent .result-value { color: #f59e0b; }
+        .volt-accent .val { color: #f59e0b; }
+        .volt-accent .cli-box { color: #f59e0b; }
+        .volt-accent .step-num { background: #f59e0b; }
+        .volt-accent input[type="range"]::-webkit-slider-thumb { background-color: #f59e0b; }
+        .volt-accent input[type="range"]::-moz-range-thumb { background-color: #f59e0b; }
+        .volt-accent .ni:focus { border-color: #f59e0b; }
+        .volt-accent .btn-primary { background: #f59e0b; border-color: #f59e0b; color: #111827; }
+        .volt-accent .btn-primary:hover { background: #d97706; }
+
+        /* ── Info box ── */
+        .info { display: none; }
+
+        /* ── Tooltip ── */
+        .tooltip {
+            position: relative; display: inline-block; cursor: help;
+            border-bottom: 1px dashed #4b5563;
+        }
+        .tooltip .tt-text {
+            visibility: hidden; opacity: 0; width: 220px; background-color: #0f172a;
+            color: #d1d5db; text-align: left; border-radius: 0.375rem; padding: 0.5rem 0.75rem;
+            position: absolute; z-index: 10; bottom: 125%; left: 50%; transform: translateX(-50%);
+            font-size: 0.6875rem; line-height: 1.4; border: 1px solid #1e293b;
+            transition: opacity .2s;
+        }
+        .tooltip:hover .tt-text { visibility: visible; opacity: 1; }
+
+        /* ── Accuracy badge ── */
+        .accuracy-badge {
+            display: inline-block; padding: 0.15rem 0.5rem; border-radius: 1rem;
+            font-size: 0.6875rem; font-weight: 600; margin-top: 0.5rem;
+        }
+        .acc-good { background: rgba(16,185,129,.15); color: #10b981; }
+        .acc-ok { background: rgba(245,158,11,.15); color: #f59e0b; }
+        .acc-poor { background: rgba(239,68,68,.15); color: #ef4444; }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../logo/saturn_fpv_logo_white_small.jpg">
+</head>
+<body>
+
+<div class="container">
+    <h1>Betaflight Current Sensor Calibration</h1>
+    <p class="subtitle">Accurately calibrate your current sensor scale for reliable mAh readings</p>
+
+    <!-- Tabs -->
+    <div class="results-tabs" style="margin-bottom: 0;">
+        <button class="results-tab active current-active" id="tab-btn-current" data-tab="current">
+            Current Sensor <span class="vbadge-tab" style="color: #3b82f6; background: rgba(59,130,246,0.12);">Amperage</span>
+        </button>
+        <button class="results-tab" id="tab-btn-voltage" data-tab="voltage">
+            Voltage Sensor <span class="vbadge-tab" style="color: #10b981; background: rgba(16,185,129,0.12);">VBAT</span>
+        </button>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         TAB 1: CURRENT SENSOR CALIBRATION
+         ═══════════════════════════════════════════════════════════ -->
+    <div class="tab-content active" id="tab-current">
+        <div class="grid-2">
+            <!-- LEFT: Instructions -->
+            <div class="panel" style="display:none;">
+                <div class="panel-title">How to Calibrate</div>
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-text">Fly a battery pack until you're comfortable its capacity has been used (aim for ~80% of rated mAh).</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-text">After landing, note the <strong style="color:#3b82f6">mAh consumed</strong> shown in the Betaflight OSD or Configurator.</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-text">Recharge the battery and record the <strong style="color:#3b82f6">mAh charged</strong> shown by your charger.</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">4</div>
+                    <div class="step-text">Connect to Betaflight and find the <strong style="color:#3b82f6">Current Scale</strong> in the Power &amp; Battery tab.</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">5</div>
+                    <div class="step-text">Enter all three values below to calculate your new scale. Apply it in Betaflight.</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">6</div>
+                    <div class="step-text">Repeat 2–3 times for best accuracy. Each iteration gets you closer to a perfect calibration.</div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Calculator -->
+            <div>
+                <div class="panel panel-accent">
+                    <div class="panel-title">Calculator</div>
+                    <div class="sg">
+                        <label>
+                            <span class="pn">
+                                <span class="tooltip">Betaflight mAh Consumed
+                                    <span class="tt-text">The mAh reading from your OSD or Betaflight Configurator after your flight.</span>
+                                </span>
+                            </span>
+                        </label>
+                        <input class="ni ni-lg" type="number" id="bf-mah" placeholder="e.g. 850" min="1" step="1">
+                    </div>
+                    <div class="sg">
+                        <label>
+                            <span class="pn">
+                                <span class="tooltip">Charger mAh Replaced
+                                    <span class="tt-text">The mAh your charger put back into the battery. Use a charger that displays this value.</span>
+                                </span>
+                            </span>
+                        </label>
+                        <input class="ni ni-lg" type="number" id="charger-mah" placeholder="e.g. 1050" min="1" step="1">
+                    </div>
+                    <div class="sg">
+                        <label>
+                            <span class="pn">
+                                <span class="tooltip">Current Betaflight Scale
+                                    <span class="tt-text">Found in Betaflight Configurator → Power &amp; Battery tab → Amperage Meter → Scale. Default is usually 400.</span>
+                                </span>
+                            </span>
+                        </label>
+                        <input class="ni ni-lg" type="number" id="old-scale" placeholder="e.g. 400" min="1" step="1">
+                    </div>
+
+                    <div class="result-box" id="result-box" style="display:none;">
+                        <div class="result-label">New Betaflight Scale</div>
+                        <div class="result-value" id="new-scale">—</div>
+                        <div class="result-sub" id="result-info"></div>
+                        <div id="accuracy-badge"></div>
+                    </div>
+
+                    <div class="cli-box" id="cli-box" style="display:none;" onclick="copyCLI(this)">
+                        <span id="cli-text"></span>
+                        <span class="copy-hint" id="copy-hint">Click to copy</span>
+                    </div>
+
+
+                </div>
+
+                <!-- Error % Visualizer -->
+                <div class="panel" style="margin-top: 1rem;" id="error-panel" style="display:none;">
+                    <div class="panel-title">Reading Error</div>
+                    <div style="display:flex; align-items:center; gap:1rem;">
+                        <div style="flex:1;">
+                            <div style="background:#374151; border-radius:0.25rem; height:1.5rem; position:relative; overflow:hidden;">
+                                <div id="error-bar" style="height:100%; border-radius:0.25rem; transition: width .3s; width:0%;"></div>
+                            </div>
+                        </div>
+                        <div class="val" id="error-pct" style="min-width:4rem; text-align:right;">—</div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.625rem; color:#6b7280; margin-top:0.25rem;">
+                        <span>0% (Perfect)</span>
+                        <span>50%+ (Very off)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info">
+            <strong>Formula:</strong> New Scale = Old Scale × (Charger mAh ÷ Betaflight mAh)<br><br>
+            <strong>Why calibrate?</strong> Current sensors vary significantly between flight controllers and ESCs. Factory defaults are often inaccurate. An uncalibrated sensor can show 850 mAh when you've actually used 1050 mAh — meaning you're over-discharging batteries without knowing it.<br><br>
+            <strong>Pro tip:</strong> After applying the new scale, fly another pack and repeat. Each iteration narrows the error. After 2–3 rounds, you'll typically be within 2–3% accuracy.
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         TAB 2: VOLTAGE SENSOR CALIBRATION
+         ═══════════════════════════════════════════════════════════ -->
+    <div class="tab-content" id="tab-voltage">
+        <div class="grid-2 volt-accent">
+            <!-- LEFT: Instructions -->
+            <div class="panel" style="display:none;">
+                <div class="panel-title">How to Calibrate Voltage</div>
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-text">Plug a battery into your quad and power it up.</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-text">Connect to Betaflight Configurator and go to the <strong style="color:#f59e0b">Power &amp; Battery</strong> tab.</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-text">Measure the <strong style="color:#f59e0b">actual battery voltage</strong> with a multimeter or LiPo checker (while the battery is still plugged into the quad).</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">4</div>
+                    <div class="step-text">Note the <strong style="color:#f59e0b">voltage reading</strong> shown in Betaflight Configurator and the current <strong style="color:#f59e0b">Voltage Scale</strong>.</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">5</div>
+                    <div class="step-text">Enter all values below and apply the new scale to Betaflight.</div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Calculator -->
+            <div>
+                <div class="panel panel-accent" style="border-color: rgba(245,158,11,.3);">
+                    <div class="panel-title">Voltage Scale Calculator</div>
+                    <div class="sg">
+                        <label><span class="pn">
+                            <span class="tooltip">Actual Battery Voltage (V)
+                                <span class="tt-text">Measured with a multimeter or LiPo checker while the battery is plugged into the quad.</span>
+                            </span>
+                        </span></label>
+                        <input class="ni ni-lg" type="number" id="actual-voltage" placeholder="e.g. 15.8" min="0" step="0.01">
+                    </div>
+                    <div class="sg">
+                        <label><span class="pn">
+                            <span class="tooltip">Betaflight Voltage Reading (V)
+                                <span class="tt-text">The voltage shown in Betaflight Configurator's Power &amp; Battery tab.</span>
+                            </span>
+                        </span></label>
+                        <input class="ni ni-lg" type="number" id="bf-voltage" placeholder="e.g. 16.2" min="0" step="0.01">
+                    </div>
+                    <div class="sg">
+                        <label><span class="pn">
+                            <span class="tooltip">Current Voltage Scale
+                                <span class="tt-text">Found in Betaflight Configurator → Power &amp; Battery tab → Voltage Meter → Scale. Default is usually 110.</span>
+                            </span>
+                        </span></label>
+                        <input class="ni ni-lg" type="number" id="old-vscale" placeholder="e.g. 110" min="1" step="1">
+                    </div>
+
+                    <div class="result-box" id="volt-result-box" style="display:none;">
+                        <div class="result-label">New Voltage Scale</div>
+                        <div class="result-value" id="new-vscale">—</div>
+                        <div class="result-sub" id="volt-result-info"></div>
+                    </div>
+
+                    <div class="cli-box" id="volt-cli-box" style="display:none;" onclick="copyCLI(this)">
+                        <span id="volt-cli-text"></span>
+                        <span class="copy-hint">Click to copy</span>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+
+        <div class="info" style="margin-top:1.5rem;">
+            <strong>Formula:</strong> New Scale = Old Scale × (Actual Voltage ÷ Betaflight Voltage)<br><br>
+            <strong>Note:</strong> Unlike current calibration, voltage calibration only needs to be done once per flight controller. Measure voltage while the battery is connected to the quad — unplugged voltage will differ due to voltage sag/rise.
+        </div>
+    </div>
+
+
+</div>
+
+<script>
+// ================================================================
+//  STATE
+// ================================================================
+// ================================================================
+//  TABS
+// ================================================================
+document.querySelectorAll('.results-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+        document.querySelectorAll('.results-tab').forEach(function(t) {
+            t.classList.remove('active', 'current-active', 'voltage-active');
+        });
+        document.querySelectorAll('.tab-content').forEach(function(tc) { tc.classList.remove('active'); });
+        tab.classList.add('active');
+        if (tab.getAttribute('data-tab') === 'current') {
+            tab.classList.add('current-active');
+        } else {
+            tab.classList.add('voltage-active');
+        }
+        document.getElementById('tab-' + tab.getAttribute('data-tab')).classList.add('active');
+    });
+});
+
+// ================================================================
+//  CURRENT SENSOR CALCULATION
+// ================================================================
+function calculate() {
+    var bfMah = parseFloat(document.getElementById('bf-mah').value);
+    var chargerMah = parseFloat(document.getElementById('charger-mah').value);
+    var oldScale = parseFloat(document.getElementById('old-scale').value);
+
+    if (!bfMah || !chargerMah || !oldScale || bfMah <= 0 || chargerMah <= 0 || oldScale <= 0) {
+        alert('Please fill in all fields with positive values.');
+        return;
+    }
+
+    var newScale = Math.round(oldScale * (chargerMah / bfMah));
+    var errorPct = Math.abs((bfMah - chargerMah) / chargerMah * 100);
+    var direction = bfMah < chargerMah ? 'under-reading' : 'over-reading';
+
+    // Display result
+    document.getElementById('result-box').style.display = 'block';
+    document.getElementById('new-scale').textContent = newScale;
+    document.getElementById('result-info').textContent =
+        'Your sensor was ' + direction + ' by ' + errorPct.toFixed(1) + '% (Scale ' + oldScale + ' → ' + newScale + ')';
+
+    // Accuracy badge
+    var badge = document.getElementById('accuracy-badge');
+    if (errorPct < 5) {
+        badge.innerHTML = '<span class="accuracy-badge acc-good">✓ Good — within 5%</span>';
+    } else if (errorPct < 15) {
+        badge.innerHTML = '<span class="accuracy-badge acc-ok">⚠ Moderate — ' + errorPct.toFixed(0) + '% off</span>';
+    } else {
+        badge.innerHTML = '<span class="accuracy-badge acc-poor">✗ Significant — ' + errorPct.toFixed(0) + '% off</span>';
+    }
+
+    // CLI command
+    document.getElementById('cli-box').style.display = 'block';
+    document.getElementById('cli-text').textContent = 'set current_meter_scale = ' + newScale;
+
+    // Error bar
+    document.getElementById('error-panel').style.display = 'block';
+    var barWidth = Math.min(errorPct, 50) / 50 * 100;
+    var bar = document.getElementById('error-bar');
+    bar.style.width = barWidth + '%';
+    bar.style.background = errorPct < 5 ? '#10b981' : errorPct < 15 ? '#f59e0b' : '#ef4444';
+    document.getElementById('error-pct').textContent = errorPct.toFixed(1) + '%';
+    document.getElementById('error-pct').style.color = errorPct < 5 ? '#10b981' : errorPct < 15 ? '#f59e0b' : '#ef4444';
+
+}
+
+// ================================================================
+//  VOLTAGE SENSOR CALCULATION
+// ================================================================
+function calcVoltage() {
+    var actualV = parseFloat(document.getElementById('actual-voltage').value);
+    var bfV = parseFloat(document.getElementById('bf-voltage').value);
+    var oldVScale = parseFloat(document.getElementById('old-vscale').value);
+
+    if (!actualV || !bfV || !oldVScale || actualV <= 0 || bfV <= 0 || oldVScale <= 0) {
+        alert('Please fill in all fields with positive values.');
+        return;
+    }
+
+    var newVScale = Math.round(oldVScale * (actualV / bfV));
+    var errorPct = Math.abs((bfV - actualV) / actualV * 100);
+
+    document.getElementById('volt-result-box').style.display = 'block';
+    document.getElementById('new-vscale').textContent = newVScale;
+    document.getElementById('volt-result-info').textContent =
+        'Error was ' + errorPct.toFixed(2) + '% (Scale ' + oldVScale + ' → ' + newVScale + ')';
+
+    document.getElementById('volt-cli-box').style.display = 'block';
+    document.getElementById('volt-cli-text').textContent = 'set vbat_scale = ' + newVScale;
+}
+
+// ================================================================
+//  CLI COPY
+// ================================================================
+function copyCLI(el) {
+    var text = el.querySelector('span:first-child').textContent;
+    navigator.clipboard.writeText(text).then(function() {
+        var hint = el.querySelector('.copy-hint');
+        hint.textContent = 'Copied!';
+        el.classList.add('copied');
+        setTimeout(function() {
+            hint.textContent = 'Click to copy';
+            el.classList.remove('copied');
+        }, 2000);
+    });
+}
+
+// ================================================================
+//  AUTO-CALCULATE ON INPUT
+// ================================================================
+['bf-mah', 'charger-mah', 'old-scale'].forEach(function(id) {
+    document.getElementById(id).addEventListener('input', function() {
+        var a = document.getElementById('bf-mah').value;
+        var b = document.getElementById('charger-mah').value;
+        var c = document.getElementById('old-scale').value;
+        if (a && b && c && parseFloat(a) > 0 && parseFloat(b) > 0 && parseFloat(c) > 0) {
+            calculate();
+        }
+    });
+});
+
+['actual-voltage', 'bf-voltage', 'old-vscale'].forEach(function(id) {
+    document.getElementById(id).addEventListener('input', function() {
+        var a = document.getElementById('actual-voltage').value;
+        var b = document.getElementById('bf-voltage').value;
+        var c = document.getElementById('old-vscale').value;
+        if (a && b && c && parseFloat(a) > 0 && parseFloat(b) > 0 && parseFloat(c) > 0) {
+            calcVoltage();
+        }
+    });
+});
+</script>
+<script>
+    if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'pageChange', key: 'current' }, '*');
+    }
+</script>
+</body>
+</html>

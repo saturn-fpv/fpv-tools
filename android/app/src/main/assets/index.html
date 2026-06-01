@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FPV Tools - Saturn FPV</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --black: #0A0A0B;
+            --dark: #111113;
+            --card: #18181B;
+            --card-hover: #1E1E22;
+            --border: #27272A;
+            --text: #FAFAFA;
+            --text-muted: #A1A1AA;
+            --text-dim: #71717A;
+            --orange: #E8722A;
+            --blue: #3B7BF6;
+            --blue-glow: rgba(59, 123, 246, 0.2);
+            --orange-glow: rgba(232, 114, 42, 0.2);
+            --header-height: 50px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background: var(--black);
+            color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            overflow: hidden;
+        }
+
+        /* ── HEADER ── */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: calc(var(--header-height) + env(safe-area-inset-top, 0px));
+            padding-top: env(safe-area-inset-top, 0px);
+            background: rgba(10, 10, 11, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+            z-index: 100;
+        }
+
+        /* Left Logo Area */
+        .brand-logo {
+            height: 34px;
+            width: 34px;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .brand-logo:hover {
+            transform: scale(1.08);
+        }
+        .brand-logo img {
+            height: 100%;
+            width: 100%;
+            display: block;
+            border-radius: 6px;
+        }
+
+        /* Centered App Title */
+        .app-title {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text);
+            cursor: pointer;
+            user-select: none;
+            transition: opacity 0.2s;
+        }
+        .app-title:hover {
+            opacity: 0.85;
+        }
+        .app-title span {
+            background: linear-gradient(135deg, var(--orange) 0%, #ff8c42 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-right: 0.2rem;
+        }
+
+        /* Right Nav Actions */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+        .btn-help {
+            color: var(--blue);
+            background: rgba(59, 123, 246, 0.08);
+            border: 1px solid rgba(59, 123, 246, 0.15);
+        }
+        .btn-help:hover {
+            background: rgba(59, 123, 246, 0.18);
+            box-shadow: 0 0 12px var(--blue-glow);
+            transform: scale(1.05);
+        }
+        .btn-menu {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+        }
+        .btn-menu:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--text-muted);
+            transform: scale(1.05);
+        }
+        .action-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+            stroke: currentColor;
+            stroke-width: 0.5;
+        }
+
+        /* ── MAIN CONTENT VIEW (IFRAME CONTAINER) ── */
+        .view-container {
+            width: 100%;
+            height: 100%;
+            padding-top: calc(var(--header-height) + env(safe-area-inset-top, 0px));
+            position: relative;
+        }
+        #app-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: var(--black);
+        }
+
+        /* ── HELPER/OVERLAYS ── */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 150;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* 1. Slide-down Help Panel */
+        .help-panel {
+            position: fixed;
+            top: -100%;
+            left: 0;
+            right: 0;
+            max-height: 85vh;
+            background: rgba(20, 20, 22, 0.95);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-bottom: 1px solid var(--border);
+            z-index: 200;
+            padding-top: env(safe-area-inset-top, 0px);
+            display: flex;
+            flex-direction: column;
+            transition: top 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
+        }
+        .help-panel.open {
+            top: 0;
+        }
+        .help-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .help-header h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: var(--blue);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .help-content {
+            padding: 1.5rem;
+            overflow-y: auto;
+            flex: 1;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+        .help-content strong {
+            color: var(--text);
+        }
+        .help-close-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .help-close-btn:hover {
+            color: var(--text);
+            border-color: var(--text-muted);
+            background: rgba(255,255,255,0.03);
+        }
+
+        /* 2. Slide-in Tools Menu Drawer */
+        .drawer-menu {
+            position: fixed;
+            top: 0;
+            right: -320px;
+            width: 300px;
+            height: 100%;
+            background: rgba(24, 24, 27, 0.95);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-left: 1px solid var(--border);
+            padding-top: env(safe-area-inset-top, 0px);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: -10px 0 40px rgba(0,0,0,0.5);
+        }
+        .drawer-menu.open {
+            right: 0;
+        }
+        .drawer-header {
+            padding: 1.5rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .drawer-header h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: var(--text);
+            text-transform: uppercase;
+        }
+        .drawer-header h2 span {
+            color: var(--orange);
+        }
+        .drawer-close {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .drawer-close:hover {
+            color: var(--text);
+        }
+        .drawer-links {
+            list-style: none;
+            padding: 1rem 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .drawer-item {
+            padding: 0.15rem 0.75rem;
+        }
+        .drawer-item a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        .drawer-item a:hover, .drawer-item.active a {
+            color: var(--text);
+            background: rgba(232, 114, 42, 0.06);
+            border-color: rgba(232, 114, 42, 0.15);
+        }
+        .drawer-item.active a {
+            background: rgba(232, 114, 42, 0.1);
+            border-color: var(--orange);
+            font-weight: 600;
+        }
+        .drawer-item .tool-icon {
+            font-size: 1.15rem;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        @media (max-width: 480px) {
+            header {
+                padding: 0 0.5rem;
+            }
+            .brand-logo {
+                height: 30px;
+                width: 30px;
+            }
+            .app-title {
+                font-size: 0.85rem;
+                letter-spacing: 0.03em;
+            }
+            .header-actions {
+                gap: 0.5rem;
+            }
+            .action-btn {
+                width: 32px;
+                height: 32px;
+            }
+            .action-btn svg {
+                width: 16px;
+                height: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- STICKY HEADER -->
+    <header>
+        <div class="brand-logo" onclick="goHome()" title="Back to Dashboard">
+            <img id="logo-img" src="app_icon.png" alt="Saturn FPV">
+        </div>
+        <div class="app-title" onclick="goHome()"><span>SATURN</span> FPV Tools</div>
+        <div class="header-actions">
+            <!-- Blue Question Mark Button -->
+            <button class="action-btn btn-help" onclick="toggleHelp()" title="Help & Details">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <!-- 3 Stripe Burger Menu Button -->
+            <button class="action-btn btn-menu" onclick="toggleDrawer()" title="Select Tool">
+                <svg viewBox="0 0 24 24">
+                    <line x1="4" y1="6" x2="20" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="4" y1="18" x2="20" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- CONTENT FRAME -->
+    <div class="view-container">
+        <iframe id="app-iframe" src="menu.html" name="app-iframe"></iframe>
+    </div>
+
+    <!-- OVERLAY SHADOW -->
+    <div class="overlay" id="app-overlay" onclick="closeAllOverlays()"></div>
+
+    <!-- HELP SLIDE PANEL (from top) -->
+    <div class="help-panel" id="help-panel">
+        <div class="help-header">
+            <h2><span>?</span> Tool Documentation</h2>
+            <button class="help-close-btn" onclick="toggleHelp()">Close</button>
+        </div>
+        <div class="help-content" id="help-content">
+            <!-- Dynamic Help Content Injected Here -->
+        </div>
+    </div>
+
+    <!-- BURGER MENU DRAWER (from right) -->
+    <div class="drawer-menu" id="drawer-menu">
+        <div class="drawer-header">
+            <h2><span>FPV</span> Tools</h2>
+            <button class="drawer-close" onclick="toggleDrawer()">&times;</button>
+        </div>
+        <ul class="drawer-links">
+            <li class="drawer-item active" id="menu-home" onclick="selectDrawerTool('menu.html', 'home')">
+                <a href="#"><span class="tool-icon">📊</span>Dashboard</a>
+            </li>
+            <li style="border-top: 1px solid var(--border); margin: 0.75rem 1rem 0.5rem 1rem; padding-top: 0.75rem; font-size: 0.6875rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; list-style: none;">Tools</li>
+            <li class="drawer-item" id="menu-rate" onclick="selectDrawerTool('html tools/betaflight-rate-converter.html', 'rate')">
+                <a href="#"><span class="tool-icon">📈</span>Rate Converter</a>
+            </li>
+            <li class="drawer-item" id="menu-tpa" onclick="selectDrawerTool('html tools/betaflight-tpa.html', 'tpa')">
+                <a href="#"><span class="tool-icon">📉</span>TPA Comparison</a>
+            </li>
+            <li class="drawer-item" id="menu-current" onclick="selectDrawerTool('html tools/current-sensor-calibration.html', 'current')">
+                <a href="#"><span class="tool-icon">⚡</span>Current Calibration</a>
+            </li>
+            <li class="drawer-item" id="menu-stator" onclick="selectDrawerTool('html tools/motor-stator-volume-calculator.html', 'stator')">
+                <a href="#"><span class="tool-icon">⚙️</span>Stator Volume</a>
+            </li>
+            <li class="drawer-item" id="menu-pid" onclick="selectDrawerTool('html tools/pid-controller-simulator.html', 'pid')">
+                <a href="#"><span class="tool-icon">🎮</span>PID Simulator</a>
+            </li>
+            <li class="drawer-item" id="menu-speed" onclick="selectDrawerTool('html tools/prop-tip-speed-calculator.html', 'speed')">
+                <a href="#"><span class="tool-icon">🌀</span>Prop Tip Speed</a>
+            </li>
+            <li class="drawer-item" id="menu-freq" onclick="selectDrawerTool('html tools/race-frequency-organizer.html', 'freq')">
+                <a href="#"><span class="tool-icon">📡</span>Frequency Planner</a>
+            </li>
+            <li class="drawer-item" id="menu-telemetry" onclick="selectDrawerTool('html tools/telemetry-parser.html', 'telemetry')">
+                <a href="#"><span class="tool-icon">🗺️</span>Telemetry Parser</a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- DYNAMIC HELP CONTENT STORAGE -->
+    <script>
+        const helpData = {
+            home: `
+                <p>Welcome to <strong>FPV Tools</strong> by Saturn FPV!</p><br>
+                <p>This premium offline application gathers the most critical calculators and simulators needed for dialing in your FPV multirotor's performance. Open the drawer menu (top right) or select a tile on the main dashboard to launch a tool.</p><br>
+                <p><strong>Available Tools:</strong></p>
+                <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <li><strong>Rate Converter:</strong> Compare rate curves across Actual, Betaflight, KISS, Quick, and RaceFlight, and best-fit curves automatically.</li>
+                    <li><strong>TPA Comparison:</strong> Visualize throttle PID attenuation and breakpoint configurations to tame high-throttle vibrations.</li>
+                    <li><strong>Current Calibration:</strong> Calibrate your FC's amperage and VBAT scale based on real flight log vs. charger values.</li>
+                    <li><strong>Stator Volume:</strong> Compare torque capacities and weights across standard motor dimensions.</li>
+                    <li><strong>PID Simulator:</strong> Interactive math-model axis simulator with real-time blackbox scope and motor heat metrics.</li>
+                    <li><strong>Prop Tip Speed:</strong> Calculate tip speeds, transonic Mach number efficiency zones, and no-load RPM.</li>
+                    <li><strong>Frequency Planner:</strong> Plan multi-pilot analog/digital heats cleanly without intermodulation distortion conflicts.</li>
+                    <li><strong>Telemetry Parser:</strong> Load EdgeTX logs to generate path maps, altitudes, speeds, and Google Earth track coordinates.</li>
+                </ul>
+            `,
+            rate: `
+                <p><strong>Betaflight Rate Converter Help</strong></p><br>
+                <p>Compare and convert rate curves across Actual, Betaflight, Quick, KISS, and RaceFlight rate models. This allows you to recreate the exact stick feel when moving between different flight controllers or firmware versions.</p><br>
+                <p><strong>How to use:</strong></p>
+                <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <li>Set your rates in the target curve using the sliders or numerical inputs.</li>
+                    <li>To convert one curve model to another, choose your preferred target model in the "To:" select box at the bottom of the panel, and click <strong>Convert</strong>.</li>
+                    <li>A hybrid coarse/fine grid search algorithm will run in the background to automatically find the mathematically closest rates under that model, matching the source curve's center sensitivity and maximum rates.</li>
+                </ul>
+            `,
+            tpa: `
+                <p><strong>Betaflight TPA Comparison Help</strong></p><br>
+                <p>TPA (Throttle PID Attenuation) reduces PID gains at high throttle ranges to prevent mid-to-high throttle oscillations (often heard as high-frequency warbling or flutter at full punch-outs).</p><br>
+                <p><strong>Understanding the inputs:</strong></p>
+                <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <li><strong>TPA Rate:</strong> The percentage by which the P and D gains are reduced at 100% throttle. E.g., a rate of 0.65 reduces your gains by 65% (PIDs retain 35% strength).</li>
+                    <li><strong>Breakpoint:</strong> The throttle value (in microseconds, from 1000 to 2000) where the attenuation starts. Below this breakpoint, PIDs retain 100% strength.</li>
+                    <li>Use the dual control panels to overlay two different TPA profiles and compare how rapidly and aggressively they attenuate your gains.</li>
+                </ul>
+            `,
+            current: `
+                <p><strong>Current & Voltage Calibration Help</strong></p><br>
+                <p>This utility helps you calibrate your flight controller's internal current sensor and voltage dividers to guarantee accurate battery status telemetry and reliable mAh consumption readings.</p><br>
+                <p><strong>Current Sensor Steps:</strong></p>
+                <ol style="padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <li>Fly a pack and record the **mAh consumed** reported by your OSD/Configurator.</li>
+                    <li>Put the battery on a charger and record the **mAh replaced** (charged).</li>
+                    <li>Record your current **Betaflight Current Scale** (default is usually 400).</li>
+                    <li>Click Calculate and paste the resulting ` + "`set current_meter_scale`" + ` CLI command into the Betaflight console.</li>
+                </ol><br>
+                <p><strong>Voltage Sensor Steps:</strong></p>
+                <ol style="padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <li>Measure active battery voltage with a multimeter while connected to the quad.</li>
+                    <li>Record the voltage shown by the Configurator and the current **Voltage Scale** (default 110).</li>
+                    <li>Click Calculate and apply the ` + "`set vbat_scale`" + ` CLI command in Betaflight.</li>
+                </ol>
+            `,
+            stator: `
+                <p><strong>Motor Stator Volume Calculator Help</strong></p><br>
+                <p>Multirotor motors are designated by standard dimensions (e.g. 2207, 2306) representing their stator diameter and stator height in millimeters. Stator volume serves as a direct proxy for active magnetic material and copper volume, indicating motor torque capacity.</p><br>
+                <p><strong>Key Insights:</strong></p>
+                <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <li><strong>The Stator Formula:</strong> Stator volume is calculated as: V = &pi; &times; (D/2)&sup2; &times; H. Because diameter is squared, small diameter increments yield larger volume shifts than height changes. However, height contributes heavily to cooling and stator aspect ratios.</li>
+                    <li><strong>Volume & Weight:</strong> Estimated motor weights are derived from statistical averages: W &asymp; 2.0g + 0.0098 &times; V.</li>
+                    <li>Use the comparison charts and live cross-sections to scale, compare, and identify optimal KV ranges and propeller configurations for any motor size.</li>
+                </ul>
+            `,
+            pid: `
+                <p><strong>PID Controller Simulator Help</strong></p><br>
+                <p>A mathematically rigorous, interactive simulator of a single drone rotary axis (roll, pitch, or yaw) under standard PID and Feedforward controllers.</p><br>
+                <p><strong>Core Concepts:</strong></p>
+                <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <li><strong>P (Proportional):</strong> Reacts to the present. Drives the follower toward the setpoint. Excess P causes ringing, overshoot, and rapid oscillations.</li>
+                    <li><strong>I (Integral):</strong> Reacts to the past. Corrects persistent offsets (like unbalanced CG or side winds) by accumulating force over time.</li>
+                    <li><strong>D (Derivative):</strong> Reacts to the future. Dampens acceleration and decelerates the follower as it approaches the setpoint. Excess D causes high-frequency noise amplification, heating up motors.</li>
+                    <li><strong>FF (Feedforward):</strong> Reacts to stick velocity. Instantly adds force during stick movement to eliminate gyro latency, dropping to zero when stick stops.</li>
+                    <li>Use the sliders to adjust mass, drag, sensor noise, control loop delay, and center-of-gravity offsets. Use the Scope to inspect the blackbox-style trace feeds.</li>
+                </ul>
+            `,
+            speed: `
+                <p><strong>Propeller Tip Speed Calculator Help</strong></p><br>
+                <p>Calculate the absolute physical speed at which your propeller tips cut through the air, and monitor transonic aerodynamic limits.</p><br>
+                <p><strong>Understanding Transonic Limits:</strong></p>
+                <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <li>As the tips of a propeller approach the speed of sound (Mach 1.0), the airflow detaches, forming micro shock waves. This leads to heavy turbulence, a massive drop in efficiency, and extremely loud prop wash.</li>
+                    <li><strong>Mach Zones:</strong>
+                        <br>• Below 0.62: Super efficient and highly quiet.
+                        <br>• 0.62 to 0.88: Moderate, excellent balance of thrust and sound.
+                        <br>• 0.88 to 0.92: Max thrust zone. Transonic limits are reached.
+                        <br>• Above 0.92: Severely inefficient. Heavy power is wasted as acoustic heat.
+                    </li>
+                    <li>Air temperature alters the speed of sound. Adjust the environment slider to see how hot/cold climates alter your prop's aerodynamic limits.</li>
+                </ul>
+            `,
+            freq: `
+                <p><strong>Race Frequency Organizer Help</strong></p><br>
+                <p>Organize clear, intermodulation distortion (IMD) free frequency grids for analog and digital FPV systems running multi-pilot events.</p><br>
+                <p><strong>Key Features:</strong></p>
+                <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <li><strong>The Challenge:</strong> When multiple video transmitters broadcast simultaneously, they generate phantom harmonics in local receivers (IMD). Standard equal-spacing schemes amplify these conflicts.</li>
+                    <li><strong>DJI O3/O4 Carrier:</strong> DJI O3/O4 systems utilize a wide carrier wave that floods the 5720-5850 MHz spectrum. This tool automatically forces analog/HDZero channels outside this zone when digital systems are active in the lineup.</li>
+                    <li>Set the pilot sliders and click <strong>Auto-Assign Frequencies</strong>. The engine will search, plan, and automatically split pilots into separate heats (A, B, C...) if they cannot all safely fly in a single heat.</li>
+                </ul>
+            `,
+            telemetry: `
+                <p><strong>EdgeTX Telemetry Parser Help</strong></p><br>
+                <p>Convert telemetry ".csv" logs generated by EdgeTX radios (running CRSF or ELRS power profiles) into Google Earth and GIS compatible KML/KMZ or GPX tracking files.</p><br>
+                <p><strong>How to use:</strong></p>
+                <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <li>Browse or drag-and-drop your EdgeTX ".csv" log file.</li>
+                    <li>Select a flight segment from the auto-detected list (the parser isolates separate flights based on arm events and battery reconnects, and automatically filters ground tests).</li>
+                    <li>Configure altitude offset and track width/color.</li>
+                    <li>Inspect the GPS track path on the interactive map preview and review the speed and altitude profile graphs.</li>
+                    <li>Click <strong>Download</strong> to save your KML/KMZ/GPX file for interactive 3D fly-overs in Google Earth.</li>
+                </ul>
+            `
+        };
+
+        let currentActiveTool = 'home';
+
+        function goHome() {
+            document.getElementById('app-iframe').src = 'menu.html';
+            updateActiveDrawer('home');
+            closeAllOverlays();
+        }
+
+        function toggleHelp() {
+            const panel = document.getElementById('help-panel');
+            const overlay = document.getElementById('app-overlay');
+            const isOpen = panel.classList.contains('open');
+
+            if (isOpen) {
+                panel.classList.remove('open');
+                overlay.classList.remove('visible');
+            } else {
+                // Load help text based on current active tool
+                document.getElementById('help-content').innerHTML = helpData[currentActiveTool] || helpData.home;
+                panel.classList.add('open');
+                overlay.classList.add('visible');
+                // Close drawer if open
+                document.getElementById('drawer-menu').classList.remove('open');
+            }
+        }
+
+        function toggleDrawer() {
+            const drawer = document.getElementById('drawer-menu');
+            const overlay = document.getElementById('app-overlay');
+            const isOpen = drawer.classList.contains('open');
+
+            if (isOpen) {
+                drawer.classList.remove('open');
+                overlay.classList.remove('visible');
+            } else {
+                drawer.classList.add('open');
+                overlay.classList.add('visible');
+                // Close help if open
+                document.getElementById('help-panel').classList.remove('open');
+            }
+        }
+
+        function closeAllOverlays() {
+            document.getElementById('help-panel').classList.remove('open');
+            document.getElementById('drawer-menu').classList.remove('open');
+            document.getElementById('app-overlay').classList.remove('visible');
+        }
+
+        function updateActiveDrawer(key) {
+            currentActiveTool = key;
+            document.querySelectorAll('.drawer-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            const activeItem = document.getElementById('menu-' + key);
+            if (activeItem) activeItem.classList.add('active');
+        }
+
+        function selectDrawerTool(src, key) {
+            document.getElementById('app-iframe').src = src;
+            updateActiveDrawer(key);
+            closeAllOverlays();
+        }
+
+        // Catch messages from iframe when tool changes internally
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'pageChange') {
+                updateActiveDrawer(event.data.key);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EdgeTX Telemetry Parser - Saturn FPV</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #111827;
+            color: #e5e7eb;
+            padding: 1.5rem;
+            min-height: 100vh;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        /* Header */
+        .header { text-align: center; margin-bottom: 1.5rem; }
+        .header h1 { font-size: 1.75rem; font-weight: 700; color: #fff; margin-bottom: 0.25rem; }
+        .header .subtitle { color: #9ca3af; font-size: 0.875rem; }
+
+        /* Panels */
+        .panel {
+            background: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+        .panel h2 {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: #e5e7eb;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .panel h2 .icon { font-size: 1rem; }
+
+        /* Grid layouts */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        @media (min-width: 900px) {
+            .grid-2 { grid-template-columns: 1fr 1fr; }
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        @media (min-width: 900px) {
+            .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+        }
+
+        /* Form elements */
+        label {
+            display: block;
+            font-size: 0.8125rem;
+            color: #9ca3af;
+            margin-bottom: 0.3rem;
+        }
+        input[type="number"], input[type="text"], select {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 0.375rem;
+            color: #e5e7eb;
+            font-size: 0.875rem;
+            font-family: inherit;
+        }
+        input[type="number"]:focus, input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #E8722A;
+        }
+        select { cursor: pointer; }
+        input[type="color"] {
+            width: 40px; height: 32px;
+            border: 1px solid #374151;
+            border-radius: 0.375rem;
+            background: #111827;
+            cursor: pointer;
+            padding: 2px;
+        }
+        input[type="range"] {
+            width: 100%;
+            accent-color: #E8722A;
+        }
+
+        /* Toggle switch */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+        }
+        .toggle-row span {
+            font-size: 0.8125rem;
+            color: #9ca3af;
+        }
+        .toggle {
+            position: relative;
+            width: 40px; height: 22px;
+            cursor: pointer;
+        }
+        .toggle input { opacity: 0; width: 0; height: 0; }
+        .toggle .slider {
+            position: absolute; inset: 0;
+            background: #374151;
+            border-radius: 11px;
+            transition: 0.2s;
+        }
+        .toggle .slider::before {
+            content: '';
+            position: absolute;
+            width: 16px; height: 16px;
+            left: 3px; top: 3px;
+            background: #9ca3af;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+        .toggle input:checked + .slider { background: #E8722A; }
+        .toggle input:checked + .slider::before {
+            transform: translateX(18px);
+            background: #fff;
+        }
+
+        /* Upload area */
+        .upload-area {
+            border: 2px dashed #374151;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .upload-area:hover, .upload-area.dragover {
+            border-color: #E8722A;
+            background: rgba(232, 114, 42, 0.05);
+        }
+        .upload-area .icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .upload-area p { color: #9ca3af; font-size: 0.875rem; }
+        .upload-area .filename {
+            color: #E8722A;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        /* Flight selector */
+        .flight-list { display: flex; flex-direction: column; gap: 0.5rem; }
+        .flight-card {
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .flight-card:hover { border-color: #4b5563; background: #1a2332; }
+        .flight-card.selected { border-color: #E8722A; background: rgba(232, 114, 42, 0.08); }
+        .flight-card .flight-info { display: flex; flex-direction: column; gap: 0.15rem; }
+        .flight-card .flight-name { font-size: 0.875rem; font-weight: 600; color: #e5e7eb; }
+        .flight-card .flight-meta { font-size: 0.75rem; color: #6b7280; }
+        .flight-card .flight-badge {
+            font-size: 0.6875rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 1rem;
+            background: #374151;
+            color: #9ca3af;
+            white-space: nowrap;
+        }
+        .flight-card.selected .flight-badge { background: #E8722A; color: #fff; }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.25rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+        .btn-primary {
+            background: #E8722A;
+            color: #fff;
+        }
+        .btn-primary:hover { background: #d4631f; }
+        .btn-primary:disabled {
+            background: #374151;
+            color: #6b7280;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background: transparent;
+            color: #9ca3af;
+            border: 1px solid #374151;
+        }
+        .btn-secondary:hover { border-color: #4b5563; color: #d1d5db; }
+
+        .btn-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Map */
+        #map {
+            width: 100%;
+            height: 350px;
+            border-radius: 0.5rem;
+            border: 1px solid #374151;
+            background: #111827;
+        }
+        .leaflet-container { background: #111827; }
+
+        /* Chart */
+        .chart-wrap {
+            position: relative;
+            width: 100%;
+            height: 200px;
+        }
+
+        /* Status / empty states */
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #6b7280;
+            font-size: 0.8125rem;
+        }
+
+        /* Form group */
+        .form-group { margin-bottom: 0.85rem; }
+        .form-group:last-child { margin-bottom: 0; }
+
+        /* Inline field with unit */
+        .input-with-unit {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .input-with-unit .unit {
+            font-size: 0.75rem;
+            color: #6b7280;
+            white-space: nowrap;
+        }
+
+        /* Color + width row */
+        .color-width-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.75rem;
+        }
+        .color-width-row .cw-col { flex: 1; }
+        .color-width-row .cw-col-sm { flex: 0 0 60px; }
+
+        /* Width display */
+        .range-val {
+            font-size: 0.75rem;
+            color: #E8722A;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        /* Stats row */
+        .stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 0.75rem;
+        }
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+        }
+        .stat-label { font-size: 0.6875rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em; }
+        .stat-value { font-size: 0.9375rem; font-weight: 600; color: #e5e7eb; }
+
+        /* Hidden */
+        .hidden { display: none !important; }
+
+        /* Togglable results tabs */
+        .results-tabs {
+            display: flex;
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 0.75rem 0.75rem 0 0;
+            overflow: hidden;
+            border-bottom: none;
+        }
+        .results-tab {
+            flex: 1;
+            background: #111827;
+            border: none;
+            color: #9ca3af;
+            padding: 0.85rem 1rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            border-bottom: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-family: inherit;
+        }
+        .results-tab:hover {
+            color: white;
+            background: rgba(255,255,255,0.02);
+        }
+        .results-tab.active {
+            color: #E8722A;
+            background: #1f2937;
+            border-bottom: 2px solid #E8722A;
+        }
+
+        /* Responsive tweaks */
+        @media (max-width: 600px) {
+            body { padding: 1rem; }
+            .header h1 { font-size: 1.375rem; }
+            #map { height: 260px; }
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../logo/saturn_fpv_logo_white_small.jpg">
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1>EdgeTX Telemetry Parser</h1>
+        <div class="subtitle">Convert EdgeTX CRSF telemetry logs to KML, KMZ, or GPX for Google Earth</div>
+    </div>
+
+    <!-- Upload -->
+    <div class="panel">
+        <h2><span class="icon">📂</span> Load Telemetry CSV</h2>
+        <div class="upload-area" id="uploadArea">
+            <div class="icon">📄</div>
+            <p>Drop your EdgeTX CSV file here, or click to browse</p>
+            <div class="filename hidden" id="fileName"></div>
+            <input type="file" id="fileInput" accept=".csv" style="display:none">
+        </div>
+    </div>
+
+    <!-- Flight selector (hidden until file loaded) -->
+    <div class="panel hidden" id="flightPanel">
+        <h2><span class="icon">✈️</span> Select Flight Segment</h2>
+        <div class="flight-list" id="flightList"></div>
+    </div>
+
+    <!-- Main content (hidden until flight selected) -->
+    <div class="hidden" id="mainContent">
+        <!-- Previews (Column 1) + Settings (Column 2) grid -->
+        <div class="grid-2">
+            <!-- Left: Tabbed Previews -->
+            <div>
+                <!-- Togglable Previews Tabs -->
+                <div class="results-tabs">
+                    <button class="results-tab active" onclick="setTelemetryTab('map')">
+                        <span>🗺️ Track Map</span>
+                    </button>
+                    <button class="results-tab" onclick="setTelemetryTab('chart')">
+                        <span>📈 Altitude Profile</span>
+                    </button>
+                </div>
+
+                <!-- Tab Content: Track Map -->
+                <div class="panel" id="tab-telemetry-map" style="border-top-left-radius:0; border-top-right-radius:0;">
+                    <div id="map"></div>
+                    <div class="stats-row" id="statsRow">
+                        <div class="stat-item">
+                            <span class="stat-label">Points</span>
+                            <span class="stat-value" id="statPoints">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Duration</span>
+                            <span class="stat-value" id="statDuration">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Distance</span>
+                            <span class="stat-value" id="statDistance">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Max Alt</span>
+                            <span class="stat-value" id="statMaxAlt">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Max Spd (GSpd)</span>
+                            <span class="stat-value" id="statMaxSpd">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Max Spd (GPS)</span>
+                            <span class="stat-value" id="statMaxSpdCalc">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">GPS Density</span>
+                            <span class="stat-value" id="statDensity">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Altitude Chart -->
+                <div class="panel" id="tab-telemetry-chart" style="display:none; border-top-left-radius:0; border-top-right-radius:0;">
+                    <div class="chart-wrap">
+                        <canvas id="altChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Settings -->
+            <div>
+                <!-- Altitude correction -->
+                <div class="panel">
+                    <h2><span class="icon">📐</span> Altitude Correction</h2>
+                    <div class="form-group">
+                        <label for="altOffset">MSL Altitude Offset (m)</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="altOffset" value="0" step="1">
+                            <span class="unit">meters ASL</span>
+                        </div>
+                    </div>
+                    <div class="toggle-row">
+                        <span>Auto-trim stationary points</span>
+                        <label class="toggle">
+                            <input type="checkbox" id="autoTrim" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Export options -->
+                <div class="panel">
+                    <h2><span class="icon">⚙️</span> Export Options</h2>
+                    <div class="form-group">
+                        <label for="outputFormat">Output Format</label>
+                        <select id="outputFormat">
+                            <option value="kmz" selected>KMZ (compressed, recommended)</option>
+                            <option value="kml">KML (uncompressed XML)</option>
+                            <option value="gpx">GPX (universal GPS exchange)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="trackName">Track Name</label>
+                        <input type="text" id="trackName" value="Flight Track" placeholder="e.g. Kinbasket Lake">
+                    </div>
+                    <div class="color-width-row">
+                        <div class="cw-col-sm">
+                            <label for="trackColor">Color</label>
+                            <input type="color" id="trackColor" value="#e60000">
+                        </div>
+                        <div class="cw-col">
+                            <label>Line Width: <span class="range-val" id="widthVal">4</span></label>
+                            <input type="range" id="lineWidth" min="1" max="8" value="4" step="1">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top:0.85rem;">
+                        <label for="altMode">Altitude Mode</label>
+                        <select id="altMode">
+                            <option value="absolute" selected>Absolute (MSL)</option>
+                            <option value="relativeToGround">Relative to Ground</option>
+                            <option value="clampToGround">Clamped to Ground</option>
+                        </select>
+                    </div>
+                    <div class="toggle-row">
+                        <span>Extrude (drop lines to ground)</span>
+                        <label class="toggle">
+                            <input type="checkbox" id="extrude" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-row">
+                        <span>Include telemetry metadata per point</span>
+                        <label class="toggle">
+                            <input type="checkbox" id="includeMeta">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Download -->
+        <div class="btn-row" style="justify-content:center; margin-top:0.5rem; margin-bottom:1rem;">
+            <button class="btn btn-primary" id="downloadBtn" disabled>
+                <span>⬇️</span> Download
+            </button>
+            <button class="btn btn-secondary" id="resetBtn">
+                <span>🔄</span> Reset
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ================================================================
+//  STATE
+// ================================================================
+let rawRows = [];       // All parsed rows from CSV
+let flights = [];       // Detected flight segments
+let selectedFlight = -1;
+let activePoints = [];  // Points of the currently selected & processed flight
+let leafletMap = null;
+let trackLayer = null;
+let altChart = null;
+
+// ================================================================
+//  CSV PARSING - handles CRSF and ELRS (multiple header variants)
+//  Robust against:
+//   - different unit suffixes per header (Alt(s k), Alt(m), Alt(ft) ...)
+//   - sensor reordering between models
+//   - duplicate Alt(m) columns (baro vs GPS) by preferring the one after GPS
+//   - truncated rows when telemetry is briefly lost mid-log
+//   - stale GPS cache (rows where Sats<4 or jump > 1 km from previous)
+// ================================================================
+function parseCSV(text) {
+    const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(l => l.trim());
+    if (lines.length < 2) return [];
+
+    const headers = lines[0].split(',').map(h => h.trim());
+
+    // First-pass column lookup
+    const gpsCol = findCol(headers, ['GPS']);
+    if (gpsCol === -1) {
+        alert('Could not find GPS column in CSV. Make sure this is an EdgeTX telemetry log with GPS data.');
+        return [];
+    }
+
+    // Alt: when duplicate Alt(m) columns exist (baro + GPS, as in some EdgeTX
+    // models with both barometer and GPS sensor discovered), prefer the
+    // occurrence positioned AFTER the GPS column - that is the GPS-derived
+    // MSL altitude.
+    const altCol = findCol(headers, ['Alt(s k)', 'Alt(m)', 'Alt(ft)', 'Alt'], gpsCol);
+
+    const colMap = {
+        date:  findCol(headers, ['Date']),
+        time:  findCol(headers, ['Time']),
+        gps:   gpsCol,
+        alt:   altCol,
+        speed: findCol(headers, ['GSpd(cm/)', 'GSpd(kph)', 'GSpd(km/h)', 'GSpd(kmh)', 'GSpd(mph)', 'GSpd(m/s)', 'GSpd']),
+        sats:  findCol(headers, ['Sats']),
+        rssi:  findCol(headers, ['1RSS()', '1RSS', 'RSSI']),
+        rqly:  findCol(headers, ['RQly(  f)', 'RQly']),
+        rxbt:  findCol(headers, ['RxBt( V)', 'RxBt']),
+        curr:  findCol(headers, ['Curr(  A)', 'Curr']),
+        hdg:   findCol(headers, ['Hdg(W)', 'Hdg']),
+        thr:   findCol(headers, ['Thr']),
+    };
+
+    // Speed unit normalisation - CRSF mislabels as "cm/" but values are km/h
+    // (confirmed via GPS cross-check). ELRS labels are accurate.
+    var speedHeader = colMap.speed !== -1 ? headers[colMap.speed] : '';
+    var speedScale = 1.0; // multiplier to convert source -> km/h
+    if (/m\/s/i.test(speedHeader))      speedScale = 3.6;
+    else if (/mph/i.test(speedHeader))  speedScale = 1.609344;
+    // (cm/ is treated as km/h - see comment above)
+
+    // Track diagnostics so the UI can explain sparse-telemetry cases later
+    var dataRowCount = 0;       // total non-empty data rows
+    var droppedTruncated = 0;   // rows shorter than the header
+    var droppedNoGps = 0;       // rows with no GPS value
+    var droppedLowSats = 0;     // rows with Sats < 4
+    var droppedGpsJump = 0;     // rows rejected as > 1 km jump from previous
+
+    // First pass: parse every row that looks structurally valid
+    var raw = [];
+    var minColsExpected = headers.length - 1; // tolerate one trailing trim
+    for (var i = 1; i < lines.length; i++) {
+        var parts = lines[i].split(',');
+        dataRowCount++;
+
+        // Truncated row (telemetry was briefly lost; fewer fields than header)
+        if (parts.length < minColsExpected) { droppedTruncated++; continue; }
+
+        var gpsRaw = (parts[colMap.gps] || '').replace(/^"|"$/g, '').trim();
+        if (!gpsRaw || gpsRaw === '0 0') { droppedNoGps++; continue; }
+
+        var gpsParts = gpsRaw.split(/\s+/);
+        if (gpsParts.length < 2) { droppedNoGps++; continue; }
+
+        var lat = parseFloat(gpsParts[0]);
+        var lon = parseFloat(gpsParts[1]);
+        if (isNaN(lat) || isNaN(lon) || (lat === 0 && lon === 0)) { droppedNoGps++; continue; }
+
+        var sats = colMap.sats !== -1 ? parseInt(parts[colMap.sats]) || 0 : 0;
+        // Stale GPS guard: require a usable fix
+        if (colMap.sats !== -1 && sats < 4) { droppedLowSats++; continue; }
+
+        var altRaw = colMap.alt !== -1 ? parseFloat(parts[colMap.alt]) : 0;
+        if (isNaN(altRaw)) altRaw = 0;
+
+        var spdRaw = colMap.speed !== -1 ? parseFloat(parts[colMap.speed]) : 0;
+        if (isNaN(spdRaw)) spdRaw = 0;
+        var speedKmh = spdRaw * speedScale;
+
+        raw.push({
+            date: colMap.date !== -1 ? (parts[colMap.date] || '').trim() : '',
+            time: colMap.time !== -1 ? (parts[colMap.time] || '').trim() : '',
+            lat: lat,
+            lon: lon,
+            alt: altRaw,
+            speedKmh: speedKmh,      // from the telemetry column
+            sats: sats,
+            rssi: colMap.rssi !== -1 ? (parseFloat(parts[colMap.rssi]) || 0) : null,
+            rqly: colMap.rqly !== -1 ? (parseFloat(parts[colMap.rqly]) || 0) : null,
+            rxbt: colMap.rxbt !== -1 ? (parseFloat(parts[colMap.rxbt]) || 0) : null,
+            curr: colMap.curr !== -1 ? (parseFloat(parts[colMap.curr]) || 0) : null,
+            hdg:  colMap.hdg  !== -1 ? (parseFloat(parts[colMap.hdg])  || 0) : null,
+            thr:  colMap.thr  !== -1 ? (parseInt(parts[colMap.thr])    || 0) : null,
+        });
+    }
+
+    // Second pass: walk raw points and reject big GPS jumps (> 1 km between
+    // consecutive accepted rows). These are almost always stale GPS cache
+    // from a previous power-up that briefly leaks into the log.
+    var rows = [];
+    for (var k = 0; k < raw.length; k++) {
+        if (rows.length === 0) { rows.push(raw[k]); continue; }
+        var prev = rows[rows.length - 1];
+        var d = haversine(prev.lat, prev.lon, raw[k].lat, raw[k].lon);
+        if (d > 1000) { droppedGpsJump++; continue; }
+        rows.push(raw[k]);
+    }
+
+    // Expose diagnostics for the UI
+    rows._diagnostics = {
+        totalDataRows: dataRowCount,
+        kept: rows.length,
+        droppedTruncated: droppedTruncated,
+        droppedNoGps: droppedNoGps,
+        droppedLowSats: droppedLowSats,
+        droppedGpsJump: droppedGpsJump
+    };
+    return rows;
+}
+
+// findCol: locate a header by name with three strategies, in order:
+//   1. exact match against any candidate
+//   2. prefix match (header startsWith candidate's name part before "(")
+//   3. preferAfterCol: when multiple matches exist, prefer one with index >
+//      preferAfterCol. Lets us distinguish duplicate Alt(m) columns (baro
+//      vs GPS) by picking the one that sits after the GPS column.
+function findCol(headers, candidates, preferAfterCol) {
+    // Collect ALL matching indices to apply the "after" preference cleanly.
+    var matches = [];
+    // Exact matches first
+    for (var ci = 0; ci < candidates.length; ci++) {
+        for (var hi = 0; hi < headers.length; hi++) {
+            if (headers[hi] === candidates[ci]) matches.push(hi);
+        }
+    }
+    // Then prefix matches (e.g. Alt(ft) when only "Alt" candidate listed)
+    if (matches.length === 0) {
+        for (var ci2 = 0; ci2 < candidates.length; ci2++) {
+            var prefix = candidates[ci2].split('(')[0];
+            if (!prefix) continue;
+            for (var hi2 = 0; hi2 < headers.length; hi2++) {
+                if (headers[hi2].indexOf(prefix) === 0 && matches.indexOf(hi2) === -1) {
+                    matches.push(hi2);
+                }
+            }
+        }
+    }
+    if (matches.length === 0) return -1;
+    if (typeof preferAfterCol === 'number' && preferAfterCol >= 0) {
+        var after = matches.filter(function(m) { return m > preferAfterCol; });
+        if (after.length > 0) return after[0];
+    }
+    return matches[0];
+}
+
+// ================================================================
+//  FLIGHT DETECTION
+//  Two strategies layered together:
+//   (a) CRSF-style arm event: prev row had MSL altitude > 50 m and the
+//       next row dropped to <= 5 m. Original Tango 2 behaviour.
+//   (b) ELRS-style session boundary: a time gap > 30 s between consecutive
+//       rows, or a GPS jump > 200 m. Triggers when the radio was turned
+//       off and on, or a new battery was inserted.
+//  For each detected segment we compute summary metrics that the UI uses
+//  to classify whether the segment looks like a real flight or a stationary
+//  ground test (and to surface the GPS update density).
+// ================================================================
+// Robust custom date/time parser to avoid browser-dependent new Date() bugs
+function parseTime(dateStr, timeStr) {
+    if (!dateStr || !timeStr) return NaN;
+    try {
+        var dp = dateStr.trim().split('-');
+        if (dp.length < 3) return NaN;
+        var tp = timeStr.trim().split(':');
+        if (tp.length < 3) return NaN;
+        
+        var year = parseInt(dp[0], 10);
+        var month = parseInt(dp[1], 10) - 1; // 0-indexed
+        var day = parseInt(dp[2], 10);
+        
+        var hour = parseInt(tp[0], 10);
+        var min = parseInt(tp[1], 10);
+        
+        var secParts = tp[2].split('.');
+        var sec = parseInt(secParts[0], 10);
+        var ms = secParts.length > 1 ? parseInt(secParts[1].substring(0, 3).padEnd(3, '0'), 10) : 0;
+        
+        return new Date(year, month, day, hour, min, sec, ms).getTime();
+    } catch (e) {
+        return NaN;
+    }
+}
+
+function detectFlights(rows) {
+    if (rows.length === 0) return [];
+
+    // 1. Collect candidate split indices (positions where row i begins a new segment)
+    var splits = [0];
+
+    for (var i = 1; i < rows.length; i++) {
+        var split = false;
+        // (a) Time gap > 60 s (battery swap or radio powered off)
+        if (rows[i - 1].date && rows[i].date && rows[i - 1].time && rows[i].time) {
+            var t1 = parseTime(rows[i - 1].date, rows[i - 1].time);
+            var t2 = parseTime(rows[i].date, rows[i].time);
+            if (!isNaN(t1) && !isNaN(t2) && (t2 - t1) > 60000) split = true;
+        }
+        // (b) CRSF-style arm event: altitude drop from > 50m to <= 5m (relative altitude resets)
+        if (!split && rows[i - 1].alt > 50 && rows[i].alt <= 5) {
+            split = true;
+        }
+        if (split) splits.push(i);
+    }
+
+    // 2. Build segments from splits
+    var segments = [];
+    for (var s = 0; s < splits.length; s++) {
+        var startIdx = splits[s];
+        var endIdx = (s < splits.length - 1) ? splits[s + 1] - 1 : rows.length - 1;
+        if (endIdx < startIdx) continue;
+
+        var segRows = rows.slice(startIdx, endIdx + 1);
+
+        // Pre-arm MSL: look at the row before this segment if a CRSF arm event split here
+        var preArmAlt = 0;
+        if (startIdx > 0 && rows[startIdx - 1].alt > 50 && rows[startIdx].alt <= 5) {
+            preArmAlt = rows[startIdx - 1].alt;
+        } else {
+            // Robust fallback: search the first 50 rows of the segment for a drop from > 50 to <= 5
+            for (var j = 0; j < Math.min(50, segRows.length - 1); j++) {
+                if (segRows[j].alt > 50 && segRows[j + 1].alt <= 5) {
+                    preArmAlt = segRows[j].alt;
+                    break;
+                }
+            }
+        }
+
+        var summary = summarizeFlight(segRows);
+
+        segments.push({
+            startIdx: startIdx,
+            endIdx: endIdx,
+            preArmAlt: preArmAlt,
+            rows: segRows,
+            summary: summary
+        });
+    }
+
+    // 3. Drop trivially short segments (< 3 points) but keep at least one
+    var nonTrivial = segments.filter(function(seg) { return seg.rows.length >= 3; });
+    if (nonTrivial.length > 0) segments = nonTrivial;
+
+    return segments;
+}
+
+// Compute per-segment metrics used by the UI and by the ground-test classifier.
+//   maxSpeedCol    = max GSpd as logged by the telemetry sensor (km/h)
+//   maxSpeedCalc   = max speed computed from consecutive GPS points (km/h)
+//   maxDistFromStart = furthest haversine distance any point reached from the
+//                      segment's first point (m). Distinguishes a hover-in-
+//                      place from a real flight that travelled somewhere.
+//   altSpread      = max alt - min alt within the segment (m)
+//   uniqueGpsPts   = number of distinct (lat, lon) values
+//   gpsDensityPct  = uniqueGpsPts / rows.length, rounded to integer percent
+//   isGroundTest   = all three of (maxSpeed<5, dist<50, altSpread<10)
+function summarizeFlight(segRows) {
+    if (!segRows || segRows.length === 0) {
+        return { maxSpeedCol: 0, maxSpeedCalc: 0, maxDistFromStart: 0, altSpread: 0, uniqueGpsPts: 0, gpsDensityPct: 0, isGroundTest: true };
+    }
+    var maxSpeedCol = 0;
+    var maxSpeedCalc = 0;
+    var minAlt = Infinity, maxAlt = -Infinity;
+    var maxDist = 0;
+    var unique = {};
+    var origin = segRows[0];
+
+    for (var i = 0; i < segRows.length; i++) {
+        var r = segRows[i];
+        if (r.speedKmh > maxSpeedCol) maxSpeedCol = r.speedKmh;
+        if (r.alt < minAlt) minAlt = r.alt;
+        if (r.alt > maxAlt) maxAlt = r.alt;
+        // 6-decimal precision is ~10 cm at the equator; sufficient to dedupe
+        // EdgeTX-cached repeats while preserving real movement.
+        unique[r.lat.toFixed(6) + ',' + r.lon.toFixed(6)] = 1;
+
+        var d = haversine(origin.lat, origin.lon, r.lat, r.lon);
+        if (d > maxDist) maxDist = d;
+
+        if (i > 0) {
+            var prev = segRows[i - 1];
+            var step = haversine(prev.lat, prev.lon, r.lat, r.lon);
+            if (prev.date && r.date && prev.time && r.time) {
+                var t1 = parseTime(prev.date, prev.time);
+                var t2 = parseTime(r.date, r.time);
+                var dt = (t2 - t1) / 1000;
+                if (dt > 0 && dt < 60) {
+                    var kmh = (step / dt) * 3.6;
+                    if (kmh > maxSpeedCalc) maxSpeedCalc = kmh;
+                }
+            }
+        }
+    }
+
+    var altSpread = (maxAlt > minAlt) ? (maxAlt - minAlt) : 0;
+    var uniquePts = Object.keys(unique).length;
+    var density = Math.round((uniquePts / segRows.length) * 100);
+
+    // Use the LARGER of the two speeds for the classifier so a real flight
+    // is not flagged just because the GSpd telemetry column is sparse.
+    var bestSpeed = Math.max(maxSpeedCol, maxSpeedCalc);
+    var isGroundTest = (bestSpeed < 5) && (maxDist < 50) && (altSpread < 10);
+
+    return {
+        maxSpeedCol: maxSpeedCol,
+        maxSpeedCalc: maxSpeedCalc,
+        maxDistFromStart: maxDist,
+        altSpread: altSpread,
+        uniqueGpsPts: uniquePts,
+        gpsDensityPct: density,
+        isGroundTest: isGroundTest
+    };
+}
+
+// ================================================================
+//  POINT PROCESSING (altitude correction + trimming)
+// ================================================================
+function processFlightPoints(flight, altOffset, doTrim) {
+    let points = flight.rows.map(r => ({
+        ...r,
+        altCorrected: r.alt + altOffset
+    }));
+
+    if (doTrim && points.length > 2) {
+        // Trim leading stationary points
+        let startTrim = 0;
+        for (let i = 1; i < points.length; i++) {
+            const d = haversine(points[i - 1].lat, points[i - 1].lon, points[i].lat, points[i].lon);
+            if (d > 1.5) { startTrim = Math.max(0, i - 1); break; }
+        }
+        // Trim trailing stationary points
+        let endTrim = points.length - 1;
+        for (let i = points.length - 2; i >= 0; i--) {
+            const d = haversine(points[i].lat, points[i].lon, points[i + 1].lat, points[i + 1].lon);
+            if (d > 1.5) { endTrim = Math.min(points.length - 1, i + 1); break; }
+        }
+        if (startTrim < endTrim) {
+            points = points.slice(startTrim, endTrim + 1);
+        }
+    }
+    return points;
+}
+
+// ================================================================
+//  GEO UTILS
+// ================================================================
+function haversine(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function totalDistance(points) {
+    let d = 0;
+    for (let i = 1; i < points.length; i++) {
+        d += haversine(points[i - 1].lat, points[i - 1].lon, points[i].lat, points[i].lon);
+    }
+    return d;
+}
+
+function formatDuration(startDate, startTime, endDate, endTime) {
+    try {
+        const t1 = parseTime(startDate, startTime);
+        const t2 = parseTime(endDate, endTime);
+        const diffMs = t2 - t1;
+        if (isNaN(diffMs) || diffMs < 0) return '-';
+        const s = Math.floor(diffMs / 1000);
+        const m = Math.floor(s / 60);
+        const sec = s % 60;
+        return m > 0 ? m + 'm ' + sec + 's' : sec + 's';
+    } catch (e) { return '-'; }
+}
+
+// ================================================================
+//  KML GENERATION
+// ================================================================
+function generateKML(points, opts) {
+    const colorKML = hexToKMLColor(opts.color, 'ff');
+    const polyColor = hexToKMLColor(opts.color, 'cc');
+    const coords = points.map(p =>
+        p.lon.toFixed(6) + ',' + p.lat.toFixed(6) + ',' + Math.round(p.altCorrected)
+    ).join(' ');
+
+    let placemarks = '';
+
+    // Main track line
+    placemarks += `
+      <Placemark>
+        <name><![CDATA[${escXml(opts.name)}]]></name>
+        <Snippet></Snippet>
+        <description><![CDATA[Generated by Saturn FPV EdgeTX Telemetry Parser]]></description>
+        <Style>
+          <LineStyle>
+            <color>${colorKML}</color>
+            <width>${opts.width}</width>
+          </LineStyle>
+          <PolyStyle>
+            <color>${polyColor}</color>
+          </PolyStyle>
+        </Style>
+        <LineString>
+          <extrude>${opts.extrude ? 1 : 0}</extrude>
+          <tessellate>${opts.altMode === 'clampToGround' ? 1 : 0}</tessellate>
+          <altitudeMode>${opts.altMode}</altitudeMode>
+          <coordinates>${coords}</coordinates>
+        </LineString>
+      </Placemark>`;
+
+    // Optional metadata placemarks
+    if (opts.includeMeta) {
+        // Add a placemark every ~10 points to avoid clutter
+        const step = Math.max(1, Math.floor(points.length / 50));
+        for (let i = 0; i < points.length; i += step) {
+            const p = points[i];
+            let desc = '<![CDATA[';
+            desc += '<b>Alt:</b> ' + Math.round(p.altCorrected) + ' m<br>';
+            if (p.speedKmh > 0) desc += '<b>Speed:</b> ' + p.speedKmh.toFixed(1) + ' km/h (' + (p.speedKmh / 3.6).toFixed(1) + ' m/s)<br>';
+            if (p.rssi !== null) desc += '<b>RSSI:</b> ' + p.rssi + '<br>';
+            if (p.rqly !== null) desc += '<b>Link Quality:</b> ' + p.rqly + '%<br>';
+            if (p.rxbt !== null) desc += '<b>RxBat:</b> ' + p.rxbt + ' V<br>';
+            if (p.curr !== null) desc += '<b>Current:</b> ' + p.curr + ' A<br>';
+            if (p.sats > 0) desc += '<b>Sats:</b> ' + p.sats + '<br>';
+            desc += ']]>';
+
+            placemarks += `
+      <Placemark>
+        <name>Point ${i + 1}</name>
+        <description>${desc}</description>
+        <Style>
+          <IconStyle><scale>0.4</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/shaded_dot.png</href></Icon></IconStyle>
+        </Style>
+        <Point>
+          <altitudeMode>${opts.altMode}</altitudeMode>
+          <coordinates>${p.lon.toFixed(6)},${p.lat.toFixed(6)},${Math.round(p.altCorrected)}</coordinates>
+        </Point>
+      </Placemark>`;
+        }
+    }
+
+    return `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name><![CDATA[${escXml(opts.name)}]]></name>
+    <visibility>1</visibility>
+    <open>1</open>
+    <Snippet><![CDATA[Generated by Saturn FPV EdgeTX Telemetry Parser]]></Snippet>
+    <Folder id="Tracks">
+      <name>Tracks</name>
+      <visibility>1</visibility>
+      <open>0</open>
+      ${placemarks}
+    </Folder>
+  </Document>
+</kml>`;
+}
+
+function hexToKMLColor(hex, alpha) {
+    // KML color format: aabbggrr
+    const r = hex.substring(1, 3);
+    const g = hex.substring(3, 5);
+    const b = hex.substring(5, 7);
+    return alpha + b + g + r;
+}
+
+function escXml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// ================================================================
+//  GPX GENERATION
+// ================================================================
+function generateGPX(points, opts) {
+    let trkpts = '';
+    for (const p of points) {
+        let ext = '';
+        if (opts.includeMeta) {
+            let extInner = '';
+            if (p.speedKmh > 0) extInner += `<speed>${(p.speedKmh / 3.6).toFixed(2)}</speed>`;
+            if (p.rssi !== null) extInner += `<rssi>${p.rssi}</rssi>`;
+            if (p.rqly !== null) extInner += `<rqly>${p.rqly}</rqly>`;
+            if (p.rxbt !== null) extInner += `<rxbt>${p.rxbt}</rxbt>`;
+            if (p.curr !== null) extInner += `<curr>${p.curr}</curr>`;
+            if (extInner) ext = `<extensions>${extInner}</extensions>`;
+        }
+        const time = p.date && p.time ? `<time>${p.date}T${p.time}Z</time>` : '';
+        trkpts += `      <trkpt lat="${p.lat.toFixed(7)}" lon="${p.lon.toFixed(7)}">
+        <ele>${p.altCorrected.toFixed(1)}</ele>
+        ${time}
+        <sat>${p.sats}</sat>
+        ${ext}
+      </trkpt>\n`;
+    }
+
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Saturn FPV EdgeTX Telemetry Parser"
+  xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata>
+    <name>${escXml(opts.name)}</name>
+  </metadata>
+  <trk>
+    <name>${escXml(opts.name)}</name>
+    <trkseg>
+${trkpts}    </trkseg>
+  </trk>
+</gpx>`;
+}
+
+// ================================================================
+//  DOWNLOAD
+// ================================================================
+async function downloadFile() {
+    if (activePoints.length === 0) return;
+
+    const format = document.getElementById('outputFormat').value;
+    const opts = {
+        name: document.getElementById('trackName').value || 'Flight Track',
+        color: document.getElementById('trackColor').value,
+        width: parseInt(document.getElementById('lineWidth').value),
+        altMode: document.getElementById('altMode').value,
+        extrude: document.getElementById('extrude').checked,
+        includeMeta: document.getElementById('includeMeta').checked,
+    };
+
+    let blob, filename;
+
+    if (format === 'gpx') {
+        const gpx = generateGPX(activePoints, opts);
+        blob = new Blob([gpx], { type: 'application/gpx+xml' });
+        filename = opts.name.replace(/[^a-zA-Z0-9_-]/g, '_') + '.gpx';
+    } else {
+        const kml = generateKML(activePoints, opts);
+        if (format === 'kmz') {
+            const zip = new JSZip();
+            zip.file('doc.kml', kml);
+            const content = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+            blob = content;
+            filename = opts.name.replace(/[^a-zA-Z0-9_-]/g, '_') + '.kmz';
+        } else {
+            blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
+            filename = opts.name.replace(/[^a-zA-Z0-9_-]/g, '_') + '.kml';
+        }
+    }
+
+    // Check if we are running inside the Android WebView wrapper with Java bridge enabled
+    if (window.AndroidBridge && window.AndroidBridge.shareFile) {
+        const reader = new FileReader();
+        reader.onloadend = function() {
+            const base64data = reader.result.split(',')[1];
+            window.AndroidBridge.shareFile(base64data, filename);
+        };
+        reader.readAsDataURL(blob);
+    } else {
+        // Standard web browser download fallback
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+}
+
+// ================================================================
+//  MAP
+// ================================================================
+// Custom 100% offline tactical grid layer pattern
+L.GridLayer.GridPattern = L.GridLayer.extend({
+    createTile: function (coords) {
+        var tile = document.createElement('div');
+        tile.style.outline = '1px solid rgba(255, 255, 255, 0.04)';
+        tile.style.background = '#0d0d10';
+        tile.style.backgroundImage = 'radial-gradient(rgba(232, 114, 42, 0.08) 1.2px, transparent 0)';
+        tile.style.backgroundSize = '32px 32px';
+        return tile;
+    }
+});
+L.gridLayer.gridPattern = function(opts) {
+    return new L.GridLayer.GridPattern(opts);
+};
+
+let layersControl = null;
+let currentBaseLayers = {};
+
+function initMap() {
+    if (leafletMap) return;
+    leafletMap = L.map('map', {
+        zoomControl: true,
+        attributionControl: false
+    }).setView([0, 0], 2);
+
+    const offlineGrid = L.gridLayer.gridPattern();
+
+    if (navigator.onLine) {
+        // Prepare online road & satellite maps
+        const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19,
+            attribution: 'Esri Satellite'
+        });
+        const darkRoad = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            attribution: 'CartoDB Dark'
+        });
+
+        // Set default to satellite when online, and add controls
+        satellite.addTo(leafletMap);
+        currentBaseLayers = {
+            "Satellite": satellite,
+            "Dark Road Map": darkRoad,
+            "Tactical Grid (Offline)": offlineGrid
+        };
+        
+        layersControl = L.control.layers(currentBaseLayers, null, { collapsed: false }).addTo(leafletMap);
+    } else {
+        // 100% offline fallback: use the tactical grid
+        offlineGrid.addTo(leafletMap);
+    }
+}
+
+function updateMap(points) {
+    if (!leafletMap) initMap();
+
+    if (trackLayer) {
+        leafletMap.removeLayer(trackLayer);
+        trackLayer = null;
+    }
+
+    if (points.length === 0) return;
+
+    const color = document.getElementById('trackColor').value;
+    const weight = parseInt(document.getElementById('lineWidth').value);
+    const latlngs = points.map(p => [p.lat, p.lon]);
+
+    trackLayer = L.polyline(latlngs, {
+        color: color,
+        weight: weight,
+        opacity: 0.9
+    }).addTo(leafletMap);
+
+    leafletMap.fitBounds(trackLayer.getBounds().pad(0.1));
+}
+
+// ================================================================
+//  ALTITUDE CHART
+// ================================================================
+function updateAltChart(points) {
+    const ctx = document.getElementById('altChart').getContext('2d');
+
+    // Build cumulative distance array
+    const distances = [0];
+    for (let i = 1; i < points.length; i++) {
+        distances.push(distances[i - 1] + haversine(
+            points[i - 1].lat, points[i - 1].lon,
+            points[i].lat, points[i].lon
+        ));
+    }
+    const totalDist = distances[distances.length - 1];
+    const labels = distances.map(d => totalDist > 1000 ? (d / 1000).toFixed(2) : d.toFixed(0));
+    const data = points.map(p => p.altCorrected);
+
+    if (altChart) altChart.destroy();
+
+    altChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Altitude (m)',
+                data: data,
+                borderColor: '#E8722A',
+                backgroundColor: 'rgba(232, 114, 42, 0.15)',
+                fill: true,
+                borderWidth: 1.5,
+                pointRadius: 0,
+                tension: 0.3,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        title: function(items) {
+                            const d = distances[items[0].dataIndex];
+                            return totalDist > 1000
+                                ? (d / 1000).toFixed(2) + ' km'
+                                : d.toFixed(0) + ' m';
+                        },
+                        label: function(item) {
+                            return Math.round(item.raw) + ' m ASL';
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: totalDist > 1000 ? 'Distance (km)' : 'Distance (m)',
+                        color: '#6b7280',
+                        font: { size: 11 }
+                    },
+                    ticks: {
+                        color: '#6b7280',
+                        font: { size: 10 },
+                        maxTicksLimit: 8,
+                    },
+                    grid: { color: 'rgba(55, 65, 81, 0.5)' }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Altitude (m)',
+                        color: '#6b7280',
+                        font: { size: 11 }
+                    },
+                    ticks: { color: '#6b7280', font: { size: 10 } },
+                    grid: { color: 'rgba(55, 65, 81, 0.5)' }
+                }
+            }
+        }
+    });
+}
+
+// ================================================================
+//  STATS
+// ================================================================
+function updateStats(points) {
+    document.getElementById('statPoints').textContent = points.length;
+
+    const dist = totalDistance(points);
+    document.getElementById('statDistance').textContent =
+        dist > 1000 ? (dist / 1000).toFixed(2) + ' km' : Math.round(dist) + ' m';
+
+    const maxAlt = Math.max(...points.map(p => p.altCorrected));
+    document.getElementById('statMaxAlt').textContent = Math.round(maxAlt) + ' m';
+
+    // Max speed reported by the GSpd telemetry column (km/h)
+    const maxSpd = Math.max(...points.map(p => p.speedKmh || 0));
+    document.getElementById('statMaxSpd').textContent =
+        maxSpd > 0 ? maxSpd.toFixed(1) + ' km/h' : '-';
+
+    // Max speed COMPUTED from consecutive GPS points + timestamps.
+    // ELRS telemetry often holds stale GSpd values, so the calculated speed
+    // is a more honest signal of how fast the model actually moved.
+    var maxSpdCalc = 0;
+    for (var i = 1; i < points.length; i++) {
+        var prev = points[i - 1], curr = points[i];
+        if (!prev.date || !curr.date || !prev.time || !curr.time) continue;
+        var t1 = parseTime(prev.date, prev.time);
+        var t2 = parseTime(curr.date, curr.time);
+        var dt = (t2 - t1) / 1000;
+        if (!(dt > 0 && dt < 60)) continue;
+        var step = haversine(prev.lat, prev.lon, curr.lat, curr.lon);
+        var kmh = (step / dt) * 3.6;
+        if (kmh > maxSpdCalc) maxSpdCalc = kmh;
+    }
+    document.getElementById('statMaxSpdCalc').textContent =
+        maxSpdCalc > 0 ? maxSpdCalc.toFixed(1) + ' km/h' : '-';
+
+    // GPS density - share of distinct positions vs. total points kept.
+    // Surfaces sparse telemetry (e.g. ELRS GPS sensor updating once every
+    // 15-20 s, leaving most rows holding stale lat/lon).
+    var unique = {};
+    points.forEach(function(p) { unique[p.lat.toFixed(6) + ',' + p.lon.toFixed(6)] = 1; });
+    var density = points.length > 0 ? Math.round((Object.keys(unique).length / points.length) * 100) : 0;
+    document.getElementById('statDensity').textContent = density + '%';
+
+    // Duration
+    if (points.length > 1 && points[0].date && points[0].time) {
+        const dur = formatDuration(
+            points[0].date, points[0].time,
+            points[points.length - 1].date, points[points.length - 1].time
+        );
+        document.getElementById('statDuration').textContent = dur;
+    } else {
+        document.getElementById('statDuration').textContent = '-';
+    }
+}
+
+// ================================================================
+//  UI FLOW
+// ================================================================
+function onFileLoaded(text, fileName) {
+    rawRows = parseCSV(text);
+    if (rawRows.length === 0) return;
+
+    document.getElementById('fileName').textContent = fileName;
+    document.getElementById('fileName').classList.remove('hidden');
+
+    // Detect flights
+    flights = detectFlights(rawRows);
+    renderFlightList();
+    document.getElementById('flightPanel').classList.remove('hidden');
+
+    // Auto-select if only one flight
+    if (flights.length === 1) {
+        selectFlight(0);
+    }
+}
+
+function renderFlightList() {
+    const container = document.getElementById('flightList');
+    container.innerHTML = '';
+
+    flights.forEach(function(f, idx) {
+        const pts = f.rows;
+        const dur = pts.length > 1 && pts[0].date
+            ? formatDuration(pts[0].date, pts[0].time, pts[pts.length - 1].date, pts[pts.length - 1].time)
+            : '-';
+
+        // Build the meta line and inline tags using the per-segment summary.
+        // We reuse the existing .flight-badge style for the right-hand pill
+        // and a small inline span for the "ground test" annotation - no new
+        // CSS, no layout change.
+        var summary = f.summary || {};
+        var metaParts = [];
+        var dateStr = (pts[0].date || '') + ' ' + (pts[0].time ? pts[0].time.split('.')[0] : '');
+        if (dateStr.trim()) metaParts.push(dateStr.trim());
+        metaParts.push('Duration: ' + dur);
+        if (f.preArmAlt) metaParts.push('MSL: ' + f.preArmAlt + 'm');
+        if (typeof summary.gpsDensityPct === 'number') metaParts.push('GPS ' + summary.gpsDensityPct + '%');
+        var metaLine = metaParts.join(' - ');
+
+        var groundTestTag = '';
+        if (summary.isGroundTest) {
+            groundTestTag = '<span style="display:inline-block; margin-left:0.4rem; padding:0.1rem 0.45rem; border-radius:0.5rem; background:#374151; color:#9ca3af; font-size:0.6875rem; font-weight:600;">ground test</span>';
+        }
+
+        const card = document.createElement('div');
+        card.className = 'flight-card' + (idx === selectedFlight ? ' selected' : '');
+        card.innerHTML = `
+            <div class="flight-info">
+                <span class="flight-name">Flight ${idx + 1}${groundTestTag}</span>
+                <span class="flight-meta">${metaLine}</span>
+            </div>
+            <span class="flight-badge">${pts.length} pts</span>
+        `;
+        card.addEventListener('click', function() { selectFlight(idx); });
+        container.appendChild(card);
+    });
+}
+
+function selectFlight(idx) {
+    selectedFlight = idx;
+    const flight = flights[idx];
+
+    // Update altitude offset field
+    document.getElementById('altOffset').value = flight.preArmAlt;
+
+    // Set default track name from filename or date
+    if (flight.rows[0].date) {
+        document.getElementById('trackName').value = 'Flight ' + flight.rows[0].date;
+    }
+
+    // Show main content
+    document.getElementById('mainContent').classList.remove('hidden');
+
+    // Re-highlight cards
+    document.querySelectorAll('.flight-card').forEach(function(c, i) {
+        c.classList.toggle('selected', i === idx);
+    });
+
+    // Process and render
+    refreshPreview();
+}
+
+function refreshPreview() {
+    if (selectedFlight < 0) return;
+    const flight = flights[selectedFlight];
+    const altOffset = parseFloat(document.getElementById('altOffset').value) || 0;
+    const doTrim = document.getElementById('autoTrim').checked;
+
+    activePoints = processFlightPoints(flight, altOffset, doTrim);
+
+    initMap();
+    updateMap(activePoints);
+
+    // Force Leaflet to recalculate size after becoming visible
+    setTimeout(function() {
+        if (leafletMap) leafletMap.invalidateSize();
+        updateMap(activePoints);
+    }, 100);
+
+    updateAltChart(activePoints);
+    updateStats(activePoints);
+    document.getElementById('downloadBtn').disabled = false;
+}
+
+function resetAll() {
+    rawRows = [];
+    flights = [];
+    selectedFlight = -1;
+    activePoints = [];
+
+    if (trackLayer && leafletMap) {
+        leafletMap.removeLayer(trackLayer);
+        trackLayer = null;
+    }
+    if (altChart) { altChart.destroy(); altChart = null; }
+
+    document.getElementById('flightPanel').classList.add('hidden');
+    document.getElementById('mainContent').classList.add('hidden');
+    document.getElementById('fileName').classList.add('hidden');
+    document.getElementById('fileInput').value = '';
+    document.getElementById('downloadBtn').disabled = true;
+
+    // Default tab back to map
+    setTelemetryTab('map');
+}
+
+let currentTelemetryTab = 'map';
+function setTelemetryTab(tab) {
+    currentTelemetryTab = tab;
+    document.querySelectorAll('.results-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-telemetry-map').style.display = 'none';
+    document.getElementById('tab-telemetry-chart').style.display = 'none';
+
+    if (tab === 'map') {
+        document.getElementById('tab-telemetry-map').style.display = 'block';
+        document.querySelectorAll('.results-tab')[0].classList.add('active');
+        setTimeout(() => {
+            if (leafletMap) {
+                leafletMap.invalidateSize();
+                if (trackLayer) leafletMap.fitBounds(trackLayer.getBounds().pad(0.1));
+            }
+        }, 50);
+    } else {
+        document.getElementById('tab-telemetry-chart').style.display = 'block';
+        document.querySelectorAll('.results-tab')[1].classList.add('active');
+        setTimeout(() => {
+            if (altChart) altChart.resize();
+        }, 50);
+    }
+}
+
+// ================================================================
+//  EVENT LISTENERS
+// ================================================================
+// File upload
+var uploadArea = document.getElementById('uploadArea');
+var fileInput = document.getElementById('fileInput');
+
+uploadArea.addEventListener('click', function() { fileInput.click(); });
+uploadArea.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+});
+uploadArea.addEventListener('dragleave', function() {
+    uploadArea.classList.remove('dragover');
+});
+uploadArea.addEventListener('drop', function(e) {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    if (e.dataTransfer.files.length > 0) {
+        handleFile(e.dataTransfer.files[0]);
+    }
+});
+fileInput.addEventListener('change', function() {
+    if (fileInput.files.length > 0) {
+        handleFile(fileInput.files[0]);
+    }
+});
+
+function handleFile(file) {
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+        alert('Please select a .csv file');
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        resetAll();
+        onFileLoaded(e.target.result, file.name);
+    };
+    reader.readAsText(file);
+}
+
+// Settings changes trigger preview refresh
+['altOffset', 'autoTrim', 'trackColor', 'lineWidth', 'altMode', 'extrude'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var evt = el.type === 'checkbox' ? 'change' : 'input';
+    el.addEventListener(evt, function() {
+        if (id === 'lineWidth') {
+            document.getElementById('widthVal').textContent = el.value;
+        }
+        if (selectedFlight >= 0) refreshPreview();
+    });
+});
+
+// Download
+document.getElementById('downloadBtn').addEventListener('click', downloadFile);
+document.getElementById('resetBtn').addEventListener('click', resetAll);
+</script>
+<script>
+    if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'pageChange', key: 'telemetry' }, '*');
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FPV Tools Dashboard - Saturn FPV</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --black: #0A0A0B;
+            --dark: #111113;
+            --card: #18181B;
+            --card-hover: #1E1E22;
+            --border: #27272A;
+            --text: #FAFAFA;
+            --text-muted: #A1A1AA;
+            --text-dim: #71717A;
+            --orange: #E8722A;
+            --blue: #3B7BF6;
+            --orange-glow: rgba(232, 114, 42, 0.12);
+            --blue-glow: rgba(59, 123, 246, 0.12);
+            --gradient-ring: linear-gradient(135deg, var(--orange) 0%, var(--blue) 100%);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--black);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ── HERO HEADER ── */
+        .dashboard-header {
+            text-align: center;
+            margin-top: 0.5rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+        }
+        .dashboard-header h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.4rem;
+            background: linear-gradient(135deg, #FFF 0%, var(--text-muted) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .dashboard-header p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        /* ── RESPONSIVE DYNAMIC GRID ── */
+        .tiles-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 columns (2x4) on standard portrait mobile screens */
+            gap: 1.25rem;
+            max-width: 900px;
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        /* Landscape/Tablet Grid Expansion */
+        @media (min-width: 768px) {
+            .tiles-grid {
+                grid-template-columns: repeat(4, 1fr); /* 4 columns (4x2) on wider tablet/desktop screens */
+            }
+        }
+
+        /* Ultra-narrow displays */
+        @media (max-width: 360px) {
+            .tiles-grid {
+                grid-template-columns: 1fr; /* 1 column (1x8) to prevent squishing on tiny displays */
+                gap: 0.85rem;
+            }
+            .tile-card {
+                padding: 1.2rem 0.85rem;
+            }
+            .tile-card h3 {
+                font-size: 0.88rem;
+            }
+            .tile-card p {
+                font-size: 0.7rem;
+            }
+        }
+
+        /* ── TILE STYLING ── */
+        .tile-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.5rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Border top stripe */
+        .tile-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--orange);
+            opacity: 0.3;
+            transition: opacity 0.25s;
+        }
+        .tile-card.blue-accent::before {
+            background: var(--blue);
+        }
+
+        /* Tile hover behaviors */
+        .tile-card:hover {
+            border-color: var(--text-dim);
+            background: var(--card-hover);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px var(--orange-glow);
+        }
+        .tile-card.blue-accent:hover {
+            box-shadow: 0 8px 30px var(--blue-glow);
+        }
+        .tile-card:hover::before {
+            opacity: 1;
+        }
+        .tile-card:active {
+            transform: translateY(-1px);
+            transition: all 0.08s;
+        }
+
+        /* Tile Icon Box */
+        .tile-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 12px;
+            background: rgba(232, 114, 42, 0.06);
+            border: 1px solid rgba(232, 114, 42, 0.12);
+            color: var(--orange);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            transition: all 0.25s;
+        }
+        .tile-card.blue-accent .tile-icon {
+            background: rgba(59, 123, 246, 0.06);
+            border: 1px solid rgba(59, 123, 246, 0.12);
+            color: var(--blue);
+        }
+        .tile-card:hover .tile-icon {
+            transform: scale(1.1) rotate(2deg);
+            background: var(--orange);
+            color: var(--black);
+            box-shadow: 0 0 16px var(--orange-glow);
+        }
+        .tile-card.blue-accent:hover .tile-icon {
+            background: var(--blue);
+            color: var(--black);
+            box-shadow: 0 0 16px var(--blue-glow);
+        }
+
+        .tile-icon svg {
+            width: 28px;
+            height: 28px;
+            stroke-width: 1.5;
+            fill: none;
+            stroke: currentColor;
+        }
+
+        /* Tile Typography */
+        .tile-card h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            margin-bottom: 0.4rem;
+            color: var(--text);
+        }
+        .tile-card p {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 300;
+            line-height: 1.4;
+            max-width: 160px;
+        }
+
+        /* Bottom stats / indicator */
+        .tile-indicator {
+            margin-top: auto;
+            padding-top: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-dim);
+            transition: color 0.2s;
+        }
+        .tile-card:hover .tile-indicator {
+            color: var(--orange);
+        }
+        .tile-card.blue-accent:hover .tile-indicator {
+            color: var(--blue);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HERO HEADER -->
+    <div class="dashboard-header">
+        <h1>FPV Multirotor Tuning Suite</h1>
+        <p>Premium tools designed for dronecinematographers, racers, and custom drone builders. Access fully offline.</p>
+    </div>
+
+    <!-- 2X4 RESPONSIVE GRID -->
+    <div class="tiles-grid">
+
+        <!-- 1. Rate Converter (Orange) -->
+        <a href="html tools/betaflight-rate-converter.html" class="tile-card" onclick="notifyParent('rate')">
+            <div class="tile-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M3 3v18h18" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M18.5 7.5c-4 0-5.5 8-11.5 8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="18.5" cy="7.5" r="1.5" fill="currentColor"/>
+                    <circle cx="7" cy="15.5" r="1.5" fill="currentColor"/>
+                </svg>
+            </div>
+            <h3>Rate Converter</h3>
+            <p>Compare and convert rate curves across Betaflight, KISS, Actual and Quick models.</p>
+            <div class="tile-indicator">Open Tool &rarr;</div>
+        </a>
+
+        <!-- 2. TPA Comparison (Blue) -->
+        <a href="html tools/betaflight-tpa.html" class="tile-card blue-accent" onclick="notifyParent('tpa')">
+            <div class="tile-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M3 3v18h18" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M7 8.5h4.5v0a4.5 4.5 0 0 1 4.5 4.5v0a3.5 3.5 0 0 0 3.5 3.5H21" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="7" y1="8.5" x2="21" y2="8.5" stroke-dasharray="3 3"/>
+                </svg>
+            </div>
+            <h3>TPA Comparison</h3>
+            <p>Model and overlay throttle PID attenuation limits and breakpoint curves.</p>
+            <div class="tile-indicator">Open Tool &rarr;</div>
+        </a>
+
+        <!-- 3. Current Sensor (Blue) -->
+        <a href="html tools/current-sensor-calibration.html" class="tile-card blue-accent" onclick="notifyParent('current')">
+            <div class="tile-icon">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="6" width="18" height="12" rx="2" stroke-linecap="round"/>
+                    <line x1="21" y1="10" x2="21" y2="14" stroke-width="2.5"/>
+                    <path d="M11 9.5l-3 3.5h5l-3 3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                </svg>
+            </div>
+            <h3>Amperage Calib</h3>
+            <p>Calibrate flight controller current scale and VBAT voltage sensors.</p>
+            <div class="tile-indicator">Open Tool &rarr;</div>
+        </a>
+
+        <!-- 4. Motor Stator (Orange) -->
+        <a href="html tools/motor-stator-volume-calculator.html" class="tile-card" onclick="notifyParent('stator')">
+            <div class="tile-icon">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="9"/>
+                    <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                    <line x1="12" y1="3" x2="12" y2="6"/>
+                    <line x1="12" y1="18" x2="12" y2="21"/>
+                    <line x1="3" y1="12" x2="6" y2="12"/>
+                    <line x1="18" y1="12" x2="21" y2="12"/>
+                    <path d="M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>
+                </svg>
+            </div>
+            <h3>Stator Volume</h3>
+            <p>Calculate stator volumes, weights, prop pairings, and size metrics.</p>
+            <div class="tile-indicator">Open Tool &rarr;</div>
+        </a>
+
+        <!-- 5. PID Simulator (Orange) -->
+        <a href="html tools/pid-controller-simulator.html" class="tile-card" onclick="notifyParent('pid')">
+            <div class="tile-icon">
+                <svg viewBox="0 0 24 24">
+                    <rect x="2" y="5" width="20" height="14" rx="3" stroke-linecap="round"/>
+                    <circle cx="7" cy="12" r="2" fill="currentColor"/>
+                    <circle cx="17" cy="10" r="1.5" fill="currentColor"/>
+                    <circle cx="17" cy="14" r="1.5" fill="currentColor"/>
+                </svg>
+            </div>
+            <h3>PID Simulator</h3>
+            <p>Rigorous mathematical simulator of axis control feedback loop and motor heat.</p>
+            <div class="tile-indicator">Open Tool &rarr;</div>
+        </a>
+
+        <!-- 6. Prop Tip Speed (Blue) -->
+        <a href="html tools/prop-tip-speed-calculator.html" class="tile-card blue-accent" onclick="notifyParent('speed')">
+            <div class="tile-icon">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 2a4 10 0 0 0-4 10 4 10 0 0 0 8 0 4 10 0 0 0-4-10z" stroke-dasharray="3 3"/>
+                    <path d="M2 12a10 4 0 0 0 10 4 10 4 0 0 0 0-8 10 4 0 0 0-10 4z" stroke-dasharray="3 3"/>
+                    <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+                </svg>
+            </div>
+            <h3>Prop Tip Speed</h3>
+            <p>Determine propeller tip velocity, Mach numbers, and transonic efficiency zones.</p>
+            <div class="tile-indicator">Open Tool &rarr;</div>
+        </a>
+
+        <!-- 7. Frequency Organizer (Blue) -->
+        <a href="html tools/race-frequency-organizer.html" class="tile-card blue-accent" onclick="notifyParent('freq')">
+            <div class="tile-icon">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="18" r="1.5" fill="currentColor"/>
+                    <path d="M5 12a10 10 0 0 1 14 0" stroke-linecap="round"/>
+                    <path d="M8 15a5.7 5.7 0 0 1 8 0" stroke-linecap="round"/>
+                    <path d="M2 9a14.2 14.2 0 0 1 20 0" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <h3>Frequency Planner</h3>
+            <p>Calculate safe, IMD-free frequency layouts and heats for multi-pilot races.</p>
+            <div class="tile-indicator">Open Tool &rarr;</div>
+        </a>
+
+        <!-- 8. Telemetry Parser (Orange) -->
+        <a href="html tools/telemetry-parser.html" class="tile-card" onclick="notifyParent('telemetry')">
+            <div class="tile-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke-linecap="round"/>
+                    <circle cx="12" cy="10" r="3" fill="currentColor"/>
+                </svg>
+            </div>
+            <h3>Telemetry Parser</h3>
+            <p>Parse EdgeTX telemetry logs to export GPS flight tracks and maps offline.</p>
+            <div class="tile-indicator">Open Tool &rarr;</div>
+        </a>
+
+    </div>
+
+    <script>
+        // Notify the shell wrapper of page navigation inside the iframe
+        function notifyParent(key) {
+            window.parent.postMessage({ type: 'pageChange', key: key }, '*');
+        }
+
+        // Auto-notify home page loaded on DOM ready
+        document.addEventListener('DOMContentLoaded', function() {
+            notifyParent('home');
+        });
+    </script>
+</body>
+</html>

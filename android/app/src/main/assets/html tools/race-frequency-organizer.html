@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Race Frequency Organizer - Saturn FPV</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../logo/saturn_fpv_logo_white_small.jpg">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #111827; color: white; padding: 1.5rem; min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { font-family: 'Outfit', sans-serif; font-size: 1.875rem; font-weight: bold; margin-bottom: 0.5rem; text-align: center; }
+        .subtitle { text-align: center; color: #9ca3af; font-size: 0.875rem; margin-bottom: 1.5rem; }
+        .panel { background: #1f2937; border: 1px solid #374151; border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1.5rem; }
+        .panel h2 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: #e5e7eb; display: flex; align-items: center; gap: 0.5rem; }
+        .panel h2 .icon { font-size: 1.1rem; }
+        .sep { border-top: 1px solid #374151; margin: 1rem 0; }
+
+        /* Presets - equal size */
+        .preset-section { margin-bottom: 0.75rem; }
+        .preset-section-label { font-size: 0.6875rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
+        .preset-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
+        .preset-btn {
+            background: #111827; border: 1px solid #374151; border-radius: 0.5rem;
+            padding: 0.5rem 0.5rem; color: #e5e7eb; cursor: pointer; font-size: 0.75rem;
+            text-align: center; transition: all 0.2s;
+        }
+        .preset-btn:hover { border-color: #3b82f6; background: #1e293b; }
+        .preset-btn.active { border-color: #3b82f6; background: rgba(59,130,246,0.1); }
+        .preset-btn .ptitle { font-weight: 600; font-size: 0.8125rem; margin-bottom: 0.15rem; }
+        .preset-btn .pdetail { color: #6b7280; font-size: 0.5625rem; }
+
+        /* VTX Counters */
+        .vtx-slider-row {
+            display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0.75rem;
+            padding: 0.45rem 0; border-bottom: 1px solid rgba(55,65,81,0.3);
+        }
+        .vtx-slider-row:last-child { border-bottom: none; }
+        .vtx-slider-label { display: flex; flex-direction: column; gap: 0.05rem; }
+        .vtx-slider-label .vsl-name { font-weight: 600; font-size: 0.8125rem; }
+        .vtx-slider-label .vsl-detail { font-size: 0.5625rem; color: #6b7280; }
+        .vtx-slider-val { font-family: 'JetBrains Mono', monospace; font-size: 1.125rem; font-weight: 700; text-align: center; display: inline-block; width: 24px; }
+
+        .vtx-counter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .counter-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: #111827;
+            border: 1px solid #374151;
+            color: #e5e7eb;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            user-select: none;
+            outline: none;
+        }
+        .counter-btn:hover {
+            border-color: #3b82f6;
+            background: #1e293b;
+            color: white;
+        }
+        .counter-btn:active {
+            transform: scale(0.92);
+        }
+
+        /* Warnings */
+        .warn-banner { border-radius: 0.5rem; padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; font-size: 0.6875rem; display: none; line-height: 1.5; }
+        .warn-banner.visible { display: block; }
+        .warn-banner strong { font-weight: 600; }
+        .warn-dji { background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.2); color: #fbbf24; }
+        .warn-o3 { background: rgba(52,211,153,0.06); border: 1px solid rgba(52,211,153,0.2); color: #34d399; }
+        .warn-o4p { background: rgba(139,92,246,0.06); border: 1px solid rgba(139,92,246,0.2); color: #c4b5fd; }
+        .warn-50m { background: rgba(217,119,6,0.06); border: 1px solid rgba(217,119,6,0.2); color: #d97706; }
+
+        /* Big button */
+        .btn-auto-big {
+            display: block; width: 100%; background: rgba(59,130,246,0.1); border: 2px solid rgba(59,130,246,0.4);
+            border-radius: 0.75rem; color: #3b82f6; cursor: pointer;
+            font-family: 'Outfit', sans-serif; font-size: 1rem; font-weight: 600;
+            padding: 0.875rem 1.5rem; transition: all 0.2s; margin-top: 0.75rem;
+        }
+        .btn-auto-big:hover { background: rgba(59,130,246,0.18); border-color: #3b82f6; transform: translateY(-1px); }
+
+        /* Options */
+        .option-row { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.75rem; flex-wrap: wrap; }
+        .option-toggle { display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.8125rem; color: #9ca3af; user-select: none; }
+        .option-toggle input[type="checkbox"] { accent-color: #3b82f6; width: 16px; height: 16px; cursor: pointer; }
+        .total-pilots { font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; color: #e5e7eb; font-weight: 600; margin-top: 0.5rem; }
+
+        /* Heat columns */
+        .heats-container { display: grid; gap: 1rem; }
+        .heats-container.cols-1 { grid-template-columns: 1fr; }
+        .heats-container.cols-2 { grid-template-columns: 1fr 1fr; }
+        .heats-container.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .heats-container.cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+        .heat-header { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.35rem 0.6rem; border-radius: 0.375rem; margin-bottom: 0.5rem; display: inline-block; }
+        .vtx-group { margin-bottom: 0.5rem; }
+        .vtx-group-header {
+            font-size: 0.625rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+            color: #9ca3af; padding: 0.25rem 0.4rem; border-bottom: 1px solid #374151; margin-bottom: 0.25rem;
+            display: flex; align-items: center; gap: 0.4rem; max-width: 260px;
+        }
+        .vtx-group-header .vtx-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+        .pilot-slot {
+            background: #111827; border: 1px solid #374151; border-radius: 0.375rem;
+            padding: 0.35rem 0.5rem; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.4rem;
+            transition: border-color 0.2s; font-size: 0.8125rem; max-width: 260px;
+        }
+        .pilot-slot.has-conflict { border-color: rgba(239,68,68,0.4); }
+        .pilot-slot.has-warn { border-color: rgba(245,158,11,0.4); }
+        .slot-id { font-weight: 700; font-size: 0.7rem; min-width: 22px; }
+        .slot-ch { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 600; }
+        .slot-freq { font-family: 'JetBrains Mono', monospace; font-size: 0.6875rem; color: #6b7280; }
+        .slot-status { font-size: 0.5625rem; display: flex; align-items: center; gap: 0.2rem; margin-left: auto; }
+        .slot-status .dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
+        .st-great { color: #10b981; } .st-great .dot { background: #10b981; }
+        .st-ok { color: #f59e0b; } .st-ok .dot { background: #f59e0b; }
+        .st-warn { color: #f59e0b; } .st-warn .dot { background: #f59e0b; }
+        .st-bad { color: #ef4444; } .st-bad .dot { background: #ef4444; }
+
+        /* Results */
+        .results-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
+        .result-card { background: #111827; border: 1px solid #374151; border-radius: 0.625rem; padding: 0.75rem; text-align: center; }
+        .rc-label { font-size: 0.625rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem; }
+        .rc-value { font-family: 'JetBrains Mono', monospace; font-size: 1.25rem; font-weight: 700; }
+        .rc-sub { font-size: 0.625rem; color: #6b7280; margin-top: 0.15rem; }
+        .copy-box { background: #111827; border: 1px solid #374151; border-radius: 0.375rem; padding: 0.5rem 0.625rem; font-family: 'JetBrains Mono', monospace; font-size: 0.6875rem; color: #e5e7eb; cursor: pointer; transition: all 0.2s; line-height: 1.5; }
+        .copy-box:hover { border-color: #3b82f6; }
+        .copy-box.copied { border-color: #10b981; }
+
+        /* Viz */
+        .viz-panel { background: #1f2937; border: 1px solid #374151; border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1rem; }
+        .viz-panel h3 { font-size: 0.875rem; font-weight: 600; color: #e5e7eb; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem; }
+        .spectrum-grid { display: grid; gap: 1rem; margin-bottom: 1rem; }
+        .spectrum-grid.sg-1 { grid-template-columns: 1fr; }
+        .spectrum-grid.sg-2 { grid-template-columns: 1fr 1fr; }
+        .spectrum-grid.sg-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .spectrum-grid.sg-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+        /* Channel grid */
+        .channel-grid { display: grid; grid-template-columns: auto repeat(8, 1fr); gap: 2px; font-size: 0.6875rem; }
+        .cg-header { font-weight: 600; color: #6b7280; text-align: center; padding: 0.3rem 0.2rem; font-size: 0.5625rem; text-transform: uppercase; }
+        .cg-band { font-weight: 600; padding: 0.3rem 0.35rem; text-align: right; white-space: nowrap; font-size: 0.5625rem; }
+        .cg-sep { grid-column: 1 / -1; border-top: 1px solid #374151; margin: 0.2rem 0; }
+        .cg-cell {
+            background: #111827; border: 1px solid #374151; border-radius: 0.25rem;
+            padding: 0.2rem 0.1rem; text-align: center; transition: all 0.15s;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.5rem; color: #9ca3af;
+        }
+        .cg-cell.empty { background: transparent; border-color: transparent; }
+        .cg-cell.assigned { border-color: var(--pc); background: var(--pb); color: white; font-weight: 600; }
+        .cg-cell.imd-hit { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.08); color: #ef4444; }
+        .cg-cell.o3-danger { box-shadow: inset 0 -2px 0 rgba(239,68,68,0.35); }
+        .cg-cell.dji-pub { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.3); color: #f59e0b; }
+
+        /* IMD table */
+        .imd-table-wrap { overflow-x: auto; }
+        .imd-table { width: 100%; border-collapse: collapse; font-size: 0.6875rem; }
+        .imd-table th { text-align: left; font-size: 0.5625rem; font-weight: 600; color: #6b7280; text-transform: uppercase; padding: 0.35rem; border-bottom: 1px solid #374151; }
+        .imd-table td { padding: 0.3rem 0.35rem; border-bottom: 1px solid rgba(55,65,81,0.3); font-family: 'JetBrains Mono', monospace; font-size: 0.625rem; }
+        .td-bad { color: #ef4444; font-weight: 600; }
+        .td-warn { color: #f59e0b; }
+
+        /* Reference */
+        .ref-table { width: 100%; border-collapse: collapse; font-size: 0.6875rem; margin-top: 0.5rem; }
+        .ref-table th { text-align: left; font-size: 0.5625rem; font-weight: 600; color: #6b7280; text-transform: uppercase; padding: 0.3rem 0.4rem; border-bottom: 1px solid #374151; }
+        .ref-table td { padding: 0.25rem 0.4rem; border-bottom: 1px solid rgba(55,65,81,0.3); color: #9ca3af; }
+        .ref-table tr:last-child td { border-bottom: none; }
+        .info-tip { font-size: 0.6875rem; color: #6b7280; line-height: 1.5; }
+
+        /* Togglable results tabs */
+        .results-tabs {
+            display: flex;
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 0.75rem 0.75rem 0 0;
+            overflow: hidden;
+            border-bottom: none;
+            margin-top: 1rem;
+        }
+        .results-tab {
+            flex: 1;
+            background: #111827;
+            border: none;
+            color: #9ca3af;
+            padding: 0.85rem 1rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            border-bottom: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-family: inherit;
+        }
+        .results-tab:hover {
+            color: white;
+            background: rgba(255,255,255,0.02);
+        }
+        .results-tab.active {
+            color: #3b82f6;
+            background: #1f2937;
+            border-bottom: 2px solid #3b82f6;
+        }
+
+        /* Premium stats card */
+        .stats-card-premium {
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 0.625rem;
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .stats-badges {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .stats-badge {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .stats-badge.sb-status {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        .stats-badge.sb-sep {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        .btn-copy-stats {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 0.375rem;
+            color: #3b82f6;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.35rem 0.75rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .btn-copy-stats:hover {
+            background: rgba(59, 130, 246, 0.25);
+            border-color: #3b82f6;
+        }
+        .btn-copy-stats.copied {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: #10b981;
+            color: #10b981;
+        }
+
+        @media (max-width: 900px) { .spectrum-grid.sg-2, .spectrum-grid.sg-3 { grid-template-columns: 1fr; } .heats-container.cols-3, .heats-container.cols-2 { grid-template-columns: 1fr; } .preset-row { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 640px) { body { padding: 1rem; } h1 { font-size: 1.375rem; } .results-grid { grid-template-columns: 1fr; } .cg-cell { font-size: 0.45rem; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Race Frequency Organizer</h1>
+    <p class="subtitle">IMD-free channel mapping for multi-pilot FPV races</p>
+
+    <!-- Quick Presets -->
+    <div class="panel">
+        <h2><span class="icon">&#9889;</span> Quick Presets</h2>
+        <div class="preset-section">
+            <div class="preset-section-label">Analog Only</div>
+            <div class="preset-row" id="presets-analog"></div>
+        </div>
+        <div class="preset-section" style="margin-top:0.75rem;">
+            <div class="preset-section-label">Race - HDZero / DJI O4 Race 20M</div>
+            <div class="preset-row" id="presets-race"></div>
+        </div>
+        <div class="preset-section" style="margin-top:0.75rem;">
+            <div class="preset-section-label">Freestyle - Mixed with DJI O4 60M (HAM)</div>
+            <div class="preset-row" id="presets-freestyle"></div>
+        </div>
+    </div>
+
+    <!-- VTX System Sliders -->
+    <div class="panel">
+        <h2><span class="icon">&#128225;</span> Pilots per Video System</h2>
+        <p style="font-size:0.75rem; color:#9ca3af; margin-bottom:0.75rem;">Set how many pilots are on each system. Total = sum of all sliders.</p>
+        <div id="vtx-sliders"></div>
+        <div class="total-pilots" id="total-pilots">Total: 0 pilots</div>
+
+        <div style="margin-top:0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+            <button id="btn-toggle-warnings" onclick="toggleWarningsVisibility()" style="border: 1px solid #374151; background: #111827; color: #d1d5db; padding: 0.35rem 0.75rem; font-size: 0.75rem; font-weight: 600; border-radius: 6px; cursor: pointer; transition: all 0.2s; outline: none; display: inline-flex; align-items: center; gap: 0.25rem;">
+                No Warnings
+            </button>
+        </div>
+        <div style="margin-top:0.5rem; display:none;" id="warnings-container">
+            <div class="warn-banner warn-dji" id="warn-dji"><strong>&#9888; DJI V1/Walksnail Public Channel:</strong> These units broadcast on <strong>D8 (5839 MHz)</strong> at full power on startup. Ensure pilots switch to manual channel before others arm. Keep goggles 3m away.</div>
+            <div class="warn-banner warn-o3" id="warn-o3"><strong>&#9888; DJI O3 Data Carrier:</strong> Wide OFDM carrier (~5720-5850 MHz) interferes with other systems. Other pilots must use frequencies whose ~25 MHz bandwidth footprint stays outside this zone. Only a few channels qualify - the tool calculates which ones are safe.</div>
+            <div class="warn-banner warn-o4p" id="warn-o4p"><strong>&#9888; DJI O4 Data Carrier (HAM):</strong> O4 shares O3 frequencies (requires HAM unlock). Wide OFDM carrier blocks ~5720-5850 MHz for other systems.</div>
+            <div class="warn-banner warn-50m" id="warn-50m"><strong>&#9888; 50 Mbps / 40+ MHz:</strong> Very few usable channels at this bandwidth. <strong>Always use 25 Mbps / 20 MHz for racing when possible.</strong></div>
+        </div>
+
+        <div class="option-row">
+            <label class="option-toggle"><input type="checkbox" id="force-single" onchange="renderAll()"> Force single heat (freestyle - accept IMD)</label>
+        </div>
+        <button class="btn-auto-big" onclick="autoAssign()">&#9733; Auto-Assign Frequencies</button>
+    </div>
+
+    <!-- Results Section (Tabs & Contents) -->
+    <div id="results-container" style="display:none;">
+        <!-- Tabs Header -->
+        <div class="results-tabs">
+            <button class="results-tab active" onclick="setOrganizerTab('assignment')">
+                <span>&#9733; Frequency Assignment</span>
+            </button>
+            <button class="results-tab" onclick="setOrganizerTab('spectrum')">
+                <span>&#9638; Spectrum & Grid</span>
+            </button>
+        </div>
+
+        <!-- Tab A: Frequency Assignment -->
+        <div class="panel" id="tab-assignment" style="border-top-left-radius:0; border-top-right-radius:0;">
+            <!-- Premium double-badge stats card -->
+            <div class="stats-card-premium" style="display: flex; align-items: center; gap: 0.5rem; justify-content: flex-start;">
+                <span style="font-size: 0.8125rem; font-weight: 600; color: #9ca3af;">Status:</span>
+                <div class="stats-badges" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <span class="stats-badge sb-status" id="stat-premium-status">imd-free</span>
+                    <span class="stats-badge sb-sep" id="stat-premium-sep">--mhz min sep</span>
+                </div>
+            </div>
+            <div class="heats-container" id="heats-container"></div>
+        </div>
+
+        <!-- Tab B: Spectrum & Grid -->
+        <div class="panel" id="tab-spectrum" style="display:none; border-top-left-radius:0; border-top-right-radius:0;">
+            <!-- Spectrum per heat -->
+            <div id="spectrum-panels"></div>
+            <div class="sep"></div>
+            <!-- Channel grid -->
+            <div class="viz-panel" id="viz-section" style="border: none; padding: 0; background: transparent; margin-bottom: 0;">
+                <h3><span class="icon">&#9638;</span> Channel Grid</h3>
+                <p style="font-size:0.5625rem; color:#6b7280; margin-bottom:0.5rem;">Orange underline = O3/O4 carrier zone. Assigned channels highlighted per heat.</p>
+                <div class="channel-grid" id="channel-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reference -->
+    <div class="panel" style="display: none;">
+        <h2><span class="icon">&#128225;</span> Digital System Reference</h2>
+        <p style="font-size:0.6875rem; color:#9ca3af; margin-bottom:0.5rem;">Based on RotorHazard Frequency Reference Chart (Rev. 2024-12-11) by Michael Niggel / Hazard Creative.</p>
+        <table class="ref-table">
+            <thead><tr><th>System</th><th>BW</th><th>Channels</th><th>Notes</th></tr></thead>
+            <tbody>
+                <tr><td style="color:#9ca3af; font-weight:600;">Analog</td><td>~25 MHz</td><td>All bands (A,B,E,F,R)</td><td style="color:#10b981;">IMD is the only concern</td></tr>
+                <tr><td style="color:#ef4444; font-weight:600;">HDZero</td><td>~27 MHz</td><td>R1-R8, F2, F4</td><td style="color:#10b981;">No public broadcast</td></tr>
+                <tr><td style="color:#0ea5e9; font-weight:600;">DJI O4 Race 20M</td><td>20 MHz</td><td>R1-R8 (actual raceband)</td><td style="color:#10b981;">No public broadcast, no data carrier</td></tr>
+                <tr><td style="color:#fbbf24; font-weight:600;">DJI V1/WS 25M (HAM)</td><td>~20 MHz</td><td>D1-D7 (avoid D8 = public)</td><td style="color:#ef4444;">D8 = 5839 MHz public broadcast</td></tr>
+                <tr><td style="color:#d97706; font-weight:600;">DJI V1/WS 50M (HAM)</td><td>~40 MHz</td><td>J1-J3</td><td style="color:#ef4444;">Only 3 channels</td></tr>
+                <tr><td style="color:#34d399; font-weight:600;">DJI O3 20M</td><td>20 MHz</td><td>O1-O7 (CE: O3-O5 only)</td><td style="color:#ef4444;">Wide data carrier ~5720-5850</td></tr>
+                <tr><td style="color:#059669; font-weight:600;">DJI O3 40M</td><td>~40 MHz</td><td>Q1-Q3</td><td style="color:#ef4444;">Data carrier + huge footprint</td></tr>
+                <tr><td style="color:#8b5cf6; font-weight:600;">DJI O4 20M (HAM)</td><td>20 MHz</td><td>O1-O7 (same as O3)</td><td style="color:#ef4444;">HAM unlock, data carrier</td></tr>
+                <tr><td style="color:#7c3aed; font-weight:600;">DJI O4 40M (HAM)</td><td>40 MHz</td><td>Q1-Q3 (same as O3)</td><td style="color:#ef4444;">HAM unlock, data carrier</td></tr>
+                <tr><td style="color:#6d28d9; font-weight:600;">DJI O4 60M (HAM)</td><td>60 MHz</td><td>Q1-Q3 (same centers)</td><td style="color:#ef4444;">HAM unlock, Goggles 3, wider BW</td></tr>
+            </tbody>
+        </table>
+        <div class="sep"></div>
+        <div class="info-tip" style="padding:0.5rem 0.75rem; background:rgba(17,24,39,0.5); border-radius:0.375rem; border:1px solid rgba(55,65,81,0.5);">
+            <strong style="color:#e5e7eb;">Key IMD-Free Presets:</strong><br>
+            <strong>R1367 (4P):</strong> R1, R3, R6, R7 | <strong>IMD5C (5P):</strong> R1, R2, F2, F4, E5 | <strong>IMD6C (6P):</strong> R1, R2, F2, F4, R7, R8 (industry std, minor 3-way)<br>
+            <strong style="color:#f59e0b;">O3 safe analog (center + ~25 MHz BW outside carrier):</strong> E4(5645), E3(5665), R1(5658), E2(5685), R2(5695) below | F7(5860), R7(5880), E5(5885), E6(5905), R8(5917) above. Note: R7/E5 overlap each other, cannot use both!<br>
+            <strong style="color:#8b5cf6;">O4 (HAM):</strong> Same as O3 channels (O-band / Q-band) + 60M mode on Q-band. Requires HAM unlock.
+        </div>
+    </div>
+
+    <!-- How it works -->
+    <div class="panel" style="display: none;">
+        <h2><span class="icon">&#9432;</span> How It Works</h2>
+        <div class="info-tip">
+            <strong>Bandwidth:</strong> Analog VTX occupies ~25 MHz of spectrum per channel (FM trapezoid), not just the center frequency. Two channels must be far enough apart that their bandwidth footprints don't overlap. This limits how many pilots fit per heat.<br><br>
+            <strong>IMD:</strong> When VTX signals mix in a receiver, they create phantom signals at sum/difference frequencies (2f1-f2, f1+f2-f3). If a 2-way phantom lands on an assigned frequency, that pilot gets interference. 3-way products are weaker and shown as warnings. Never use equal spacing for 3+ pilots.<br><br>
+            <strong>O3/O4 Data Carrier:</strong> Uses OFDM with a wide data carrier (~5720-5850 MHz). Other systems must keep their entire bandwidth footprint outside this zone. Note: Q-band channels (40 MHz) like Q1(5677) physically overlap R1/R2 - it's not just the carrier, the channel itself is that wide.<br><br>
+            <strong>O4 vs O3:</strong> DJI O4 (HAM unlock) matches O3 frequencies exactly, plus adds 60M mode (Q-band). O3 uses O-band (7ch) or Q-band (3ch), no 60M. Both V1/WS and O4 require a HAM license for race use.<br><br>
+            <strong>Auto-splitting:</strong> When too many pilots for a clean IMD-free set, the tool splits into heats A, B, C, D. Each heat flies separately with its own clean frequency set.
+        </div>
+    </div>
+</div>
+
+<script>
+// ─── Band / Channel Database ───
+// All 8 positions, null = no channel at that slot
+const BANDS = {
+    R: { name: 'Raceband',        color: '#3b82f6', ch: [5658,5695,5732,5769,5806,5843,5880,5917] },
+    F: { name: 'Fatshark',        color: '#10b981', ch: [5740,5760,5780,5800,5820,5840,5860,5880] },
+    E: { name: 'Band E',          color: '#ec4899', ch: [5705,5685,5665,5645,5885,5905,5925,5945] },
+    D: { name: 'DJI V1/WS 25M',  color: '#fbbf24', ch: [5660,5695,5735,5770,5805,5878,5914,5839] },
+    J: { name: 'DJI V1/WS 50M',  color: '#d97706', ch: [5695,5770,5878,null,null,null,null,null] },
+    O: { name: 'O-band (O3/O4U)', color: '#34d399', ch: [5669,5705,5768,5804,5839,5876,5912,null] },
+    Q: { name: 'Q-band (O3/O4U)', color: '#059669', ch: [5677,5794,5902,null,null,null,null,null] },
+};
+// Display order for grid
+const GRID_BANDS_STD = ['R','F','E'];
+const GRID_BANDS_DJI = ['D','J','O','Q'];
+
+// Pilot colors per slot (18 max = 6 per heat x 3 heats)
+const PC = ['#3b82f6','#10b981','#f59e0b','#ef4444','#a855f7','#ec4899',
+            '#6366f1','#14b8a6','#f97316','#0ea5e9','#84cc16','#e11d48',
+            '#8b5cf6','#06b6d4','#d97706','#dc2626','#7c3aed','#059669'];
+
+// Danger zones
+const O3_LO = 5720, O3_HI = 5850;
+const DJI_PUB = 5839, DJI_PUB_R = 15;
+// Safety margin for proximity checks (MHz)
+const PROX_MARGIN = 2;
+
+// ─── VTX System Definitions ───
+// o3car: has wide OFDM data carrier that blocks 5720-5850
+// djipub: broadcasts on D8 (5839) at startup
+// analog: is a victim of IMD (analog/HDZero receivers are sensitive)
+const VTX = [
+    { id:'analog',     name:'Analog',              bw:25, color:'#9ca3af', analog:true,  o3car:false, djipub:false, detail:'All bands, ~25 MHz',        getBand:()=>['R','F','E'] },
+    { id:'hdzero',     name:'HDZero',              bw:27, color:'#ef4444', analog:false, o3car:false, djipub:false, detail:'R1-R8, F2, F4, ~27 MHz',    getBand:()=>['R','F_hd'] },
+    { id:'dji_v1_25',  name:'DJI V1/WS 25M (HAM)',  bw:20, color:'#fbbf24', analog:false, o3car:false, djipub:true,  detail:'D-band, pub ch D8',         getBand:()=>['D_nopub'] },
+    { id:'dji_v1_50',  name:'DJI V1/WS 50M (HAM)',  bw:40, color:'#d97706', analog:false, o3car:false, djipub:true,  detail:'J-band, only 3 ch',         getBand:()=>['J'] },
+    { id:'o3_20',      name:'DJI O3 20M',          bw:20, color:'#34d399', analog:false, o3car:true,  djipub:false, detail:'O-band, 7 ch',              getBand:()=>['O'] },
+    { id:'o3_40',      name:'DJI O3 40M',          bw:40, color:'#059669', analog:false, o3car:true,  djipub:false, detail:'Q-band, 3 ch',              getBand:()=>['Q'] },
+    { id:'o4u_20',     name:'DJI O4 20M (HAM)',     bw:20, color:'#8b5cf6', analog:false, o3car:true,  djipub:false, detail:'O-band, 7 ch',              getBand:()=>['O'] },
+    { id:'o4u_40',     name:'DJI O4 40M (HAM)',     bw:40, color:'#7c3aed', analog:false, o3car:true,  djipub:false, detail:'Q-band, 3 ch',              getBand:()=>['Q'] },
+    { id:'o4u_60',     name:'DJI O4 60M (HAM)',     bw:60, color:'#6d28d9', analog:false, o3car:true,  djipub:false, detail:'Q-band, 3 ch',              getBand:()=>['Q'] },
+    { id:'o4_race',    name:'DJI O4 Race 20M',     bw:20, color:'#0ea5e9', analog:false, o3car:false, djipub:false, detail:'Raceband, no carrier',      getBand:()=>['R'] },
+];
+
+// Get available channels for a VTX type
+function vtxChannels(vtxId, heatHasDjiPub) {
+    const v = VTX.find(x => x.id === vtxId);
+    if (!v) return [];
+    const bands = v.getBand();
+    let chs = [];
+    bands.forEach(b => {
+        if (b === 'F_hd') {
+            // HDZero: F2, F4 only (R already included via 'R')
+            chs.push({k:'F2',f:5760},{k:'F4',f:5800});
+        } else if (b === 'D_nopub') {
+            // D-band minus D8 (public)
+            BANDS.D.ch.forEach((f,i) => { if (f && i < 7) chs.push({k:'D'+(i+1),f}); });
+        } else if (BANDS[b]) {
+            BANDS[b].ch.forEach((f,i) => { if (f) chs.push({k:b+(i+1),f}); });
+        }
+    });
+
+    // DJI public broadcast exclusion: if V1/WS pilots are in the same heat,
+    // filter out O-band/P-band channels near D8 (5839 MHz)
+    if (heatHasDjiPub && v.o3car) {
+        chs = chs.filter(c => Math.abs(c.f - DJI_PUB) > DJI_PUB_R);
+    }
+
+    return chs;
+}
+
+// ─── Presets ───
+const PRESETS_ANALOG = [
+    { label:'5 Analog', detail:'IMD5C', sliders:{analog:5} },
+    { label:'6 Analog', detail:'IMD6C', sliders:{analog:6} },
+];
+const PRESETS_RACE = [
+    { label:'5 HDZero', detail:'5 HDZero pilots', sliders:{hdzero:5} },
+    { label:'6 HDZero', detail:'6 HDZero (IMD6C)', sliders:{hdzero:6} },
+    { label:'5 HD + 1 O4R', detail:'5 HDZero + 1 O4 Race 20M', sliders:{hdzero:5, o4_race:1} },
+    { label:'4 HD + 2 O4R', detail:'4 HDZero + 2 O4 Race 20M', sliders:{hdzero:4, o4_race:2} },
+];
+const PRESETS_FREESTYLE = [
+    { label:'2 + 1 O4', detail:'2 analog + 1 O4 60M', sliders:{analog:2, o4u_60:1} },
+    { label:'2 + 2 O4', detail:'2 analog + 2 O4 60M', sliders:{analog:2, o4u_60:2} },
+];
+
+// ─── State ───
+let S = { sliders:{}, assignments:[], tolerance:2 };
+VTX.forEach(v => S.sliders[v.id] = 0);
+
+// ─── Helpers ───
+function totalPilots() { return Object.values(S.sliders).reduce((a,b)=>a+b,0); }
+function hasO3() { return VTX.some(v => v.o3car && S.sliders[v.id]>0); }
+function hasDjiPub() { return VTX.some(v => v.djipub && S.sliders[v.id]>0); }
+function hasO4() { return ['o4u_20','o4u_40','o4u_60'].some(id => (S.sliders[id]||0)>0); }
+function has50M() { return (S.sliders.dji_v1_50||0)>0 || (S.sliders.o3_40||0)>0 || (S.sliders.o4u_40||0)>0 || (S.sliders.o4u_60||0)>0; }
+// BW-aware: a signal at f with bandwidth bw overlaps the O3 carrier zone
+function inO3Zone(f, bw) {
+    const halfBw = (bw || 0) / 2;
+    return (f + halfBw) >= O3_LO && (f - halfBw) <= O3_HI;
+}
+
+// Check if a pilot list has DJI pub sources
+function pilotsHaveDjiPub(pilots) { return pilots.some(p => p.djipub); }
+
+// ─── IMD ───
+// 2-way products only (critical - hard constraint for assignment)
+function imd2way(freqs) {
+    const p = [];
+    for (let i=0; i<freqs.length; i++)
+        for (let j=i+1; j<freqs.length; j++) {
+            p.push({f:2*freqs[i]-freqs[j], s:[freqs[i],freqs[j]], t:'2'});
+            p.push({f:2*freqs[j]-freqs[i], s:[freqs[i],freqs[j]], t:'2'});
+        }
+    return p;
+}
+
+// 3-way products (weaker - warning only, not a hard constraint)
+function imd3way(freqs) {
+    const p = [];
+    for (let i=0; i<freqs.length; i++)
+        for (let j=i+1; j<freqs.length; j++)
+            for (let k=j+1; k<freqs.length; k++) {
+                p.push({f:freqs[i]+freqs[j]-freqs[k], s:[freqs[i],freqs[j],freqs[k]], t:'3'});
+                p.push({f:freqs[i]+freqs[k]-freqs[j], s:[freqs[i],freqs[j],freqs[k]], t:'3'});
+                p.push({f:freqs[j]+freqs[k]-freqs[i], s:[freqs[i],freqs[j],freqs[k]], t:'3'});
+            }
+    return p;
+}
+
+// All products (for display/analysis)
+function imdProducts(freqs) {
+    return [...imd2way(freqs), ...imd3way(freqs)];
+}
+
+// 2-way IMD conflicts only (hard constraint for auto-assign)
+function imd2wayConflicts(allFreqs, victimFreqs, tol) {
+    if (!victimFreqs.length) return [];
+    const prods = imd2way(allFreqs), c = [];
+    prods.forEach(p => victimFreqs.forEach(f => {
+        if (Math.abs(p.f-f) <= tol) c.push({...p, hit:f, d:Math.abs(p.f-f)});
+    }));
+    return c;
+}
+
+// All IMD conflicts (for display - includes 3-way as warnings)
+function imdConflicts(allFreqs, victimFreqs, tol) {
+    if (!victimFreqs.length) return [];
+    const prods = imdProducts(allFreqs), c = [];
+    prods.forEach(p => victimFreqs.forEach(f => {
+        if (Math.abs(p.f-f) <= tol) c.push({...p, hit:f, d:Math.abs(p.f-f)});
+    }));
+    return c;
+}
+
+// ─── Auto-Assign Engine ───
+function buildPilotList() {
+    let pilots = [];
+    VTX.forEach(v => {
+        for (let i=0; i<S.sliders[v.id]; i++)
+            pilots.push({ vtxId:v.id, bw:v.bw, analog:v.analog, o3car:v.o3car, djipub:v.djipub });
+    });
+    return pilots;
+}
+
+function findAssignment(pilots) {
+    const heatHasO3 = pilots.some(p => p.o3car);
+    const heatHasDjiPub = pilotsHaveDjiPub(pilots);
+
+    // Get available channels for each pilot, applying constraints
+    const pilotChs = pilots.map(p => {
+        let chs = vtxChannels(p.vtxId, heatHasDjiPub);
+        // O3/O4Pro carrier constraint: non-O3 pilots must avoid 5720-5850
+        // BW-aware: filter channels whose bandwidth footprint overlaps the carrier zone
+        if (heatHasO3 && !p.o3car) {
+            chs = chs.filter(c => !inO3Zone(c.f, p.bw));
+        }
+        return chs;
+    });
+
+    // Sort by most constrained first
+    const order = pilots.map((_,i)=>i).sort((a,b) => pilotChs[a].length - pilotChs[b].length);
+
+    // Quick reject: if any pilot has 0 available channels, no solution exists
+    if (pilotChs.some(chs => chs.length === 0)) return null;
+
+    const assigned = new Array(pilots.length).fill(null);
+    let best = null, bestSep = 0;
+    let iterations = 0;
+    const MAX_ITER = 15000;
+    const deadline = (findAssignment._deadline) || Infinity;
+
+    function bt(pos) {
+        if (iterations++ > MAX_ITER || performance.now() > deadline) return;
+        if (pos === order.length) {
+            const freqs = assigned.map(a => a.f);
+            // 2-way IMD checked against ALL assigned frequencies (not just analog)
+            // This produces standard race presets (IMD6C etc.) for any system mix
+            if (imd2wayConflicts(freqs, freqs, S.tolerance).length > 0) return;
+            let ms = Infinity;
+            for (let i=0; i<freqs.length; i++)
+                for (let j=i+1; j<freqs.length; j++)
+                    ms = Math.min(ms, Math.abs(freqs[i]-freqs[j]));
+            if (!best || ms > bestSep) { best = assigned.map((a,i)=>({...a,pi:i})); bestSep = ms; }
+            return;
+        }
+        const pi = order[pos];
+        for (const ch of pilotChs[pi]) {
+            if (iterations > MAX_ITER || performance.now() > deadline) return;
+            // Proximity check: bandwidth-aware minimum distance + safety margin
+            let ok = true;
+            for (let j=0; j<pilots.length; j++) {
+                if (!assigned[j]) continue;
+                const minDist = (pilots[pi].bw + pilots[j].bw)/2 + PROX_MARGIN;
+                if (Math.abs(ch.f - assigned[j].f) <= minDist) { ok=false; break; }
+            }
+            if (!ok) continue;
+
+            assigned[pi] = ch;
+            // Early IMD prune: check all assigned frequencies (2-way only)
+            const aFreqs = assigned.filter(a=>a).map(a=>a.f);
+            if (imd2wayConflicts(aFreqs, aFreqs, S.tolerance).length === 0) {
+                bt(pos+1);
+            }
+            assigned[pi] = null;
+            if (best && bestSep > 50) return; // good enough
+        }
+    }
+    bt(0);
+    return best;
+}
+
+// Determine if we should proactively split into heats
+function shouldSplit(pilots) {
+    const total = pilots.length;
+    const hasO3Pilots = pilots.some(p => p.o3car);
+    const hasDjiPubPilots = pilots.some(p => p.djipub);
+    const hasAnalog = pilots.some(p => p.analog);
+
+    // 0. Any VTX type has more pilots than available channels (e.g. 2x O4 60M = 1 channel)
+    const byVtx = {};
+    pilots.forEach(p => { byVtx[p.vtxId] = (byVtx[p.vtxId]||0) + 1; });
+    for (const [vtxId, count] of Object.entries(byVtx)) {
+        if (count > maxPerHeat(vtxId)) return true;
+    }
+    // 1. O3/O4Pro + V1/WS in same lineup: bandwidth collision zone too crowded
+    if (hasO3Pilots && hasDjiPubPilots && hasAnalog && total > 3) return true;
+    // 2. More than 5 pilots with O3 present (safe channels outside carrier are limited)
+    if (hasO3Pilots && total > 5) return true;
+    // 3. Multiple O3/O4Pro pilots + multiple analog: quickly runs out of safe frequencies
+    const o3Count = pilots.filter(p => p.o3car).length;
+    const analogCount = pilots.filter(p => p.analog).length;
+    if (o3Count >= 2 && analogCount >= 3) return true;
+    // 4. Very high pilot count
+    if (total > 6) return true;
+
+    return false;
+}
+
+function autoAssign() {
+    const total = totalPilots();
+    if (total === 0) return;
+    const pilots = buildPilotList();
+    const forceSingle = document.getElementById('force-single').checked;
+    const letters = ['A','B','C','D'];
+
+    // Global time budget: 2 seconds max for all strategy attempts
+    findAssignment._deadline = performance.now() + 2000;
+
+    // Forced single heat: best effort, accept IMD
+    if (forceSingle) {
+        let result = findAssignment(pilots);
+        if (result) {
+            S.assignments = result.map((a,i) => ({
+                id:'A'+(i+1), ch:a.k, freq:a.f, vtx:pilots[i].vtxId, heat:'A'
+            }));
+        } else {
+            S.assignments = pilots.map((p,i) => {
+                const chs = vtxChannels(p.vtxId, pilotsHaveDjiPub(pilots));
+                const ch = chs[i % chs.length] || chs[0];
+                return { id:'A'+(i+1), ch:ch?ch.k:'--', freq:ch?ch.f:0, vtx:p.vtxId, heat:'A' };
+            });
+        }
+        renderAll(); return;
+    }
+
+    // Try single heat first (only if shouldSplit doesn't trigger)
+    if (!shouldSplit(pilots)) {
+        let result = findAssignment(pilots);
+        if (result) {
+            S.assignments = result.map((a,i) => ({
+                id:'A'+(i+1), ch:a.k, freq:a.f, vtx:pilots[i].vtxId, heat:'A'
+            }));
+            renderAll(); return;
+        }
+    }
+
+    // Split into heats
+    // Strategy: separate O3/O4Pro from race pilots when possible
+    const o3Pilots = pilots.filter(p => p.o3car);
+    const djiPubPilots = pilots.filter(p => p.djipub);
+    const racePilots = pilots.filter(p => !p.o3car && !p.djipub);
+
+    // Try various split strategies
+    for (let numHeats = 2; numHeats <= 4; numHeats++) {
+        if (performance.now() > findAssignment._deadline) break;
+        const strategies = generateSplitStrategies(pilots, numHeats);
+        for (const strategy of strategies) {
+            if (performance.now() > findAssignment._deadline) break;
+            // Skip strategies with empty heats or any heat > 7 pilots
+            const validHeats = strategy.filter(h => h.length > 0);
+            if (validHeats.length < 2) continue;
+            if (validHeats.some(h => h.length > 7)) continue;
+
+            const heats = [];
+            let success = true;
+            for (let h = 0; h < validHeats.length; h++) {
+                const heatPilots = validHeats[h];
+                const res = findAssignment(heatPilots);
+                if (res) {
+                    heats.push(res.map((a,i) => ({
+                        id: letters[h]+(i+1), ch:a.k, freq:a.f,
+                        vtx:heatPilots[i].vtxId, heat:letters[h]
+                    })));
+                } else {
+                    success = false; break;
+                }
+            }
+            if (success && heats.length > 0) {
+                S.assignments = heats.flat();
+                renderAll(); return;
+            }
+        }
+    }
+
+    // Fallback: couldn't solve cleanly
+    S.assignments = pilots.map((p,i) => {
+        const chs = vtxChannels(p.vtxId, pilotsHaveDjiPub(pilots));
+        const ch = chs[i % chs.length] || chs[0];
+        return { id:'A'+(i+1), ch:ch?ch.k:'--', freq:ch?ch.f:0, vtx:p.vtxId, heat:'A' };
+    });
+    renderAll();
+}
+
+// Count max pilots per heat for a given VTX type (based on available channels)
+function maxPerHeat(vtxId) {
+    const chs = vtxChannels(vtxId, false);
+    return chs.length;
+}
+
+// Generate different ways to split pilots across heats
+function generateSplitStrategies(pilots, numHeats) {
+    const strategies = [];
+    const o3Pilots = pilots.filter(p => p.o3car);
+    const djiPubPilots = pilots.filter(p => p.djipub);
+    const racePilots = pilots.filter(p => !p.o3car && !p.djipub);
+
+    // Pre-split: separate pilots of same VTX type that exceed channel count
+    // e.g. 2x O4 60M but only 1 channel - they MUST be in different heats
+    function spreadByChannelLimit(pilotGroup) {
+        const byVtx = {};
+        pilotGroup.forEach(p => {
+            if (!byVtx[p.vtxId]) byVtx[p.vtxId] = [];
+            byVtx[p.vtxId].push(p);
+        });
+        const buckets = [];
+        for (let i = 0; i < numHeats; i++) buckets.push([]);
+        Object.entries(byVtx).forEach(([vtxId, ps]) => {
+            const max = maxPerHeat(vtxId);
+            ps.forEach((p, i) => {
+                // Distribute across heats when exceeding channel limit
+                const bucket = max > 0 ? Math.floor(i / max) % numHeats : i % numHeats;
+                buckets[bucket].push(p);
+            });
+        });
+        return buckets;
+    }
+
+    if (numHeats === 2) {
+        // Strategy 1: O3/carrier pilots in A, everyone else in B
+        // But spread O3 pilots across heats if they exceed channel limits
+        if (o3Pilots.length > 0) {
+            const o3Spread = spreadByChannelLimit(o3Pilots);
+            strategies.push([
+                [...o3Spread[0], ...racePilots.slice(0, Math.min(2, racePilots.length))],
+                [...o3Spread[1], ...djiPubPilots, ...racePilots.slice(Math.min(2, racePilots.length))]
+            ]);
+        }
+
+        // Strategy 2: O3 alone in A (spread if needed), everyone else in B
+        if (o3Pilots.length > 0) {
+            const o3Spread = spreadByChannelLimit(o3Pilots);
+            strategies.push([
+                [...o3Spread[0]],
+                [...o3Spread[1], ...racePilots, ...djiPubPilots]
+            ]);
+        }
+
+        // Strategy 3: Separate by system type - carrier systems vs non-carrier
+        strategies.push([
+            [...o3Pilots],
+            [...racePilots, ...djiPubPilots]
+        ]);
+
+        // Strategy 4: Even split of race pilots, O3 in A, V1 in B
+        const raceHalf = Math.ceil(racePilots.length / 2);
+        strategies.push([
+            [...o3Pilots, ...racePilots.slice(0, raceHalf)],
+            [...djiPubPilots, ...racePilots.slice(raceHalf)]
+        ]);
+
+        // Strategy 5: Simple even split
+        const half = Math.ceil(pilots.length / 2);
+        strategies.push([
+            pilots.slice(0, half),
+            pilots.slice(half)
+        ]);
+
+        // Strategy 6: Balanced split respecting channel limits
+        const allSpread = spreadByChannelLimit(pilots);
+        strategies.push(allSpread);
+
+    } else if (numHeats === 3) {
+        // Strategy 1: O3 in A, V1 in B, pure race in C (spread where needed)
+        const o3Spread = spreadByChannelLimit(o3Pilots);
+        const raceThird = Math.ceil(racePilots.length / 3);
+        strategies.push([
+            [...o3Spread[0], ...racePilots.slice(0, Math.min(2, racePilots.length))],
+            [...o3Spread[1], ...djiPubPilots, ...racePilots.slice(2, 2+raceThird)],
+            [...(o3Spread[2]||[]), ...racePilots.slice(2+raceThird)]
+        ].filter(h => h.length > 0));
+
+        // Strategy 2: Each system type in its own heat
+        strategies.push([
+            [...o3Pilots],
+            [...djiPubPilots],
+            [...racePilots]
+        ].filter(h => h.length > 0));
+
+        // Strategy 3: Even thirds
+        const third = Math.ceil(pilots.length / 3);
+        strategies.push([
+            pilots.slice(0, third),
+            pilots.slice(third, third*2),
+            pilots.slice(third*2)
+        ].filter(h => h.length > 0));
+
+        // Strategy 4: Balanced split respecting channel limits
+        const allSpread = spreadByChannelLimit(pilots);
+        strategies.push(allSpread.filter(h => h.length > 0));
+
+    } else if (numHeats === 4) {
+        // Strategy 1: Even quarters
+        const q = Math.ceil(pilots.length / 4);
+        strategies.push([
+            pilots.slice(0, q),
+            pilots.slice(q, q*2),
+            pilots.slice(q*2, q*3),
+            pilots.slice(q*3)
+        ].filter(h => h.length > 0));
+
+        // Strategy 2: Balanced split respecting channel limits
+        const allSpread = spreadByChannelLimit(pilots);
+        strategies.push(allSpread.filter(h => h.length > 0));
+    }
+
+    return strategies;
+}
+
+// ─── UI Init ───
+function initSliders() {
+    document.getElementById('vtx-sliders').innerHTML = VTX.map(v =>
+        `<div class="vtx-slider-row">
+            <div class="vtx-slider-label">
+                <span class="vsl-name" style="color:${v.color};">${v.name}</span>
+                <span class="vsl-detail">${v.detail}</span>
+            </div>
+            <div class="vtx-counter-group">
+                <button class="counter-btn" onclick="decrementSlider('${v.id}')" title="Decrease pilot count">&#8722;</button>
+                <span class="vtx-slider-val" style="color:${v.color};" id="val-${v.id}">0</span>
+                <button class="counter-btn" onclick="incrementSlider('${v.id}')" title="Increase pilot count">&#43;</button>
+            </div>
+        </div>`
+    ).join('');
+}
+
+function decrementSlider(id) {
+    const val = Math.max(0, (S.sliders[id] || 0) - 1);
+    setSlider(id, val);
+}
+
+function incrementSlider(id) {
+    const val = Math.min(8, (S.sliders[id] || 0) + 1);
+    setSlider(id, val);
+}
+
+function setSlider(id, val) {
+    S.sliders[id] = val;
+    const valEl = document.getElementById('val-'+id);
+    if (valEl) valEl.textContent = val;
+    updateWarnings();
+    document.getElementById('total-pilots').textContent = `Total: ${totalPilots()} pilots`;
+}
+
+let showWarningsActive = false;
+
+function toggleWarningsVisibility() {
+    showWarningsActive = !showWarningsActive;
+    renderWarnings();
+}
+
+function updateWarnings() {
+    renderWarnings();
+}
+
+function renderWarnings() {
+    const hasAny = hasDjiPub() || hasO3() || hasO4() || has50M();
+    const btn = document.getElementById('btn-toggle-warnings');
+    const container = document.getElementById('warnings-container');
+    
+    if (!btn) return;
+    
+    if (!hasAny) {
+        btn.textContent = 'No Warnings';
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+        if (container) container.style.display = 'none';
+        showWarningsActive = false;
+        return;
+    }
+    
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+    
+    // Count active warnings
+    let count = 0;
+    if (hasDjiPub()) count++;
+    if (hasO3()) count++;
+    if (hasO4()) count++;
+    if (has50M()) count++;
+    
+    if (showWarningsActive) {
+        btn.textContent = `Hide Warnings (${count})`;
+        if (container) container.style.display = 'block';
+    } else {
+        btn.textContent = `Show Warnings (${count})`;
+        if (container) container.style.display = 'none';
+    }
+    
+    // Toggle individual warn banners
+    document.getElementById('warn-dji').classList.toggle('visible', hasDjiPub());
+    document.getElementById('warn-o3').classList.toggle('visible', hasO3());
+    document.getElementById('warn-o4p').classList.toggle('visible', hasO4());
+    document.getElementById('warn-50m').classList.toggle('visible', has50M());
+}
+
+function initPresets() {
+    document.getElementById('presets-analog').innerHTML = PRESETS_ANALOG.map((p,i) =>
+        `<button class="preset-btn" onclick="loadPreset('analog',${i})"><div class="ptitle">${p.label}</div><div class="pdetail">${p.detail}</div></button>`
+    ).join('');
+    document.getElementById('presets-race').innerHTML = PRESETS_RACE.map((p,i) =>
+        `<button class="preset-btn" onclick="loadPreset('race',${i})"><div class="ptitle">${p.label}</div><div class="pdetail">${p.detail}</div></button>`
+    ).join('');
+    document.getElementById('presets-freestyle').innerHTML = PRESETS_FREESTYLE.map((p,i) =>
+        `<button class="preset-btn" onclick="loadPreset('freestyle',${i})"><div class="ptitle">${p.label}</div><div class="pdetail">${p.detail}</div></button>`
+    ).join('');
+}
+
+function loadPreset(type, idx) {
+    const presets = type==='analog' ? PRESETS_ANALOG : type==='race' ? PRESETS_RACE : PRESETS_FREESTYLE;
+    const preset = presets[idx];
+    VTX.forEach(v => setSlider(v.id, 0));
+    Object.entries(preset.sliders).forEach(([id,val]) => setSlider(id,val));
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    const container = document.getElementById('presets-'+type);
+    container.children[idx]?.classList.add('active');
+    autoAssign();
+}
+
+// ─── Render ───
+function renderAll() { renderHeats(); renderResults(); renderSpectrums(); renderGrid(); }
+
+function getHeatGroups() {
+    const g = {};
+    S.assignments.forEach(a => { if (!g[a.heat]) g[a.heat]=[]; g[a.heat].push(a); });
+    return g;
+}
+
+function renderHeats() {
+    const resContainer = document.getElementById('results-container');
+    if (!S.assignments.length) { resContainer.style.display='none'; return; }
+    resContainer.style.display='block';
+
+    const heats = getHeatGroups();
+    const hKeys = Object.keys(heats).sort();
+    const container = document.getElementById('heats-container');
+    container.className = 'heats-container cols-'+Math.min(hKeys.length,4);
+    const hCol = {A:'#3b82f6',B:'#10b981',C:'#f59e0b',D:'#a855f7'};
+    const hBg = {A:'rgba(59,130,246,0.08)',B:'rgba(16,185,129,0.08)',C:'rgba(245,158,11,0.08)',D:'rgba(168,85,247,0.08)'};
+
+    container.innerHTML = hKeys.map(h => {
+        const ps = heats[h];
+        const freqs = ps.filter(p=>p.freq>0).map(p=>p.freq);
+        const conf = imdConflicts(freqs, freqs, S.tolerance);
+        const conf2only = imd2wayConflicts(freqs, freqs, S.tolerance);
+        const conf3only = conf.filter(c => c.t === '3');
+        const heatO3 = ps.some(p=>vtxHasO3(p.vtx));
+
+        let hdr = `<div class="heat-header" style="background:${hBg[h]};color:${hCol[h]};">Heat ${h} - ${ps.length} pilot${ps.length>1?'s':''}`;
+        if (freqs.length>=2) {
+            if (conf2only.length > 0) hdr += ` &#9888; ${conf2only.length} 2-way conflict${conf2only.length>1?'s':''}`;
+            else if (conf3only.length > 0) hdr += ' &#10003; 2-way Clean (minor 3-way)';
+            else hdr += ' &#10003; IMD-Free';
+        }
+        hdr += '</div>';
+
+        // Group pilots by VTX system (preserve VTX order from array)
+        const vtxOrder = VTX.map(v=>v.id);
+        const byVtx = {};
+        ps.forEach(p => {
+            if (!byVtx[p.vtx]) byVtx[p.vtx] = [];
+            byVtx[p.vtx].push(p);
+        });
+        const sortedVtxIds = Object.keys(byVtx).sort((a,b) => vtxOrder.indexOf(a) - vtxOrder.indexOf(b));
+
+        // Build flat ordered list for sequential numbering
+        const ordered = sortedVtxIds.flatMap(vid => byVtx[vid]);
+        let pilotNum = 1;
+
+        const groups = sortedVtxIds.map(vtxId => {
+            const vDef = VTX.find(v=>v.id===vtxId);
+            const vColor = vDef ? vDef.color : '#6b7280';
+            const vName = vDef ? vDef.name : vtxId;
+            const groupHdr = `<div class="vtx-group-header"><span class="vtx-dot" style="background:${vColor};"></span>${vName}</div>`;
+
+            const pilotSlots = byVtx[vtxId].map(p => {
+                const displayId = h + (pilotNum++);
+                const gi = S.assignments.indexOf(p);
+                const col = PC[gi%PC.length];
+                const has2way = p.freq>0 && conf2only.some(c=>c.hit===p.freq);
+                const has3way = p.freq>0 && !has2way && conf3only.some(c=>c.hit===p.freq);
+                const vBw = vDef ? vDef.bw : 25;
+                const o3W = p.freq>0 && heatO3 && !vtxHasO3(p.vtx) && inO3Zone(p.freq, vBw);
+                const djW = p.freq>0 && hasDjiPub() && Math.abs(p.freq-DJI_PUB)<=DJI_PUB_R;
+                let sc='',st='';
+                if (has2way) { sc='st-bad'; st='<span class="dot"></span>IMD'; }
+                else if (o3W) { sc='st-warn'; st='<span class="dot"></span>O3 zone'; }
+                else if (djW) { sc='st-warn'; st='<span class="dot"></span>DJI pub'; }
+                else if (has3way) { sc='st-ok'; st='<span class="dot"></span>IMD: OK'; }
+                else if (p.freq>0) { sc='st-great'; st='<span class="dot"></span>IMD: Great'; }
+                const cl = has2way?'has-conflict':((o3W||djW||has3way)?'has-warn':'');
+                return `<div class="pilot-slot ${cl}" style="border-left:3px solid ${col};">
+                    <span class="slot-id" style="color:${col};">${displayId}</span>
+                    <span class="slot-ch" style="color:${col};">${p.ch}</span>
+                    <span class="slot-freq">${p.freq} MHz</span>
+                    <span class="slot-status ${sc}">${st}</span>
+                </div>`;
+            }).join('');
+
+            return `<div class="vtx-group">${groupHdr}${pilotSlots}</div>`;
+        }).join('');
+
+        return `<div class="heat-col">${hdr}${groups}</div>`;
+    }).join('');
+}
+
+function vtxIsAnalog(id) { const v=VTX.find(x=>x.id===id); return v?v.analog:false; }
+function vtxHasO3(id) { const v=VTX.find(x=>x.id===id); return v?v.o3car:false; }
+
+function renderResults() {
+    const heats = getHeatGroups();
+    const hKeys = Object.keys(heats).sort();
+    let total2way = 0, total3way = 0, ms = Infinity;
+    hKeys.forEach(h => {
+        const freqs = heats[h].filter(p=>p.freq>0).map(p=>p.freq);
+        total2way += imd2wayConflicts(freqs, freqs, S.tolerance).length;
+        total3way += imdConflicts(freqs, freqs, S.tolerance).filter(c=>c.t==='3').length;
+        for (let i=0;i<freqs.length;i++) for(let j=i+1;j<freqs.length;j++) ms=Math.min(ms,Math.abs(freqs[i]-freqs[j]));
+    });
+    if (!isFinite(ms)) ms = 0;
+    const ac = S.assignments.filter(a=>a.freq>0).length;
+    const sc = total2way===0?(total3way===0?'#10b981':'#f59e0b'):'#ef4444';
+    const st = total2way>0 ? total2way+' 2-way conflict'+(total2way>1?'s':'')
+             : total3way>0 ? '2-way clean'
+             : 'imd-free';
+
+    const statusEl = document.getElementById('stat-premium-status');
+    const sepEl = document.getElementById('stat-premium-sep');
+
+    if (ac < 2) {
+        statusEl.textContent = '--';
+        statusEl.style.color = '#9ca3af';
+        statusEl.style.borderColor = 'rgba(156,163,175,0.2)';
+        statusEl.style.background = 'rgba(156,163,175,0.1)';
+
+        sepEl.textContent = '--';
+        sepEl.style.color = '#9ca3af';
+        sepEl.style.borderColor = 'rgba(156,163,175,0.2)';
+        sepEl.style.background = 'rgba(156,163,175,0.1)';
+    } else {
+        statusEl.textContent = st;
+        statusEl.style.color = sc;
+        if (total2way > 0) {
+            statusEl.style.borderColor = 'rgba(239,68,68,0.2)';
+            statusEl.style.background = 'rgba(239,68,68,0.1)';
+        } else if (total3way > 0) {
+            statusEl.style.borderColor = 'rgba(245,158,11,0.2)';
+            statusEl.style.background = 'rgba(245,158,11,0.1)';
+        } else {
+            statusEl.style.borderColor = 'rgba(16,185,129,0.2)';
+            statusEl.style.background = 'rgba(16,185,129,0.1)';
+        }
+
+        sepEl.textContent = ms + 'mhz min sep';
+        const sepColor = ms>=37?'#10b981':ms>=20?'#f59e0b':'#ef4444';
+        sepEl.style.color = sepColor;
+        if (ms >= 37) {
+            sepEl.style.borderColor = 'rgba(16,185,129,0.2)';
+            sepEl.style.background = 'rgba(16,185,129,0.1)';
+        } else if (ms >= 20) {
+            sepEl.style.borderColor = 'rgba(245,158,11,0.2)';
+            sepEl.style.background = 'rgba(245,158,11,0.1)';
+        } else {
+            sepEl.style.borderColor = 'rgba(239,68,68,0.2)';
+            sepEl.style.background = 'rgba(239,68,68,0.1)';
+        }
+    }
+
+    const lines = S.assignments.map(a => `${a.id}:${a.ch}(${a.freq})`);
+    S.copyText = lines.join(' | ') + ' | '+(ac>=2?st:'--');
+}
+
+function renderSpectrums() {
+    const wrap = document.getElementById('spectrum-panels');
+    if (!S.assignments.length) { wrap.innerHTML=''; return; }
+    const heats = getHeatGroups();
+    const hKeys = Object.keys(heats).sort();
+    const hCol = {A:'#3b82f6',B:'#10b981',C:'#f59e0b',D:'#a855f7'};
+
+    const sgClass = 'spectrum-grid sg-'+Math.min(hKeys.length,3);
+    wrap.innerHTML = `<div class="${sgClass}">${hKeys.map(h =>
+        `<div style="background: transparent; padding: 0.5rem 0; margin-bottom: 1rem;">
+            <h3 style="font-size: 0.875rem; font-weight: 600; color: #e5e7eb; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span class="icon" style="color:${hCol[h]};">&#9596;</span> Spectrum - Heat ${h}
+            </h3>
+            <canvas id="canvas-${h}" height="200"></canvas>
+        </div>`
+    ).join('')}</div>`;
+
+    requestAnimationFrame(() => hKeys.forEach(h => drawSpectrum(h, heats[h])));
+}
+
+function drawSpectrum(heatKey, pilots) {
+    const canvas = document.getElementById('canvas-'+heatKey);
+    if (!canvas) return;
+    const dpr = window.devicePixelRatio||1;
+    const rect = canvas.getBoundingClientRect();
+    const W = rect.width, H = 200;
+    canvas.width = W*dpr; canvas.height = H*dpr; canvas.style.height = H+'px';
+    const ctx = canvas.getContext('2d'); ctx.scale(dpr,dpr);
+    ctx.fillStyle = '#111827'; ctx.fillRect(0,0,W,H);
+
+    const pad = {t:18,r:12,b:28,l:36};
+    const pw = W-pad.l-pad.r, ph = H-pad.t-pad.b;
+    const minF = 5620, maxF = 5960;
+    const x = f => pad.l + (f-minF)/(maxF-minF)*pw;
+
+    // Grid
+    ctx.strokeStyle='rgba(55,65,81,0.3)'; ctx.lineWidth=0.5;
+    ctx.font='7px -apple-system,sans-serif'; ctx.fillStyle='#6b7280'; ctx.textAlign='center';
+    for (let f=5650;f<=5950;f+=50) { ctx.beginPath(); ctx.moveTo(x(f),pad.t); ctx.lineTo(x(f),pad.t+ph); ctx.stroke(); ctx.fillText(f+'',x(f),H-pad.b+10); }
+    ctx.strokeStyle='#374151'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(pad.l,pad.t+ph); ctx.lineTo(pad.l+pw,pad.t+ph); ctx.stroke();
+
+    // O3 carrier zone
+    const heatHasO3 = pilots.some(p=>vtxHasO3(p.vtx));
+    if (heatHasO3) {
+        ctx.fillStyle='rgba(239,68,68,0.05)';
+        ctx.fillRect(x(O3_LO),pad.t,x(O3_HI)-x(O3_LO),ph);
+        ctx.strokeStyle='rgba(239,68,68,0.2)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+        ctx.strokeRect(x(O3_LO),pad.t,x(O3_HI)-x(O3_LO),ph);
+        ctx.setLineDash([]);
+        ctx.fillStyle='rgba(239,68,68,0.4)'; ctx.font='6px -apple-system,sans-serif';
+        ctx.fillText('O3/O4Pro Data Carrier (5720-5850)',(x(O3_LO)+x(O3_HI))/2,pad.t+9);
+    }
+
+    // DJI public
+    if (hasDjiPub()) {
+        const cx2 = x(DJI_PUB);
+        ctx.strokeStyle='rgba(245,158,11,0.4)'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
+        ctx.beginPath(); ctx.moveTo(cx2,pad.t); ctx.lineTo(cx2,pad.t+ph); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle='rgba(245,158,11,0.6)'; ctx.font='6px -apple-system,sans-serif';
+        ctx.fillText('D8 pub',cx2,pad.t+(heatHasO3?18:9));
+    }
+
+    // IMD products
+    const freqs = pilots.filter(p=>p.freq>0).map(p=>p.freq);
+    const prods = imdProducts(freqs);
+    const allFreqs2 = pilots.filter(p=>p.freq>0).map(p=>p.freq);
+    prods.forEach(p => {
+        if (p.f<minF||p.f>maxF) return;
+        const isHit = allFreqs2.some(f=>Math.abs(p.f-f)<=S.tolerance);
+        ctx.strokeStyle = isHit?'rgba(239,68,68,0.5)':'rgba(239,68,68,0.06)';
+        ctx.lineWidth = isHit?1.5:0.5;
+        ctx.beginPath(); ctx.moveTo(x(p.f),pad.t+22); ctx.lineTo(x(p.f),pad.t+ph); ctx.stroke();
+    });
+
+    // Band ticks
+    const allBands = [...GRID_BANDS_STD,...GRID_BANDS_DJI];
+    const bh = ph/(allBands.length+1);
+    allBands.forEach((b,bi) => {
+        const band=BANDS[b], y=pad.t+(bi+0.5)*bh;
+        ctx.fillStyle=band.color+'40'; ctx.font='7px -apple-system,sans-serif'; ctx.textAlign='right';
+        ctx.fillText(b,pad.l-3,y+3);
+        band.ch.forEach(f => { if (!f) return; ctx.strokeStyle=band.color+'20'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(x(f),y-3); ctx.lineTo(x(f),y+3); ctx.stroke(); });
+    });
+
+    // Assigned pilots
+    pilots.forEach((a,i) => {
+        if (!a||a.freq===0) return;
+        const gi = S.assignments.indexOf(a);
+        const col = PC[gi%PC.length];
+        const vDef = VTX.find(v=>v.id===a.vtx);
+        const bw = vDef?vDef.bw:25;
+        const px2 = x(a.freq);
+
+        // Always show bandwidth footprint
+        ctx.fillStyle=col+'10';
+        ctx.fillRect(x(a.freq-bw/2),pad.t+22,x(a.freq+bw/2)-x(a.freq-bw/2),ph-22);
+        ctx.strokeStyle=col+'30'; ctx.lineWidth=0.5;
+        ctx.strokeRect(x(a.freq-bw/2),pad.t+22,x(a.freq+bw/2)-x(a.freq-bw/2),ph-22);
+        ctx.strokeStyle=col+'80'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.moveTo(px2,pad.t); ctx.lineTo(px2,pad.t+ph); ctx.stroke();
+        ctx.shadowColor=col; ctx.shadowBlur=5;
+        ctx.fillStyle=col; ctx.beginPath(); ctx.arc(px2,pad.t+ph*0.4,3,0,Math.PI*2); ctx.fill();
+        ctx.shadowBlur=0;
+        ctx.fillStyle=col; ctx.font='bold 8px -apple-system,sans-serif'; ctx.textAlign='center';
+        ctx.fillText(a.id,px2,pad.t+20);
+        ctx.fillStyle='#d1d5db'; ctx.font='6px JetBrains Mono,monospace';
+        ctx.fillText(a.ch,px2,pad.t+ph-3);
+    });
+}
+
+// ─── Channel Grid (R,F,E + D,J,O,Q,P) ───
+function renderGrid() {
+    const allAssigned = S.assignments.filter(a=>a.freq>0);
+    const allFreqs = allAssigned.map(a=>a.freq);
+    const aFreqs = allAssigned.map(a=>a.freq);
+    const prods = imdProducts(allFreqs);
+
+    let h = '<div class="cg-header"></div>';
+    for (let i=1;i<=8;i++) h += `<div class="cg-header">CH${i}</div>`;
+
+    function renderBandRow(b) {
+        const band = BANDS[b];
+        h += `<div class="cg-band" style="color:${band.color};">${b}<br><span style="font-size:0.4375rem;color:#6b7280;">${band.name}</span></div>`;
+        for (let ci=0; ci<8; ci++) {
+            const f = band.ch[ci];
+            if (!f) { h += '<div class="cg-cell empty"></div>'; continue; }
+            const k = b+(ci+1);
+            const match = allAssigned.find(a=>a.ch===k);
+            let cls = '', st = '';
+            if (match) {
+                const col = PC[S.assignments.indexOf(match)%PC.length];
+                const bg2 = col+'20';
+                cls = 'assigned'; st = `--pc:${col};--pb:${bg2};`;
+                h += `<div class="cg-cell ${cls}" style="${st}" title="${k} ${f} MHz - ${match.id}">${f}<br>${match.id}</div>`;
+            } else {
+                let imd = false;
+                for (const p of prods) { if (Math.abs(p.f-f)<=S.tolerance) { imd=true; break; } }
+                const o3d = hasO3()&&inO3Zone(f, 0) ? 'o3-danger':'';
+                const djp = (b==='D'&&ci===7) ? 'dji-pub':'';
+                cls = imd?'imd-hit':'';
+                h += `<div class="cg-cell ${cls} ${o3d} ${djp}" title="${k} ${f} MHz">${f}</div>`;
+            }
+        }
+    }
+
+    GRID_BANDS_STD.forEach(renderBandRow);
+    h += '<div class="cg-sep"></div>';
+    GRID_BANDS_DJI.forEach(renderBandRow);
+
+    document.getElementById('channel-grid').innerHTML = h;
+}
+
+
+function copyAssignments() {
+    const btn = document.getElementById('btn-copy-stats');
+    if (!S.copyText) return;
+    navigator.clipboard.writeText(S.copyText).then(() => {
+        btn.classList.add('copied');
+        const oSpan = btn.querySelector('span');
+        const oText = oSpan.textContent;
+        oSpan.textContent = 'Copied!';
+        setTimeout(() => {
+            btn.classList.remove('copied');
+            oSpan.textContent = oText;
+        }, 1500);
+    }).catch(() => {});
+}
+
+let currentOrganizerTab = 'assignment';
+function setOrganizerTab(tab) {
+    currentOrganizerTab = tab;
+    document.querySelectorAll('.results-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-assignment').style.display = 'none';
+    document.getElementById('tab-spectrum').style.display = 'none';
+
+    if (tab === 'assignment') {
+        document.getElementById('tab-assignment').style.display = 'block';
+        document.querySelectorAll('.results-tab')[0].classList.add('active');
+    } else {
+        document.getElementById('tab-spectrum').style.display = 'block';
+        document.querySelectorAll('.results-tab')[1].classList.add('active');
+        // Force redraw spectrum
+        renderSpectrums();
+    }
+}
+
+// ─── Init ───
+initSliders(); initPresets(); updateWarnings();
+let rt; window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>renderSpectrums(),100);});
+</script>
+<script>
+    if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'pageChange', key: 'freq' }, '*');
+    }
+</script>
+</body>
+</html>

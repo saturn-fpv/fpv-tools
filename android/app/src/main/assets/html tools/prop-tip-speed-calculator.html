@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Propeller Tip Speed Calculator - Saturn FPV</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #111827;
+            color: white;
+            padding: 1.5rem;
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 {
+            font-size: 1.875rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            color: #9ca3af;
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .panel {
+            background: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .panel h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #e5e7eb;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .panel h2 .icon { font-size: 1.1rem; }
+
+        .form-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.85rem;
+        }
+        .form-row label {
+            flex: 0 0 120px;
+            font-size: 0.8125rem;
+            color: #9ca3af;
+            text-align: right;
+        }
+        .form-row .input-group {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 0;
+        }
+        input[type="number"],
+        select {
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 0.375rem;
+            color: white;
+            padding: 0.5rem 0.625rem;
+            font-size: 0.875rem;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input[type="number"]:focus,
+        select:focus { border-color: #3b82f6; }
+        .form-row .unit {
+            font-size: 0.75rem;
+            color: #6b7280;
+            white-space: nowrap;
+            min-width: 30px;
+        }
+        .form-row .calc-indicator {
+            font-size: 0.6875rem;
+            color: #6b7280;
+            font-style: italic;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .input-sm { max-width: 100px; }
+        .input-xs { max-width: 60px; }
+        .input-md { max-width: 140px; }
+
+        .side-by-side-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.85rem;
+        }
+        .half-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            min-width: 0;
+        }
+        .half-col label {
+            font-size: 0.8125rem;
+            color: #9ca3af;
+        }
+        .half-col .input-group {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* Togglable results tabs */
+        .results-tabs {
+            display: flex;
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 0.75rem 0.75rem 0 0;
+            overflow: hidden;
+            border-bottom: none;
+        }
+        .results-tab {
+            flex: 1;
+            background: #111827;
+            border: none;
+            color: #9ca3af;
+            padding: 0.85rem 1rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            border-bottom: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-family: inherit;
+        }
+        .results-tab:hover {
+            color: white;
+            background: rgba(255,255,255,0.02);
+        }
+        .results-tab.active {
+            color: #3b82f6;
+            background: #1f2937;
+            border-bottom: 2px solid #3b82f6;
+        }
+        .results-tab.active .vbadge-tab {
+            background: rgba(59,130,246,0.15);
+            color: #3b82f6;
+        }
+        .results-tab.active.avg-active {
+            color: #10b981;
+            border-bottom-color: #10b981;
+        }
+        .results-tab.active.avg-active .vbadge-tab {
+            background: rgba(16,185,129,0.15);
+            color: #10b981;
+        }
+        .speed-unit-selector .unit-btn {
+            border-right: 1px solid #374151 !important;
+            border-radius: 0 !important;
+        }
+        .speed-unit-selector .unit-btn:last-child {
+            border-right: none !important;
+        }
+        .speed-unit-selector .unit-btn.active {
+            background: #E8722A !important;
+            color: white !important;
+            border-right: 1px solid transparent !important;
+        }
+        .vbadge-tab {
+            font-size: 0.6875rem;
+            font-weight: 500;
+            background: rgba(55,65,81,0.5);
+            padding: 0.15rem 0.5rem;
+            border-radius: 0.25rem;
+            color: #9ca3af;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            transition: all 0.2s;
+        }
+
+        .sep { border-top: 1px solid #374151; margin: 1rem 0; }
+
+        .toggle-group {
+            display: flex;
+            border: 1px solid #374151;
+            border-radius: 0.375rem;
+            overflow: hidden;
+        }
+        .toggle-btn {
+            background: #111827;
+            border: none;
+            color: #9ca3af;
+            padding: 0.4rem 0.5rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-right: 1px solid #374151;
+        }
+        .toggle-btn:last-child { border-right: none; }
+        .toggle-btn.active { background: #1e3a5f; color: #3b82f6; }
+
+        .presets-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 0.5rem;
+        }
+        .preset-btn {
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 0.5rem;
+            padding: 0.625rem 0.5rem;
+            color: #e5e7eb;
+            cursor: pointer;
+            font-size: 0.75rem;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .preset-btn:hover { border-color: #3b82f6; background: #1e293b; }
+        .preset-btn.active { border-color: #3b82f6; background: rgba(59,130,246,0.1); }
+        .preset-btn .ptitle { font-weight: 600; font-size: 0.8125rem; margin-bottom: 0.25rem; }
+        .preset-btn .pdetail { color: #6b7280; font-size: 0.6875rem; }
+
+        /* Side-by-side results */
+        .results-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .results-col {
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 0.625rem;
+            padding: 1rem;
+        }
+        .results-col.col-theo { border-color: rgba(59,130,246,0.3); }
+        .results-col.col-real { border-color: rgba(16,185,129,0.3); }
+        .col-header {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #374151;
+        }
+        .col-theo .col-header { color: #3b82f6; }
+        .col-real .col-header { color: #10b981; }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 0.35rem 0;
+        }
+        .result-row .rlabel { font-size: 0.75rem; color: #6b7280; }
+        .result-row .rvalue {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: #e5e7eb;
+        }
+        .result-row .runit { font-size: 0.6875rem; color: #6b7280; margin-left: 0.25rem; }
+        .result-row-big .rvalue { font-size: 1.375rem; font-weight: 700; }
+        .result-sep { border-top: 1px solid rgba(55,65,81,0.5); margin: 0.25rem 0; }
+
+        .voltage-header {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #d1d5db;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .voltage-header:first-child { margin-top: 0; }
+        .voltage-header .vbadge {
+            font-size: 0.6875rem;
+            font-weight: 500;
+            background: rgba(55,65,81,0.5);
+            padding: 0.15rem 0.5rem;
+            border-radius: 0.25rem;
+            color: #9ca3af;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+
+        .mach-quiet { color: #3b82f6; }
+        .mach-moderate { color: #10b981; }
+        .mach-optimal { color: #f59e0b; }
+        .mach-inefficient { color: #ef4444; }
+
+        .mach-bar-container { margin-top: 0.75rem; }
+        .mach-bar-label { font-size: 0.6875rem; color: #6b7280; margin-bottom: 0.35rem; }
+        .mach-bar {
+            position: relative;
+            height: 10px;
+            border-radius: 5px;
+            background: linear-gradient(to right,
+                #3b82f6 0%, #3b82f6 56.4%,
+                #10b981 56.4%, #10b981 80%,
+                #f59e0b 80%, #f59e0b 83.6%,
+                #ef4444 83.6%, #ef4444 100%
+            );
+            overflow: visible;
+        }
+        .mach-marker {
+            position: absolute;
+            top: -3px;
+            width: 3px;
+            height: 16px;
+            border-radius: 1.5px;
+            transform: translateX(-50%);
+            transition: left 0.3s ease;
+        }
+        .mach-marker.marker-theo { background: #93c5fd; box-shadow: 0 0 6px rgba(147,197,253,0.5); }
+        .mach-marker.marker-real { background: #6ee7b7; box-shadow: 0 0 6px rgba(110,231,183,0.5); }
+        .mach-labels {
+            position: relative;
+            height: 14px;
+            font-size: 0.5625rem;
+            color: #6b7280;
+            margin-top: 0.2rem;
+        }
+        .mach-labels span {
+            position: absolute;
+            transform: translateX(-50%);
+        }
+        .mach-legend {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 0.4rem;
+            font-size: 0.6875rem;
+        }
+        .mach-legend span { display: flex; align-items: center; gap: 0.25rem; }
+        .mach-legend .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+        .info-tip {
+            font-size: 0.6875rem;
+            color: #6b7280;
+            line-height: 1.5;
+            padding: 0.5rem 0.75rem;
+            background: rgba(17,24,39,0.5);
+            border-radius: 0.375rem;
+            border: 1px solid rgba(55,65,81,0.5);
+        }
+
+        select option { background: #1f2937; color: white; }
+
+        .input-results-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        @media (min-width: 1024px) {
+            .input-results-grid { grid-template-columns: 420px 1fr; }
+        }
+
+        @media (max-width: 640px) {
+            body { padding: 1rem; }
+            h1 { font-size: 1.375rem; }
+            .form-row { flex-direction: column; align-items: flex-start; gap: 0.35rem; }
+            .form-row label { flex: none; text-align: left; font-size: 0.75rem; }
+            .form-row .input-group { width: 100%; }
+            .input-sm, .input-md { max-width: none; }
+            .results-columns { grid-template-columns: 1fr; }
+            .presets-grid { grid-template-columns: 1fr 1fr; }
+            .result-row-big .rvalue { font-size: 1.125rem; }
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../logo/saturn_fpv_logo_white_small.jpg">
+</head>
+<body>
+
+<div class="container">
+    <h1>Propeller Tip Speed Calculator</h1>
+    <p class="subtitle">Calculate tip speed, Mach number, and efficiency zones for your FPV setup</p>
+
+    <div class="panel">
+        <h2><span class="icon">&#9881;</span> Quick Presets</h2>
+        <div class="presets-grid">
+            <button class="preset-btn" onclick="loadPreset(this,'3inch')">
+                <div class="ptitle">3" Toothpick</div>
+                <div class="pdetail">3950 KV - 4S LiPo</div>
+            </button>
+            <button class="preset-btn" onclick="loadPreset(this,'51inch')">
+                <div class="ptitle">5.1" Freestyle</div>
+                <div class="pdetail">1800 KV - 6S LiPo</div>
+            </button>
+            <button class="preset-btn" onclick="loadPreset(this,'6inch')">
+                <div class="ptitle">6" Speed</div>
+                <div class="pdetail">900 KV - 12S LiPo</div>
+            </button>
+            <button class="preset-btn" onclick="loadPreset(this,'75inch')">
+                <div class="ptitle">7.5" Long Range</div>
+                <div class="pdetail">1300 KV - 6S Li-Ion</div>
+            </button>
+        </div>
+    </div>
+
+    <div class="input-results-grid">
+        <!-- Inputs -->
+        <div>
+            <div class="panel" style="margin-bottom:0;">
+                <h2><span class="icon">&#9881;</span> Propeller</h2>
+                <div class="side-by-side-row">
+                    <div class="half-col">
+                        <label for="prop-inch">Diameter (inch)</label>
+                        <div class="input-group">
+                            <input type="number" id="prop-inch" class="input-sm" step="0.1" min="0.5" max="40" value="5.1" oninput="syncPropFromInch()">
+                            <span class="unit">in</span>
+                        </div>
+                    </div>
+                    <div class="half-col">
+                        <label for="prop-mm">Diameter (mm)</label>
+                        <div class="input-group">
+                            <input type="number" id="prop-mm" class="input-sm" step="1" min="10" max="1000" value="130" oninput="syncPropFromMm()">
+                            <span class="unit">mm</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sep"></div>
+                <h2><span class="icon">&#9889;</span> Motor</h2>
+                <div class="side-by-side-row">
+                    <div class="half-col">
+                        <label for="motor-kv">KV Rating</label>
+                        <div class="input-group">
+                            <input type="number" id="motor-kv" class="input-sm" step="10" min="100" max="50000" value="1800" oninput="syncFromKV()">
+                            <span class="unit">RPM/V</span>
+                        </div>
+                    </div>
+                    <div class="half-col">
+                        <label for="motor-rpm">RPM (no load)</label>
+                        <div class="input-group">
+                            <input type="number" id="motor-rpm" class="input-sm" step="100" min="1000" max="200000" value="" oninput="syncFromRPM()">
+                            <span class="unit">RPM</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sep"></div>
+                <h2><span class="icon">&#128267;</span> Battery</h2>
+                <div class="form-row">
+                    <label>Cell Count</label>
+                    <div class="input-group">
+                        <div class="toggle-group" id="cell-toggle">
+                            <button class="toggle-btn" data-cells="1" onclick="setCells(1)">1S</button>
+                            <button class="toggle-btn" data-cells="2" onclick="setCells(2)">2S</button>
+                            <button class="toggle-btn" data-cells="4" onclick="setCells(4)">4S</button>
+                            <button class="toggle-btn active" data-cells="6" onclick="setCells(6)">6S</button>
+                            <button class="toggle-btn" data-cells="8" onclick="setCells(8)">8S</button>
+                            <button class="toggle-btn" data-cells="12" onclick="setCells(12)">12S</button>
+                            <button class="toggle-btn" data-cells="14" onclick="setCells(14)">14S</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label>Battery Type</label>
+                    <div class="input-group">
+                        <select id="batt-type" onchange="recalculate()">
+                            <option value="lipo">LiPo (3.7V / 4.2V)</option>
+                            <option value="lihv">LiHV (3.85V / 4.35V)</option>
+                            <option value="liion">Li-Ion (3.6V / 4.2V)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label>Voltage</label>
+                    <div class="input-group">
+                        <span class="unit" id="voltage-display" style="color:#d1d5db; font-size:0.8125rem;">25.2V full / 22.2V avg</span>
+                    </div>
+                </div>
+
+                <div class="sep"></div>
+                <h2><span class="icon">&#127777;</span> Environment</h2>
+                <div class="form-row">
+                    <label>Temperature</label>
+                    <div class="input-group">
+                        <input type="number" id="temp-c" class="input-xs" step="1" min="-40" max="60" value="20" oninput="recalculate()">
+                        <span class="unit">&deg;C</span>
+                        <span class="calc-indicator" id="sos-display">Speed of sound: 343.2 m/s</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Tabbed Panel Layout -->
+        <div>
+            <div class="results-tabs">
+                <button class="results-tab active" id="tab-btn-full" onclick="setVoltTab('full')">
+                    Fully Charged <span class="vbadge-tab" id="v-full-badge">25.2V</span>
+                </button>
+                <button class="results-tab" id="tab-btn-avg" onclick="setVoltTab('avg')">
+                    Average Voltage <span class="vbadge-tab" id="v-avg-badge">22.2V</span>
+                </button>
+            </div>
+            
+            <div class="panel" style="margin-bottom:0; border-top-left-radius:0; border-top-right-radius:0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(55,65,81,0.3);">
+                    <span style="font-size: 0.8125rem; font-weight: 600; color: #9ca3af;">Speed Unit</span>
+                    <div class="speed-unit-selector" style="display: inline-flex; background: #111827; border: 1px solid #374151; border-radius: 9999px; overflow: hidden; padding: 2px;">
+                        <button class="unit-btn active" data-unit="ms" onclick="setSpeedUnit('ms')" style="background: transparent; border: none; color: #9ca3af; padding: 0.25rem 0.75rem; font-size: 0.75rem; font-weight: 600; border-radius: 9999px; cursor: pointer; transition: all 0.2s; outline: none;">m/s</button>
+                        <button class="unit-btn" data-unit="kmh" onclick="setSpeedUnit('kmh')" style="background: transparent; border: none; color: #9ca3af; padding: 0.25rem 0.75rem; font-size: 0.75rem; font-weight: 600; border-radius: 9999px; cursor: pointer; transition: all 0.2s; outline: none;">km/h</button>
+                        <button class="unit-btn" data-unit="mph" onclick="setSpeedUnit('mph')" style="background: transparent; border: none; color: #9ca3af; padding: 0.25rem 0.75rem; font-size: 0.75rem; font-weight: 600; border-radius: 9999px; cursor: pointer; transition: all 0.2s; outline: none;">mph</button>
+                    </div>
+                </div>
+
+                <!-- Tab Pane 1: Fully Charged -->
+                <div id="volt-tab-full" class="volt-tab-content">
+                    <div class="results-columns">
+                        <div class="results-col col-theo">
+                            <div class="col-header">Theoretical (no load)</div>
+                            <div class="result-row"><span class="rlabel">RPM</span><span><span class="rvalue" id="rpm-theo-full">--</span></span></div>
+                            <div class="result-sep"></div>
+                            <div class="result-row result-row-big"><span class="rlabel">Tip Speed</span><span><span class="rvalue" id="ts-theo-full">--</span><span class="runit" id="ts-theo-full-unit">m/s</span></span></div>
+                            <div class="result-sep"></div>
+                            <div class="result-row result-row-big"><span class="rlabel">Mach</span><span><span class="rvalue" id="mach-theo-full">--</span></span></div>
+                        </div>
+                        <div class="results-col col-real">
+                            <div class="col-header">Estimated Real (~75%)</div>
+                            <div class="result-row"><span class="rlabel">RPM</span><span><span class="rvalue" id="rpm-real-full">--</span></span></div>
+                            <div class="result-sep"></div>
+                            <div class="result-row result-row-big"><span class="rlabel">Tip Speed</span><span><span class="rvalue" id="ts-real-full">--</span><span class="runit" id="ts-real-full-unit">m/s</span></span></div>
+                            <div class="result-sep"></div>
+                            <div class="result-row result-row-big"><span class="rlabel">Mach</span><span><span class="rvalue" id="mach-real-full">--</span></span></div>
+                        </div>
+                    </div>
+                    <div class="mach-bar-container">
+                        <div class="mach-bar-label"><span style="color:#93c5fd">&#9650;</span> Theo &nbsp; <span style="color:#6ee7b7">&#9650;</span> Real</div>
+                        <div class="mach-bar">
+                            <div class="mach-marker marker-theo" id="mach-marker-theo-full"></div>
+                            <div class="mach-marker marker-real" id="mach-marker-real-full"></div>
+                        </div>
+                        <div class="mach-labels">
+                            <span style="left:0%;transform:translateX(0)">0</span><span style="left:56.4%">0.62</span><span style="left:80%">0.88</span><span style="left:83.6%">0.92</span><span style="left:100%;transform:translateX(-100%)">1.0+</span>
+                        </div>
+                        <div class="mach-legend">
+                            <span><span class="dot" style="background:#3b82f6"></span> Efficient / Quiet</span>
+                            <span><span class="dot" style="background:#10b981"></span> Moderate</span>
+                            <span><span class="dot" style="background:#f59e0b"></span> Max Thrust</span>
+                            <span><span class="dot" style="background:#ef4444"></span> Inefficient</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Pane 2: Average Voltage -->
+                <div id="volt-tab-avg" class="volt-tab-content" style="display:none;">
+                    <div class="results-columns">
+                        <div class="results-col col-theo">
+                            <div class="col-header">Theoretical (no load)</div>
+                            <div class="result-row"><span class="rlabel">RPM</span><span><span class="rvalue" id="rpm-theo-avg">--</span></span></div>
+                            <div class="result-sep"></div>
+                            <div class="result-row result-row-big"><span class="rlabel">Tip Speed</span><span><span class="rvalue" id="ts-theo-avg">--</span><span class="runit" id="ts-theo-avg-unit">m/s</span></span></div>
+                            <div class="result-sep"></div>
+                            <div class="result-row result-row-big"><span class="rlabel">Mach</span><span><span class="rvalue" id="mach-theo-avg">--</span></span></div>
+                        </div>
+                        <div class="results-col col-real">
+                            <div class="col-header">Estimated Real (~75%)</div>
+                            <div class="result-row"><span class="rlabel">RPM</span><span><span class="rvalue" id="rpm-real-avg">--</span></span></div>
+                            <div class="result-sep"></div>
+                            <div class="result-row result-row-big"><span class="rlabel">Tip Speed</span><span><span class="rvalue" id="ts-real-avg">--</span><span class="runit" id="ts-real-avg-unit">m/s</span></span></div>
+                            <div class="result-sep"></div>
+                            <div class="result-row result-row-big"><span class="rlabel">Mach</span><span><span class="rvalue" id="mach-real-avg">--</span></span></div>
+                        </div>
+                    </div>
+                    <div class="mach-bar-container">
+                        <div class="mach-bar-label"><span style="color:#93c5fd">&#9650;</span> Theo &nbsp; <span style="color:#6ee7b7">&#9650;</span> Real</div>
+                        <div class="mach-bar">
+                            <div class="mach-marker marker-theo" id="mach-marker-theo-avg"></div>
+                            <div class="mach-marker marker-real" id="mach-marker-real-avg"></div>
+                        </div>
+                        <div class="mach-labels">
+                            <span style="left:0%;transform:translateX(0)">0</span><span style="left:56.4%">0.62</span><span style="left:80%">0.88</span><span style="left:83.6%">0.92</span><span style="left:100%;transform:translateX(-100%)">1.0+</span>
+                        </div>
+                        <div class="mach-legend">
+                            <span><span class="dot" style="background:#3b82f6"></span> Efficient / Quiet</span>
+                            <span><span class="dot" style="background:#10b981"></span> Moderate</span>
+                            <span><span class="dot" style="background:#f59e0b"></span> Max Thrust</span>
+                            <span><span class="dot" style="background:#ef4444"></span> Inefficient</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info -->
+    <div class="panel" style="display: none;">
+        <h2><span class="icon">&#9432;</span> How It Works</h2>
+        <div class="info-tip" style="border:none; background:none; padding:0;">
+            <strong>Tip Speed:</strong> V<sub>tip</sub> = &pi; &times; D &times; RPM / 60 - where D is propeller diameter in meters.<br><br>
+            <strong>Mach Number:</strong> V<sub>tip</sub> / speed of sound. Speed of sound = 331.3 + 0.606 &times; T(&deg;C) m/s.<br><br>
+            <strong>Theoretical RPM:</strong> KV &times; Voltage (no-load, no propeller attached).<br><br>
+            <strong>Estimated Real RPM:</strong> Under load, actual RPM drops to roughly 60-80% of theoretical due to propeller drag, air resistance, motor efficiency losses, voltage sag, and prop weight/inertia. This tool uses 75% as a middle estimate.<br><br>
+            <strong>Mach Zones:</strong> Below 0.62 - efficient and quiet. 0.62 to 0.88 - moderate, good balance. 0.88 to 0.92 - maximum thrust, tips near transonic. Above 0.92 - inefficient, shock waves at tips, airflow detaches, high noise.
+        </div>
+    </div>
+</div>
+
+<script>
+    let state = {
+        propInch: 5.1, propMm: 129.54,
+        motorKV: 1800, cells: 6,
+        battType: 'lipo', tempC: 20,
+        rpmManual: null, speedUnit: 'ms'
+    };
+
+    const battVoltages = {
+        lipo:  { full: 4.20, avg: 3.70 },
+        lihv:  { full: 4.35, avg: 3.85 },
+        liion: { full: 4.20, avg: 3.60 }
+    };
+
+    const presets = {
+        '3inch':  { propInch: 3,   kv: 3950, cells: 4,  batt: 'lipo' },
+        '51inch': { propInch: 5.1, kv: 1800, cells: 6,  batt: 'lipo' },
+        '6inch':  { propInch: 6,   kv: 900,  cells: 12, batt: 'lipo' },
+        '75inch': { propInch: 7.5, kv: 1300, cells: 6,  batt: 'liion' }
+    };
+
+    const LOAD = 0.75;
+
+    function sos(t) { return 331.3 + 0.606 * t; }
+    function tsMs(mm, rpm) { return Math.PI * (mm / 1000) * rpm / 60; }
+
+    function zone(m) {
+        if (m < 0.62) return { l: 'Efficient / Quiet', c: 'mach-quiet' };
+        if (m < 0.88) return { l: 'Moderate', c: 'mach-moderate' };
+        if (m <= 0.92) return { l: 'Max Thrust Zone', c: 'mach-optimal' };
+        return { l: 'Inefficient / Noisy', c: 'mach-inefficient' };
+    }
+
+    function pct(m) { return Math.min(100, Math.max(0, (m / 1.1) * 100)); }
+    function fmt(n, d) {
+        if (isNaN(n) || !isFinite(n)) return '--';
+        return n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+    }
+
+    function syncPropFromInch() {
+        const v = parseFloat(document.getElementById('prop-inch').value);
+        if (!isNaN(v) && v > 0) {
+            state.propInch = v; state.propMm = v * 25.4;
+            document.getElementById('prop-mm').value = Math.round(state.propMm * 10) / 10;
+        }
+        recalculate();
+    }
+
+    function syncPropFromMm() {
+        const v = parseFloat(document.getElementById('prop-mm').value);
+        if (!isNaN(v) && v > 0) {
+            state.propMm = v; state.propInch = v / 25.4;
+            document.getElementById('prop-inch').value = Math.round(state.propInch * 100) / 100;
+        }
+        recalculate();
+    }
+
+    function syncFromKV() {
+        const v = parseFloat(document.getElementById('motor-kv').value);
+        if (!isNaN(v) && v > 0) {
+            state.motorKV = v; state.rpmManual = null;
+        }
+        recalculate();
+    }
+
+    function syncFromRPM() {
+        const v = parseFloat(document.getElementById('motor-rpm').value);
+        if (!isNaN(v) && v > 0) {
+            state.rpmManual = v;
+            const vF = battVoltages[state.battType].full * state.cells;
+            if (vF > 0) { state.motorKV = Math.round(v / vF); document.getElementById('motor-kv').value = state.motorKV; }
+        }
+        recalculate();
+    }
+
+    function setCells(n) {
+        state.cells = n;
+        document.querySelectorAll('#cell-toggle .toggle-btn').forEach(b =>
+            b.classList.toggle('active', parseInt(b.getAttribute('data-cells'), 10) === n));
+        recalculate();
+    }
+
+    function loadPreset(el, key) {
+        const p = presets[key];
+        state.propInch = p.propInch; state.propMm = p.propInch * 25.4;
+        state.motorKV = p.kv; state.cells = p.cells;
+        state.battType = p.batt; state.rpmManual = null;
+
+        document.getElementById('prop-inch').value = p.propInch;
+        document.getElementById('prop-mm').value = Math.round(state.propMm * 10) / 10;
+        document.getElementById('motor-kv').value = p.kv;
+        document.getElementById('motor-rpm').value = '';
+        document.getElementById('batt-type').value = p.batt;
+        setCells(p.cells);
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        recalculate();
+    }
+
+    function fill(sfx, volt, s) {
+        const rT = state.motorKV * volt, rR = rT * LOAD;
+        const tT = tsMs(state.propMm, rT), tR = tsMs(state.propMm, rR);
+        const mT = tT / s, mR = tR / s;
+        const zT = zone(mT), zR = zone(mR);
+
+        document.getElementById('rpm-theo-' + sfx).textContent = fmt(rT, 0);
+        document.getElementById('rpm-real-' + sfx).textContent = fmt(rR, 0);
+
+        let valT = tT, valR = tR, unitText = 'm/s';
+        if (state.speedUnit === 'kmh') {
+            valT = tT * 3.6;
+            valR = tR * 3.6;
+            unitText = 'km/h';
+        } else if (state.speedUnit === 'mph') {
+            valT = tT * 2.237;
+            valR = tR * 2.237;
+            unitText = 'mph';
+        }
+
+        document.getElementById('ts-theo-' + sfx).textContent = fmt(valT, state.speedUnit === 'ms' ? 1 : 0);
+        document.getElementById('ts-theo-' + sfx + '-unit').textContent = unitText;
+        document.getElementById('ts-real-' + sfx).textContent = fmt(valR, state.speedUnit === 'ms' ? 1 : 0);
+        document.getElementById('ts-real-' + sfx + '-unit').textContent = unitText;
+
+        const mTE = document.getElementById('mach-theo-' + sfx);
+        mTE.textContent = fmt(mT, 3); mTE.className = 'rvalue ' + zT.c;
+        const mRE = document.getElementById('mach-real-' + sfx);
+        mRE.textContent = fmt(mR, 3); mRE.className = 'rvalue ' + zR.c;
+
+        document.getElementById('mach-marker-theo-' + sfx).style.left = pct(mT) + '%';
+        document.getElementById('mach-marker-real-' + sfx).style.left = pct(mR) + '%';
+    }
+
+    function recalculate() {
+        state.battType = document.getElementById('batt-type').value;
+        state.tempC = parseFloat(document.getElementById('temp-c').value) || 20;
+        const bv = battVoltages[state.battType];
+        const vF = bv.full * state.cells, vA = bv.avg * state.cells;
+        const s = sos(state.tempC);
+
+        document.getElementById('voltage-display').textContent = vF.toFixed(1) + 'V full / ' + vA.toFixed(1) + 'V avg';
+        document.getElementById('sos-display').textContent = 'Speed of sound: ' + fmt(s, 1) + ' m/s';
+        document.getElementById('v-full-badge').textContent = vF.toFixed(1) + 'V';
+        document.getElementById('v-avg-badge').textContent = vA.toFixed(1) + 'V';
+
+        if (state.rpmManual) {
+            document.getElementById('motor-rpm').value = state.rpmManual;
+        } else {
+            document.getElementById('motor-rpm').value = Math.round(state.motorKV * vF);
+        }
+
+        fill('full', vF, s);
+        fill('avg', vA, s);
+    }
+
+    function setVoltTab(tabName) {
+        const fullBtn = document.getElementById('tab-btn-full');
+        const avgBtn = document.getElementById('tab-btn-avg');
+
+        fullBtn.classList.toggle('active', tabName === 'full');
+        avgBtn.classList.toggle('active', tabName === 'avg');
+        avgBtn.classList.toggle('avg-active', tabName === 'avg');
+        
+        document.getElementById('volt-tab-full').style.display = tabName === 'full' ? 'block' : 'none';
+        document.getElementById('volt-tab-avg').style.display = tabName === 'avg' ? 'block' : 'none';
+    }
+
+    function setSpeedUnit(unit) {
+        state.speedUnit = unit;
+        document.querySelectorAll('.speed-unit-selector .unit-btn').forEach(b => {
+            b.classList.toggle('active', b.getAttribute('data-unit') === unit);
+        });
+        recalculate();
+    }
+
+    // Initialize calculations directly
+    syncPropFromInch();
+</script>
+<script>
+    if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'pageChange', key: 'speed' }, '*');
+    }
+</script>
+</body>
+</html>

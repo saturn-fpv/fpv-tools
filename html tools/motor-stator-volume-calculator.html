@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motor Stator Volume Calculator - Saturn FPV</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../logo/saturn_fpv_logo_white_small.jpg">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #111827;
+            color: white;
+            padding: 1.5rem;
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 {
+            font-size: 1.875rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            color: #9ca3af;
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .panel {
+            background: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .panel h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #e5e7eb;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .panel h2 .icon { font-size: 1.1rem; }
+
+        /* Presets */
+        .presets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+            gap: 0.5rem;
+        }
+        .preset-btn {
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.4rem;
+            color: #e5e7eb;
+            cursor: pointer;
+            font-size: 0.75rem;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .preset-btn:hover { border-color: #3b82f6; background: #1e293b; }
+        .preset-btn .ptitle { font-weight: 600; font-size: 0.8125rem; margin-bottom: 0.15rem; }
+        .preset-btn .pdetail { color: #6b7280; font-size: 0.625rem; }
+
+        /* Motor slots */
+        .motor-slots { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; }
+        .motor-slot {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background: transparent;
+            border: none;
+            padding: 0.5rem;
+        }
+        
+        .sg { margin-bottom: 1.125rem; }
+        .sg:last-of-type { margin-bottom: 0; }
+        .sg label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem; font-size: 0.875rem; }
+        .sg .pn { color: #d1d5db; font-weight: 500; }
+        
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 0.3rem;
+            background-color: #374151;
+            border-radius: 0.5rem;
+            outline: none;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 0.8rem;
+            height: 0.8rem;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.1s ease, background-color 0.1s ease;
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 0.8rem;
+            height: 0.8rem;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.1s ease, background-color 0.1s ease;
+        }
+        
+        .motor0 input[type="range"]::-webkit-slider-thumb { background-color: #3b82f6; }
+        .motor0 input[type="range"]::-moz-range-thumb     { background-color: #3b82f6; }
+        .motor1 input[type="range"]::-webkit-slider-thumb { background-color: #10b981; }
+        .motor1 input[type="range"]::-moz-range-thumb     { background-color: #10b981; }
+
+        .ni {
+            background-color: #111827;
+            color: inherit;
+            border: 1px solid #374151;
+            border-radius: 0.25rem;
+            padding: 0.3rem 0.5rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-weight: bold;
+            font-size: 0.875rem;
+            width: 4.5rem;
+            text-align: right;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .ni:focus { border-color: #3b82f6; }
+        .motor1 .ni:focus { border-color: #10b981; }
+        .slot-input-group .unit {
+            font-size: 0.6875rem;
+            color: #6b7280;
+        }
+        .slot-volume {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: #e5e7eb;
+            min-width: 105px;
+            text-align: right;
+        }
+        .slot-volume .vol-unit { font-size: 0.6875rem; color: #6b7280; margin-left: 0.2rem; }
+        .slot-name {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.875rem;
+            font-weight: 600;
+            min-width: 55px;
+        }
+        .slot-meta {
+            font-size: 0.6875rem;
+            color: #6b7280;
+            min-width: 120px;
+        }
+        .slot-meta .meta-line { margin-bottom: 0.1rem; }
+        .btn-remove {
+            background: none;
+            border: 1px solid #374151;
+            border-radius: 0.25rem;
+            color: #6b7280;
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            transition: all 0.2s;
+            margin-left: auto;
+        }
+        .btn-remove:hover { border-color: #ef4444; color: #ef4444; }
+
+        .btn-add {
+            background: none;
+            border: 1px dashed #374151;
+            border-radius: 0.5rem;
+            color: #6b7280;
+            cursor: pointer;
+            font-size: 0.8125rem;
+            padding: 0.625rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .btn-add:hover { border-color: #3b82f6; color: #3b82f6; }
+
+        /* Viz panels */
+        .viz-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .viz-panel {
+            background: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            min-width: 0; /* Prevent CSS Grid content overflow */
+        }
+        .viz-panel h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #e5e7eb;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .viz-panel h3 .icon { font-size: 0.9rem; }
+        .viz-panel canvas { width: 100%; border-radius: 0.375rem; }
+
+        /* Cross-section viz */
+        .cross-section-container {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+        .cross-view { text-align: center; }
+        .cross-view .cv-label { font-size: 0.6875rem; color: #6b7280; margin-bottom: 0.5rem; }
+
+        /* Comparison table */
+        .comp-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8125rem;
+        }
+        .comp-table th {
+            text-align: left;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.5rem 0.625rem;
+            border-bottom: 1px solid #374151;
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+        .comp-table th:hover { color: #9ca3af; }
+        .comp-table th .sort-arrow { font-size: 0.5rem; margin-left: 0.25rem; }
+        .comp-table td {
+            padding: 0.5rem 0.625rem;
+            border-bottom: 1px solid rgba(55,65,81,0.4);
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.8125rem;
+        }
+        .comp-table tr:last-child td { border-bottom: none; }
+        .comp-table .td-name { font-weight: 600; }
+        .comp-table .td-pct-pos { color: #10b981; }
+        .comp-table .td-pct-neg { color: #ef4444; }
+        .comp-table .td-baseline { color: #6b7280; }
+
+        /* Info tip */
+        .info-tip {
+            font-size: 0.6875rem;
+            color: #6b7280;
+            line-height: 1.5;
+            padding: 0.5rem 0.75rem;
+            background: rgba(17,24,39,0.5);
+            border-radius: 0.375rem;
+            border: 1px solid rgba(55,65,81,0.5);
+        }
+
+        .sep { border-top: 1px solid #374151; margin: 1rem 0; }
+
+        select option { background: #1f2937; color: white; }
+
+        /* Togglable results tabs */
+        .results-tabs {
+            display: flex;
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 0.75rem 0.75rem 0 0;
+            overflow: hidden;
+            border-bottom: none;
+        }
+        .results-tab {
+            flex: 1;
+            background: #111827;
+            border: none;
+            color: #9ca3af;
+            padding: 0.85rem 1rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            border-bottom: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-family: inherit;
+        }
+        .results-tab:hover {
+            color: white;
+            background: rgba(255,255,255,0.02);
+        }
+        .results-tab.active {
+            color: #3b82f6;
+            background: #1f2937;
+            border-bottom: 2px solid #3b82f6;
+        }
+        .results-tab.active .vbadge-tab {
+            background: rgba(59,130,246,0.15);
+            color: #3b82f6;
+        }
+        .results-tab.active.motor1-active {
+            color: #10b981;
+            border-bottom: 2px solid #10b981;
+        }
+        .results-tab.active.motor1-active .vbadge-tab {
+            background: rgba(16,185,129,0.15);
+            color: #10b981;
+        }
+        .vbadge-tab {
+            font-size: 0.6875rem;
+            font-weight: 500;
+            background: rgba(55,65,81,0.5);
+            padding: 0.15rem 0.5rem;
+            border-radius: 0.25rem;
+            color: #9ca3af;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            transition: all 0.2s;
+        }
+        .viz-tab-content {
+            width: 100%;
+        }
+
+        @media (max-width: 900px) {
+            .viz-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 640px) {
+            body { padding: 1rem; }
+            h1 { font-size: 1.375rem; }
+            .motor-slot { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+            .slot-volume { text-align: left; min-width: auto; }
+            .btn-remove { margin-left: 0; display: none !important; }
+            .slot-input-group input[type="range"] { width: 100px; }
+            .presets-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
+        }
+        @media (max-width: 480px) {
+            #cross-top-canvas, #cross-side-canvas {
+                width: 140px !important;
+                height: 140px !important;
+            }
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../logo/saturn_fpv_logo_white_small.jpg">
+</head>
+<body>
+
+<div class="container">
+    <h1>Motor Stator Volume Calculator</h1>
+    <p class="subtitle">Compare stator volumes across different motor sizes - from tiny whoops to long range builds</p>
+
+    <!-- Presets -->
+    <div class="panel">
+        <h2><span class="icon">&#9881;</span> Quick Presets</h2>
+        <div class="presets-grid" id="presets-grid"></div>
+    </div>
+
+    <!-- Motor Inputs -->
+    <!-- Motor Inputs -->
+    <div class="results-tabs" style="margin-bottom: 0;">
+        <button class="results-tab active" id="tab-btn-motor-0" onclick="setMotorTab(0)">
+            Motor A <span class="vbadge-tab" id="badge-motor-0">2207</span>
+        </button>
+        <button class="results-tab" id="tab-btn-motor-1" onclick="setMotorTab(1)">
+            Motor B <span class="vbadge-tab" id="badge-motor-1">2306</span>
+        </button>
+    </div>
+    <div class="panel" style="border-top-left-radius:0; border-top-right-radius:0; margin-bottom: 1.5rem; border-color: #374151;">
+        <div class="motor-slots" id="motor-slots"></div>
+    </div>
+
+    <!-- Visualizations -->
+    <div class="results-tabs" style="margin-bottom: 0;">
+        <button class="results-tab active" id="tab-btn-viz-map" onclick="setVizTab('map')">Volume Map</button>
+        <button class="results-tab" id="tab-btn-viz-bars" onclick="setVizTab('bars')">Volume Bars</button>
+        <button class="results-tab" id="tab-btn-viz-cross" onclick="setVizTab('cross')">Cross-Sections</button>
+        <button class="results-tab" id="tab-btn-viz-table" onclick="setVizTab('table')">Comparison Table</button>
+    </div>
+    
+    <div class="panel" style="border-top-left-radius:0; border-top-right-radius:0; margin-bottom: 1.5rem; border-color: #374151;">
+        <!-- Tab 1: Volume Map -->
+        <div id="viz-tab-map" class="viz-tab-content">
+            <div class="viz-panel" style="background:transparent; border:none; padding:0;">
+                <h3><span class="icon">&#10687;</span> Diameter vs Height Map</h3>
+                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                    <label style="font-size:0.6875rem; color:#6b7280; white-space:nowrap;">Heatmap</label>
+                    <input type="range" id="heatmap-opacity" min="0" max="100" step="5" value="45"
+                        style="width:90px; accent-color:#3b82f6; cursor:pointer;"
+                        oninput="heatmapOpacity=this.value/100; document.getElementById('heatmap-val').textContent=this.value+'%'; drawScatter();">
+                    <span id="heatmap-val" style="font-size:0.6875rem; color:#6b7280; font-family:'JetBrains Mono','Fira Code',monospace; min-width:28px;">45%</span>
+                </div>
+                <canvas id="scatter-canvas" height="380"></canvas>
+            </div>
+        </div>
+
+        <!-- Tab 2: Volume Bars -->
+        <div id="viz-tab-bars" class="viz-tab-content" style="display:none;">
+            <div class="viz-panel" style="background:transparent; border:none; padding:0;">
+                <h3><span class="icon">&#9644;</span> Volume Comparison</h3>
+                <canvas id="bar-canvas" height="320"></canvas>
+            </div>
+        </div>
+
+        <!-- Tab 3: Cross Sections -->
+        <div id="viz-tab-cross" class="viz-tab-content" style="display:none;">
+            <div class="viz-panel" style="background:transparent; border:none; padding:0;">
+                <h3><span class="icon">&#9711;</span> Stator Cross-Sections (to scale)</h3>
+                <div style="display:flex; gap:1.5rem; justify-content:center; align-items:flex-start; flex-wrap:wrap; margin-top:0.5rem;">
+                    <div style="text-align:center;">
+                        <div style="font-size:0.6875rem; color:#6b7280; margin-bottom:0.5rem;">Top View</div>
+                        <canvas id="cross-top-canvas" width="200" height="200" style="max-width:200px; height:200px;"></canvas>
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="font-size:0.6875rem; color:#6b7280; margin-bottom:0.5rem;">Side View</div>
+                        <canvas id="cross-side-canvas" width="200" height="200" style="max-width:200px; height:200px;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Comparison Table -->
+        <div id="viz-tab-table" class="viz-tab-content" style="display:none;">
+            <div class="viz-panel" style="background:transparent; border:none; padding:0;">
+                <h3><span class="icon">&#9638;</span> Comparison Table</h3>
+                <div style="overflow-x:auto;">
+                    <table class="comp-table" id="comp-table">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable('name')">Motor <span class="sort-arrow"></span></th>
+                                <th onclick="sortTable('diam')">Dia <span class="sort-arrow"></span></th>
+                                <th onclick="sortTable('height')">Height <span class="sort-arrow"></span></th>
+                                <th onclick="sortTable('volume')">Volume <span class="sort-arrow"></span></th>
+                                <th onclick="sortTable('pctSmall')">vs Smallest <span class="sort-arrow"></span></th>
+                                <th onclick="sortTable('pctLarge')">vs Largest <span class="sort-arrow"></span></th>
+                                <th onclick="sortTable('weight')">Est. Weight <span class="sort-arrow"></span></th>
+                                <th>Props / KV</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comp-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info moved to Help Overlay -->
+</div>
+
+<script>
+// ─── Colors ───
+const COLORS = ['#3b82f6','#10b981','#f59e0b','#ef4444','#a855f7'];
+const COLORS_DIM = ['rgba(59,130,246,0.3)','rgba(16,185,129,0.3)','rgba(245,158,11,0.3)','rgba(239,68,68,0.3)','rgba(168,85,247,0.3)'];
+
+// ─── Motor database ───
+const PRESETS = [
+    { d:12,  h:4,   label:'1204', cat:'2" Toothpick' },
+    { d:13,  h:3,   label:'1303', cat:'3" Cinewhoop' },
+    { d:22,  h:7,   label:'2207', cat:'5" Freestyle' },
+    { d:23,  h:6,   label:'2306', cat:'5" Freestyle' },
+];
+
+// Prop pairing + typical KV lookup
+function getMotorMeta(d, h) {
+    const v = statorVolume(d, h);
+    // rough classification
+    if (d <= 9)  return { props:'31-40 mm', kv:'19000-25000 KV', use:'65mm Whoop' };
+    if (d <= 11) return { props:'40-65 mm', kv:'15000-22000 KV', use:'75mm Whoop' };
+    if (d <= 12) return { props:'2"', kv:'6000-11000 KV', use:'2" Toothpick' };
+    if (d <= 14 && h <= 4) return { props:'2.5"-3"', kv:'3500-5000 KV', use:'3" Freestyle' };
+    if (d <= 15) return { props:'3"-3.5"', kv:'2600-4100 KV', use:'3"-3.5" Freestyle' };
+    if (d <= 20) return { props:'3.5"-4"', kv:'2400-3600 KV', use:'4" Freestyle' };
+    if (d <= 22 && h <= 5.5) return { props:'5"', kv:'2300-2700 KV (6S)', use:'5" Racing' };
+    if (d <= 23) return { props:'5"', kv:'1700-2100 KV (6S)', use:'5" Freestyle' };
+    if (d <= 25) return { props:'5"-6"', kv:'1500-1900 KV (6S)', use:'5"-6" Build' };
+    if (d <= 28 && h <= 7) return { props:'7"', kv:'1200-1500 KV (6S)', use:'7" Long Range' };
+    if (d <= 28) return { props:'7"-8"', kv:'1100-1350 KV (6S)', use:'7" Long Range' };
+    if (d <= 33) return { props:'8"-10"', kv:'900-1200 KV (6S)', use:'8"+ Cine/LR' };
+    return { props:'-', kv:'-', use:'-' };
+}
+
+function estWeight(v) {
+    // simplified estimate in grams based on typical motor data
+    return 2.0 + 0.0098 * v;
+}
+
+function statorVolume(d, h) {
+    return Math.PI * Math.pow(d / 2, 2) * h;
+}
+
+function motorName(d, h) {
+    // format as standard motor code: DDHH (e.g. 0802, 2207, 2806.5)
+    const dInt = Math.floor(d);
+    const dStr = dInt < 10 ? '0' + dInt : '' + dInt;
+    let hStr;
+    if (h % 1 === 0) {
+        hStr = h < 10 ? '0' + h : '' + h;
+    } else {
+        hStr = h < 10 ? '0' + h.toFixed(1) : h.toFixed(1);
+    }
+    return dStr + hStr;
+}
+
+// ─── State ───
+let motors = [
+    { d: 22, h: 7 },
+    { d: 23, h: 6 }
+];
+let sortCol = 'volume';
+let sortDir = -1; // -1 = descending
+let heatmapOpacity = 0.45;
+
+// ─── Render presets ───
+function renderPresets() {
+    const grid = document.getElementById('presets-grid');
+    grid.innerHTML = PRESETS.map(p =>
+        `<button class="preset-btn" onclick="addPreset(${p.d},${p.h})">
+            <div class="ptitle">${p.label}</div>
+            <div class="pdetail">${p.cat}</div>
+        </button>`
+    ).join('');
+}
+
+function addPreset(d, h) {
+    // Overwrite dimensions of active motor tab
+    motors[currentMotorTab] = { d, h };
+    renderAll();
+}
+
+// ─── Render motor slots ───
+function buildSlotHTML(m, i) {
+    const v = statorVolume(m.d, m.h);
+    const name = motorName(m.d, m.h);
+    const meta = getMotorMeta(m.d, m.h);
+    const w = estWeight(v);
+    return `
+        <div class="motor-slot motor${i}">
+            <h2 class="slot-name" style="color:${COLORS[i]}; font-size: 1.375rem; font-weight: 700; margin-bottom: 0.25rem;">${name}</h2>
+
+            <div class="sg">
+                <label>
+                    <span class="pn">Stator Diameter</span>
+                    <div style="display:flex; align-items:center; gap:0.4rem;">
+                        <input class="ni val" type="number" min="4" max="40" step="0.1" value="${m.d}"
+                            data-slot-i="${i}" data-field="d"
+                            oninput="updateDiaField(${i}, this.value)">
+                        <span class="unit">mm</span>
+                    </div>
+                </label>
+                <input type="range" min="6" max="35" step="1" value="${Math.round(m.d)}"
+                    oninput="updateDiaSlider(${i}, this.value)">
+            </div>
+
+            <div class="sg">
+                <label>
+                    <span class="pn">Stator Height</span>
+                    <div style="display:flex; align-items:center; gap:0.4rem;">
+                        <input class="ni val" type="number" min="1" max="20" step="0.1" value="${m.h}"
+                            data-slot-i="${i}" data-field="h"
+                            oninput="updateHeightField(${i}, this.value)">
+                        <span class="unit">mm</span>
+                    </div>
+                </label>
+                <input type="range" min="1" max="15" step="0.5" value="${Math.round(m.h * 2) / 2}"
+                    oninput="updateHeightSlider(${i}, this.value)">
+            </div>
+
+            <div class="slot-volume" style="font-size: 2rem; font-weight: 700; color: #ffffff; text-align: left; margin: 0.5rem 0 0.25rem 0; font-family: 'Outfit', sans-serif;">
+                ${v.toLocaleString('en-US',{maximumFractionDigits:0})} <span style="font-size: 1.125rem; color: #6b7280; font-weight: 500;">mm&sup3;</span>
+            </div>
+
+            <div class="slot-meta" style="font-size: 0.8125rem; color: #9ca3af; line-height: 1.6; border-top: 1px solid #374151; padding-top: 0.75rem; margin-top: 0.25rem;">
+                <div class="meta-line" style="font-weight:600; color:#e5e7eb;">${meta.use}</div>
+                <div class="meta-line">${meta.props} props - ${meta.kv}</div>
+                <div class="meta-line">~${w.toFixed(1)} g est.</div>
+            </div>
+        </div>`;
+}
+
+// In-place update of an existing slot's display. Leaves number inputs alone
+// when they are currently focused, so the user's raw text and caret are
+// preserved by the browser. Leaves sliders' DOM nodes intact so drag
+// operations are not interrupted.
+function updateMotorSlotInPlace(slotEl, i) {
+    const m = motors[i];
+    const v = statorVolume(m.d, m.h);
+    const name = motorName(m.d, m.h);
+    const meta = getMotorMeta(m.d, m.h);
+    const w = estWeight(v);
+
+    // Name
+    const nameEl = slotEl.querySelector('.slot-name');
+    if (nameEl.textContent !== name) nameEl.textContent = name;
+
+    // Sliders (set .value on existing nodes - safe even during drag)
+    const sliders = slotEl.querySelectorAll('input[type="range"]');
+    const diaSliderVal = String(Math.round(m.d));
+    const hSliderVal = String(Math.round(m.h * 2) / 2);
+    if (sliders[0].value !== diaSliderVal) sliders[0].value = diaSliderVal;
+    if (sliders[1].value !== hSliderVal) sliders[1].value = hSliderVal;
+
+    // Number inputs - skip the one that currently has focus so raw text + caret stay intact
+    const numInputs = slotEl.querySelectorAll('input[type="number"]');
+    const active = document.activeElement;
+    const dStr = String(m.d);
+    const hStr = String(m.h);
+    if (active !== numInputs[0] && numInputs[0].value !== dStr) numInputs[0].value = dStr;
+    if (active !== numInputs[1] && numInputs[1].value !== hStr) numInputs[1].value = hStr;
+
+    // Volume number (first text node inside .slot-volume, before the <span> unit)
+    const volEl = slotEl.querySelector('.slot-volume');
+    const volStr = v.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    if (volEl.firstChild && volEl.firstChild.nodeValue.trim() !== volStr) {
+        volEl.firstChild.nodeValue = volStr + ' ';
+    }
+
+    // Meta lines
+    const metaLines = slotEl.querySelectorAll('.meta-line');
+    const m0 = meta.use;
+    const m1 = `${meta.props} props - ${meta.kv}`;
+    const m2 = `~${w.toFixed(1)} g est.`;
+    if (metaLines[0].textContent !== m0) metaLines[0].textContent = m0;
+    if (metaLines[1].textContent !== m1) metaLines[1].textContent = m1;
+    if (metaLines[2].textContent !== m2) metaLines[2].textContent = m2;
+}
+
+let currentMotorTab = 0;
+let currentVizTab = 'map';
+
+function setMotorTab(idx) {
+    currentMotorTab = idx;
+    document.querySelectorAll('[id^="tab-btn-motor-"]').forEach(t => t.classList.remove('active', 'motor1-active'));
+    var tabBtn = document.getElementById('tab-btn-motor-' + idx);
+    if (tabBtn) {
+        tabBtn.classList.add('active');
+        if (idx === 1) {
+            tabBtn.classList.add('motor1-active');
+        }
+    }
+    renderMotorSlots();
+}
+
+function setVizTab(tabKey) {
+    currentVizTab = tabKey;
+    document.querySelectorAll('.viz-tab-content').forEach(c => c.style.display = 'none');
+    document.querySelectorAll('[id^="tab-btn-viz-"]').forEach(t => t.classList.remove('active'));
+    
+    document.getElementById('viz-tab-' + tabKey).style.display = 'block';
+    document.getElementById('tab-btn-viz-' + tabKey).classList.add('active');
+
+    // Force canvas resize/redraw
+    if (tabKey === 'map') setTimeout(drawScatter, 50);
+    if (tabKey === 'bars') setTimeout(drawBarChart, 50);
+    if (tabKey === 'cross') setTimeout(drawCrossSections, 50);
+}
+
+function renderMotorSlots() {
+    const container = document.getElementById('motor-slots');
+    const existingSlots = container.querySelectorAll('.motor-slot');
+
+    if (existingSlots.length === motors.length && motors.length > 0) {
+        // In-place update path
+        motors.forEach((m, i) => updateMotorSlotInPlace(existingSlots[i], i));
+    } else {
+        // Full rebuild path
+        container.innerHTML = motors.map((m, i) => buildSlotHTML(m, i)).join('');
+    }
+
+    // Hide/show slots based on current active tab
+    const slots = container.querySelectorAll('.motor-slot');
+    slots.forEach((slot, i) => {
+        slot.style.display = i === currentMotorTab ? 'grid' : 'none';
+        
+        // Update tab dynamic badge
+        const badge = document.getElementById('badge-motor-' + i);
+        if (badge) {
+            badge.textContent = motorName(motors[i].d, motors[i].h);
+        }
+    });
+}
+
+function updateDiaSlider(i, val) {
+    motors[i].d = parseInt(val);
+    renderAll();
+}
+function updateDiaField(i, val) {
+    const v = parseFloat(val);
+    if (!isNaN(v) && v >= 4 && v <= 40) {
+        motors[i].d = v;
+        renderAll();
+    }
+}
+function updateHeightSlider(i, val) {
+    motors[i].h = parseFloat(val);
+    renderAll();
+}
+function updateHeightField(i, val) {
+    const v = parseFloat(val);
+    if (!isNaN(v) && v >= 1 && v <= 20) {
+        motors[i].h = v;
+        renderAll();
+    }
+}
+
+// Removed addMotor and removeMotor (fixed at 2 motors)
+
+// ─── Scatter Plot ───
+function drawScatter() {
+    const canvas = document.getElementById('scatter-canvas');
+    const dpr = window.devicePixelRatio || 1;
+    const parentRect = canvas.parentElement.getBoundingClientRect();
+    const W = Math.max(240, parentRect.width - 40); // 1.25rem padding left/right
+    canvas.width = W * dpr;
+    canvas.height = 380 * dpr;
+    canvas.style.height = '380px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    const H = 380;
+
+    ctx.fillStyle = '#111827';
+    ctx.fillRect(0, 0, W, H);
+
+    const pad = { t: 20, r: 40, b: 40, l: 50 };
+    const pw = W - pad.l - pad.r;
+    const ph = H - pad.t - pad.b;
+
+    // axis ranges - zoom to fit motors with ~30% padding
+    const allD = motors.map(m => m.d);
+    const allH = motors.map(m => m.h);
+    const rawMinD = Math.min(...allD);
+    const rawMaxD = Math.max(...allD);
+    const rawMinH = Math.min(...allH);
+    const rawMaxH = Math.max(...allH);
+    const spanD = rawMaxD - rawMinD || rawMaxD * 0.5;
+    const spanH = rawMaxH - rawMinH || rawMaxH * 0.5;
+    const padFrac = 0.35;
+    const minD = Math.max(0, rawMinD - spanD * padFrac);
+    const maxD = rawMaxD + spanD * padFrac;
+    const minH = Math.max(0, rawMinH - spanH * padFrac);
+    const maxH = rawMaxH + spanH * padFrac;
+
+    function xPos(d) { return pad.l + (d - minD) / (maxD - minD) * pw; }
+    function yPos(h) { return pad.t + ph - (h - minH) / (maxH - minH) * ph; }
+    function dFromX(x) { return minD + (x - pad.l) / pw * (maxD - minD); }
+    function hFromY(y) { return minH + (pad.t + ph - y) / ph * (maxH - minH); }
+
+    // ── Volume heatmap (green -> yellow -> orange -> red, like Excel conditional formatting) ──
+    // Normalized to the visible plot area: bottom-left corner = green, top-right = red.
+    // Zoom changes the view, so contrast scales naturally with what's on screen.
+    const blockSize = 4;
+    const maxVolumeVisible = statorVolume(maxD, maxH);
+    const minVolumeVisible = statorVolume(Math.max(0.5, minD), Math.max(0.5, minH));
+    const heatRange = maxVolumeVisible - minVolumeVisible;
+
+    // color stops: green (low) -> yellow -> orange -> red (high)
+    const heatStops = [
+        { t: 0.0,  r: 34,  g: 120, b: 50  }, // dark green
+        { t: 0.2,  r: 56,  g: 160, b: 55  }, // green
+        { t: 0.35, r: 120, g: 195, b: 50  }, // yellow-green
+        { t: 0.5,  r: 210, g: 210, b: 40  }, // yellow
+        { t: 0.65, r: 245, g: 175, b: 30  }, // yellow-orange
+        { t: 0.8,  r: 240, g: 110, b: 30  }, // orange
+        { t: 0.9,  r: 220, g: 60,  b: 30  }, // red-orange
+        { t: 1.0,  r: 190, g: 35,  b: 30  }, // red
+    ];
+    function heatColor(norm) {
+        const n = Math.max(0, Math.min(1, norm));
+        let i = 0;
+        while (i < heatStops.length - 2 && heatStops[i + 1].t < n) i++;
+        const a = heatStops[i], b = heatStops[i + 1];
+        const f = (n - a.t) / (b.t - a.t);
+        return {
+            r: Math.round(a.r + (b.r - a.r) * f),
+            g: Math.round(a.g + (b.g - a.g) * f),
+            b: Math.round(a.b + (b.b - a.b) * f),
+        };
+    }
+
+    for (let px = pad.l; px < pad.l + pw; px += blockSize) {
+        for (let py = pad.t; py < pad.t + ph; py += blockSize) {
+            const d = dFromX(px + blockSize / 2);
+            const h = hFromY(py + blockSize / 2);
+            if (d <= 0 || h <= 0) continue;
+            const v = statorVolume(d, h);
+            const norm = heatRange > 0 ? (v - minVolumeVisible) / heatRange : 0.5;
+            const c = heatColor(norm);
+            ctx.fillStyle = `rgba(${c.r},${c.g},${c.b},${heatmapOpacity})`;
+            ctx.fillRect(px, py, blockSize, blockSize);
+        }
+    }
+
+    // ── Volume iso-curves (auto-selected for visible range) ──
+    // V = pi/4 * D^2 * H  =>  H = 4V / (pi * D^2)
+    const minVolVisible = statorVolume(Math.max(1, minD), Math.max(0.5, minH));
+    const allIso = [10, 25, 50, 100, 150, 250, 400, 500, 750, 1000, 1500, 2000, 2500, 3000, 4000, 5000, 6000, 8000, 10000, 15000];
+    const isoVolumes = allIso.filter(v => v >= minVolVisible * 0.3 && v <= maxVolumeVisible * 1.2);
+    // pick ~6-8 evenly spaced from the filtered list
+    const isoTarget = 7;
+    const isoStep = Math.max(1, Math.floor(isoVolumes.length / isoTarget));
+    const isoFiltered = isoVolumes.filter((_, idx) => idx % isoStep === 0);
+
+    isoFiltered.forEach(vol => {
+        ctx.beginPath();
+        let started = false;
+        for (let px = pad.l; px <= pad.l + pw; px += 2) {
+            const d = dFromX(px);
+            if (d <= 0) continue;
+            const h = (4 * vol) / (Math.PI * d * d);
+            if (h < minH || h > maxH) { started = false; continue; }
+            const py = yPos(h);
+            if (!started) { ctx.moveTo(px, py); started = true; }
+            else { ctx.lineTo(px, py); }
+        }
+        ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // label the iso-curve at its right edge
+        const labelD = minD + (maxD - minD) * 0.92;
+        const labelH = (4 * vol) / (Math.PI * labelD * labelD);
+        if (labelH >= minH + (maxH - minH) * 0.05 && labelH <= maxH - (maxH - minH) * 0.05) {
+            ctx.fillStyle = 'rgba(255,255,255,0.22)';
+            ctx.font = '8px -apple-system, sans-serif';
+            ctx.textAlign = 'left';
+            const volLabel = vol >= 1000 ? (vol / 1000).toFixed(vol >= 10000 ? 0 : 1) + 'k' : '' + vol;
+            ctx.fillText(volLabel, xPos(labelD) + 3, yPos(labelH) + 3);
+        }
+    });
+
+    // ── Grid lines (adaptive step size) ──
+    function niceStep(range) {
+        const rough = range / 5;
+        const mag = Math.pow(10, Math.floor(Math.log10(rough)));
+        const norm = rough / mag;
+        if (norm <= 1) return mag;
+        if (norm <= 2) return 2 * mag;
+        if (norm <= 5) return 5 * mag;
+        return 10 * mag;
+    }
+    const stepD = niceStep(maxD - minD);
+    const stepH = niceStep(maxH - minH);
+
+    ctx.strokeStyle = 'rgba(55,65,81,0.3)';
+    ctx.lineWidth = 0.5;
+    const gridStartD = Math.ceil(minD / stepD) * stepD;
+    for (let d = gridStartD; d <= maxD; d += stepD) {
+        ctx.beginPath();
+        ctx.moveTo(xPos(d), pad.t);
+        ctx.lineTo(xPos(d), pad.t + ph);
+        ctx.stroke();
+    }
+    const gridStartH = Math.ceil(minH / stepH) * stepH;
+    for (let h = gridStartH; h <= maxH; h += stepH) {
+        ctx.beginPath();
+        ctx.moveTo(pad.l, yPos(h));
+        ctx.lineTo(pad.l + pw, yPos(h));
+        ctx.stroke();
+    }
+
+    // ── Axes ──
+    ctx.strokeStyle = '#374151';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad.l, pad.t);
+    ctx.lineTo(pad.l, pad.t + ph);
+    ctx.lineTo(pad.l + pw, pad.t + ph);
+    ctx.stroke();
+
+    // axis labels (adaptive)
+    ctx.fillStyle = '#6b7280';
+    ctx.font = '10px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    for (let d = gridStartD; d <= maxD; d += stepD) {
+        const label = stepD < 1 ? d.toFixed(1) : Math.round(d);
+        ctx.fillText(label + 'mm', xPos(d), pad.t + ph + 15);
+    }
+    ctx.textAlign = 'right';
+    for (let h = gridStartH; h <= maxH; h += stepH) {
+        const label = stepH < 1 ? h.toFixed(1) : Math.round(h);
+        ctx.fillText(label + 'mm', pad.l - 6, yPos(h) + 3);
+    }
+
+    // axis titles
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = '11px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Stator Diameter (mm)', pad.l + pw / 2, H - 4);
+    ctx.save();
+    ctx.translate(12, pad.t + ph / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText('Stator Height (mm)', 0, 0);
+    ctx.restore();
+
+    // ── Iso-curve through each motor (highlighted) ──
+    motors.forEach((m, i) => {
+        const vol = statorVolume(m.d, m.h);
+        ctx.beginPath();
+        let started = false;
+        for (let px = pad.l; px <= pad.l + pw; px += 2) {
+            const d = dFromX(px);
+            if (d <= 0) continue;
+            const h = (4 * vol) / (Math.PI * d * d);
+            if (h < minH || h > maxH) { started = false; continue; }
+            const py = yPos(h);
+            if (!started) { ctx.moveTo(px, py); started = true; }
+            else { ctx.lineTo(px, py); }
+        }
+        ctx.strokeStyle = COLORS[i] + '40';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([6, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    });
+
+    // ── Percentage annotations between adjacent iso-curves ──
+    if (motors.length >= 2) {
+        const sorted = motors.map((m, i) => ({ ...m, i, v: statorVolume(m.d, m.h) }))
+                              .sort((a, b) => a.v - b.v);
+        for (let k = 0; k < sorted.length - 1; k++) {
+            const a = sorted[k];
+            const b = sorted[k + 1];
+            const pct = ((b.v - a.v) / a.v * 100).toFixed(0);
+            const ax = xPos(a.d), ay = yPos(a.h);
+            const bx = xPos(b.d), by = yPos(b.h);
+            const mx = (ax + bx) / 2, my = (ay + by) / 2;
+
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 3]);
+            ctx.beginPath();
+            ctx.moveTo(ax, ay);
+            ctx.lineTo(bx, by);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // percentage label with background
+            const offset = 12;
+            const angle = Math.atan2(by - ay, bx - ax);
+            const lx = mx + Math.sin(angle) * offset;
+            const ly = my - Math.cos(angle) * offset;
+            const txt = '+' + pct + '%';
+            ctx.font = '9px -apple-system, sans-serif';
+            const tw = ctx.measureText(txt).width;
+            ctx.fillStyle = 'rgba(17,24,39,0.7)';
+            ctx.fillRect(lx - tw / 2 - 3, ly - 8, tw + 6, 12);
+            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+            ctx.textAlign = 'center';
+            ctx.fillText(txt, lx, ly);
+            ctx.restore();
+        }
+    }
+
+    // ── Motor points ──
+    motors.forEach((m, i) => {
+        const x = xPos(m.d);
+        const y = yPos(m.h);
+        const v = statorVolume(m.d, m.h);
+        const name = motorName(m.d, m.h);
+
+        // X marker
+        const sz = 6;
+        ctx.strokeStyle = COLORS[i];
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(x - sz, y - sz);
+        ctx.lineTo(x + sz, y + sz);
+        ctx.moveTo(x + sz, y - sz);
+        ctx.lineTo(x - sz, y + sz);
+        ctx.stroke();
+
+        // glow
+        ctx.shadowColor = COLORS[i];
+        ctx.shadowBlur = 8;
+        ctx.strokeStyle = COLORS[i];
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // label with background for readability
+        ctx.font = 'bold 11px -apple-system, sans-serif';
+        const nameW = ctx.measureText(name).width;
+        ctx.font = '9px -apple-system, sans-serif';
+        const volText = v.toFixed(0) + ' mm\u00B3';
+        const volW = ctx.measureText(volText).width;
+        const labelW = Math.max(nameW, volW);
+        ctx.fillStyle = 'rgba(17,24,39,0.75)';
+        ctx.fillRect(x + 8, y - 14, labelW + 6, 24);
+
+        ctx.fillStyle = COLORS[i];
+        ctx.font = 'bold 11px -apple-system, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(name, x + 11, y - 3);
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '9px -apple-system, sans-serif';
+        ctx.fillText(volText, x + 11, y + 9);
+    });
+
+    // ── Legend: iso-curve explanation ──
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = '8px -apple-system, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText('curves = equal volume   |   brighter = more volume', pad.l + pw, pad.t + ph + 30);
+}
+
+// ─── Bar Chart ───
+function drawBarChart() {
+    const canvas = document.getElementById('bar-canvas');
+    const dpr = window.devicePixelRatio || 1;
+    const parentRect = canvas.parentElement.getBoundingClientRect();
+    const W = Math.max(240, parentRect.width - 40); // 1.25rem padding left/right
+    canvas.width = W * dpr;
+    canvas.height = 320 * dpr;
+    canvas.style.height = '320px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    const H = 320;
+
+    ctx.fillStyle = '#111827';
+    ctx.fillRect(0, 0, W, H);
+
+    if (motors.length === 0) return;
+
+    // measure the widest label so we can reserve space for it
+    const data = motors.map((m, i) => ({
+        name: motorName(m.d, m.h),
+        vol: statorVolume(m.d, m.h),
+        color: COLORS[i],
+        colorDim: COLORS_DIM[i],
+        i
+    })).sort((a, b) => b.vol - a.vol);
+
+    const maxVol = Math.max(...data.map(d => d.vol));
+    const minVol = Math.min(...data.map(d => d.vol));
+
+    // pre-measure the longest label to reserve right margin
+    ctx.font = '11px -apple-system, sans-serif';
+    let maxLabelW = 0;
+    data.forEach(d => {
+        const volText = d.vol.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' mm\u00B3';
+        const tw = ctx.measureText(volText).width;
+        if (tw > maxLabelW) maxLabelW = tw;
+    });
+    ctx.font = '9px -apple-system, sans-serif';
+    data.forEach(d => {
+        const pctText = d.vol === minVol ? '(baseline)' : '+' + ((d.vol - minVol) / minVol * 100).toFixed(0) + '% vs smallest';
+        const tw = ctx.measureText(pctText).width;
+        if (tw > maxLabelW) maxLabelW = tw;
+    });
+    const labelMargin = maxLabelW + 20;
+
+    const pad = { t: 20, r: labelMargin, b: 30, l: 75 };
+    const pw = W - pad.l - pad.r;
+    const ph = H - pad.t - pad.b;
+
+    const barH = Math.min(40, (ph - (data.length - 1) * 8) / data.length);
+    const gap = 8;
+    const totalH = data.length * barH + (data.length - 1) * gap;
+    const startY = pad.t + (ph - totalH) / 2;
+
+    // grid
+    ctx.strokeStyle = 'rgba(55,65,81,0.3)';
+    ctx.lineWidth = 0.5;
+    const steps = 5;
+    for (let s = 0; s <= steps; s++) {
+        const x = pad.l + (s / steps) * pw;
+        ctx.beginPath();
+        ctx.moveTo(x, pad.t);
+        ctx.lineTo(x, pad.t + ph);
+        ctx.stroke();
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '9px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(Math.round(maxVol * s / steps).toLocaleString(), x, H - pad.b + 15);
+    }
+
+    // volume axis label
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = '10px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Volume (mm\u00B3)', pad.l + pw / 2, H - 2);
+
+    data.forEach((d, idx) => {
+        const y = startY + idx * (barH + gap);
+        const barW = (d.vol / maxVol) * pw;
+
+        // bar background
+        ctx.fillStyle = d.colorDim;
+        ctx.beginPath();
+        ctx.roundRect(pad.l, y, barW, barH, 4);
+        ctx.fill();
+
+        // bar fill
+        const grad = ctx.createLinearGradient(pad.l, 0, pad.l + barW, 0);
+        grad.addColorStop(0, d.color + '33');
+        grad.addColorStop(1, d.color + 'cc');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.roundRect(pad.l, y, barW, barH, 4);
+        ctx.fill();
+
+        // border
+        ctx.strokeStyle = d.color;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(pad.l, y, barW, barH, 4);
+        ctx.stroke();
+
+        // motor name
+        ctx.fillStyle = d.color;
+        ctx.font = 'bold 12px -apple-system, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(d.name, pad.l - 8, y + barH / 2 + 4);
+
+        // volume value + percentage (always to the right of the bar, within reserved space)
+        ctx.fillStyle = '#e5e7eb';
+        ctx.font = '11px -apple-system, sans-serif';
+        ctx.textAlign = 'left';
+        const volText = d.vol.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' mm\u00B3';
+        const pctText = d.vol === minVol ? '(baseline)' : '+' + ((d.vol - minVol) / minVol * 100).toFixed(0) + '% vs smallest';
+        ctx.fillText(volText, pad.l + barW + 8, y + barH / 2 - 1);
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '9px -apple-system, sans-serif';
+        ctx.fillText(pctText, pad.l + barW + 8, y + barH / 2 + 11);
+    });
+}
+
+// ─── Cross Sections ───
+function drawCrossSections() {
+    drawCrossTop();
+    drawCrossSide();
+}
+
+function drawCrossTop() {
+    const canvas = document.getElementById('cross-top-canvas');
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = 200 * dpr;
+    canvas.height = 200 * dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    const S = 200;
+
+    ctx.fillStyle = '#111827';
+    ctx.fillRect(0, 0, S, S);
+
+    if (motors.length === 0) return;
+
+    const maxD = Math.max(...motors.map(m => m.d));
+    const scale = (S - 40) / maxD; // pixels per mm
+    const cx = S / 2, cy = S / 2;
+
+    // draw from largest to smallest so small ones are on top
+    const sorted = motors.map((m, i) => ({ ...m, i })).sort((a, b) => b.d - a.d);
+
+    sorted.forEach(m => {
+        const r = (m.d / 2) * scale;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fillStyle = COLORS_DIM[m.i];
+        ctx.fill();
+        ctx.strokeStyle = COLORS[m.i];
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+    });
+
+    // labels
+    sorted.forEach(m => {
+        const r = (m.d / 2) * scale;
+        const name = motorName(m.d, m.h);
+        ctx.fillStyle = COLORS[m.i];
+        ctx.font = 'bold 10px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        // place label at the top of each circle
+        const labelY = cy - r - 5;
+        if (labelY > 5) {
+            ctx.fillText(name, cx, labelY);
+        } else {
+            // put label to the right
+            ctx.textAlign = 'left';
+            ctx.fillText(name, cx + r + 4, cy - r + 12 + sorted.indexOf(m) * 12);
+        }
+    });
+
+    // scale indicator
+    const scaleBarMm = 5;
+    const scaleBarPx = scaleBarMm * scale;
+    ctx.strokeStyle = '#6b7280';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(10, S - 12);
+    ctx.lineTo(10 + scaleBarPx, S - 12);
+    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(10, S - 15); ctx.lineTo(10, S - 9); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(10 + scaleBarPx, S - 15); ctx.lineTo(10 + scaleBarPx, S - 9); ctx.stroke();
+    ctx.fillStyle = '#6b7280';
+    ctx.font = '8px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(scaleBarMm + ' mm', 10 + scaleBarPx / 2, S - 3);
+}
+
+function drawCrossSide() {
+    const canvas = document.getElementById('cross-side-canvas');
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = 200 * dpr;
+    canvas.height = 200 * dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    const S = 200;
+
+    ctx.fillStyle = '#111827';
+    ctx.fillRect(0, 0, S, S);
+
+    if (motors.length === 0) return;
+
+    const maxD = Math.max(...motors.map(m => m.d));
+    const maxH = Math.max(...motors.map(m => m.h));
+    const sumD = motors.reduce((sum, m) => sum + m.d, 0);
+    // Allow for 10px gap between each motor plus 25px margins
+    const scaleX = (S - 25 - (motors.length - 1) * 10) / sumD;
+    const scaleY = (S - 50) / maxH;
+    const scale = Math.min(scaleX, scaleY);
+
+    const baseline = S - 25;
+
+    // draw from largest to smallest
+    const sorted = motors.map((m, i) => ({ ...m, i })).sort((a, b) => (b.d * b.h) - (a.d * a.h));
+    const totalWidth = sorted.reduce((sum, m) => sum + m.d * scale + 10, -10);
+    let startX = (S - totalWidth) / 2;
+
+    sorted.forEach(m => {
+        const w = m.d * scale;
+        const h = m.h * scale;
+        const x = startX;
+        const y = baseline - h;
+
+        ctx.fillStyle = COLORS_DIM[m.i];
+        ctx.fillRect(x, y, w, h);
+        ctx.strokeStyle = COLORS[m.i];
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(x, y, w, h);
+
+        // dimension labels
+        const name = motorName(m.d, m.h);
+        ctx.fillStyle = COLORS[m.i];
+        ctx.font = 'bold 8px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(name, x + w / 2, y - 5);
+
+        // width dimension
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '7px -apple-system, sans-serif';
+        ctx.fillText(m.d + 'mm', x + w / 2, baseline + 10);
+
+        // height dimension
+        ctx.save();
+        ctx.translate(x - 3, y + h / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText(m.h + 'mm', 0, 0);
+        ctx.restore();
+
+        startX += w + 10;
+    });
+
+    // baseline
+    ctx.strokeStyle = '#374151';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(5, baseline);
+    ctx.lineTo(S - 5, baseline);
+    ctx.stroke();
+
+    // scale bar
+    const scaleBarMm = 5;
+    const scaleBarPx = scaleBarMm * scale;
+    ctx.strokeStyle = '#6b7280';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(10, S - 8);
+    ctx.lineTo(10 + scaleBarPx, S - 8);
+    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(10, S - 11); ctx.lineTo(10, S - 5); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(10 + scaleBarPx, S - 11); ctx.lineTo(10 + scaleBarPx, S - 5); ctx.stroke();
+    ctx.fillStyle = '#6b7280';
+    ctx.font = '8px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(scaleBarMm + ' mm', 10 + scaleBarPx / 2, S - 12);
+}
+
+// ─── Comparison Table ───
+function renderTable() {
+    const tbody = document.getElementById('comp-tbody');
+    if (motors.length === 0) { tbody.innerHTML = ''; return; }
+
+    const data = motors.map((m, i) => {
+        const v = statorVolume(m.d, m.h);
+        const meta = getMotorMeta(m.d, m.h);
+        const w = estWeight(v);
+        return { name: motorName(m.d, m.h), d: m.d, h: m.h, vol: v, weight: w, meta, color: COLORS[i], i };
+    });
+
+    const minV = Math.min(...data.map(d => d.vol));
+    const maxV = Math.max(...data.map(d => d.vol));
+
+    // sort
+    const sorted = [...data].sort((a, b) => {
+        let va, vb;
+        switch (sortCol) {
+            case 'name': va = a.name; vb = b.name; return sortDir * va.localeCompare(vb);
+            case 'diam': va = a.d; vb = b.d; break;
+            case 'height': va = a.h; vb = b.h; break;
+            case 'volume': va = a.vol; vb = b.vol; break;
+            case 'pctSmall': va = a.vol; vb = b.vol; break;
+            case 'pctLarge': va = a.vol; vb = b.vol; break;
+            case 'weight': va = a.weight; vb = b.weight; break;
+            default: va = a.vol; vb = b.vol;
+        }
+        return sortDir * (va - vb);
+    });
+
+    tbody.innerHTML = sorted.map(d => {
+        const pctSmall = d.vol === minV ? '-' : '+' + ((d.vol - minV) / minV * 100).toFixed(1) + '%';
+        const pctLarge = d.vol === maxV ? '-' : '-' + ((maxV - d.vol) / maxV * 100).toFixed(1) + '%';
+        const pctSmallClass = d.vol === minV ? 'td-baseline' : 'td-pct-pos';
+        const pctLargeClass = d.vol === maxV ? 'td-baseline' : 'td-pct-neg';
+        return `<tr>
+            <td class="td-name" style="color:${d.color};">${d.name}</td>
+            <td>${d.d} mm</td>
+            <td>${d.h} mm</td>
+            <td>${d.vol.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} mm&sup3;</td>
+            <td class="${pctSmallClass}">${pctSmall}</td>
+            <td class="${pctLargeClass}">${pctLarge}</td>
+            <td>~${d.weight.toFixed(1)} g</td>
+            <td style="font-family:-apple-system,sans-serif; font-size:0.6875rem; color:#9ca3af;">
+                ${d.meta.props}<br>${d.meta.kv}
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function sortTable(col) {
+    if (sortCol === col) {
+        sortDir *= -1;
+    } else {
+        sortCol = col;
+        sortDir = col === 'name' ? 1 : -1;
+    }
+    renderTable();
+}
+
+// ─── Master render ───
+function renderAll() {
+    renderMotorSlots();
+    drawScatter();
+    drawBarChart();
+    drawCrossSections();
+    renderTable();
+}
+
+// ─── Init ───
+renderPresets();
+renderAll();
+
+// resize handler
+let resizeTimeout;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        drawScatter();
+        drawBarChart();
+    }, 100);
+});
+</script>
+
+<script>
+    if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'pageChange', key: 'stator' }, '*');
+    }
+</script>
+</body>
+</html>

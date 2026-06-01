@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Betaflight Rate Converter</title>
+    <script src="../js/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #111827; color: white; padding: 1.5rem; min-height: 100vh;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 { font-size: 1.875rem; font-weight: bold; margin-bottom: 1.5rem; text-align: center; }
+
+        .charts-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+        @media (min-width: 1024px) {
+            .charts-grid { grid-template-columns: 1fr 1fr; }
+            .charts-grid .chart-box:first-child { grid-column: 1 / -1; }
+        }
+        .chart-box { background-color: #1f2937; border-radius: 0.5rem; padding: 1.5rem; }
+        .chart-box h3 {
+            font-size: 0.8125rem; color: #9ca3af; margin-bottom: 0.75rem;
+            text-align: center; text-transform: uppercase; letter-spacing: 0.05em;
+        }
+
+        .controls-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+        @media (min-width: 768px)  { .controls-grid { grid-template-columns: 1fr 1fr; } }
+        @media (min-width: 1200px) { .controls-grid { grid-template-columns: 1fr 1fr 1fr; } }
+
+        .panel { background-color: #1f2937; border-radius: 0.5rem; padding: 1.25rem; border: 1px solid #374151; }
+        .panel-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .panel-hdr h2 { font-size: 1.125rem; font-weight: 600; }
+
+        .sel {
+            background-color: #374151; color: white; border: 1px solid #4b5563;
+            border-radius: 0.375rem; padding: 0.3rem 0.5rem; font-size: 0.8125rem; cursor: pointer; outline: none;
+        }
+
+        .sg { margin-bottom: 1.125rem; }
+        .sg:last-of-type { margin-bottom: 0; }
+        .sg label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem; font-size: 0.8125rem; }
+        .sg .pn { color: #d1d5db; }
+        .val { font-family: 'Courier New', monospace; font-weight: bold; font-size: 0.875rem; }
+
+        .ni {
+            background-color: #374151; color: inherit; border: 1px solid #4b5563; border-radius: 0.25rem;
+            padding: 0.1rem 0.25rem; font-family: 'Courier New', monospace; font-weight: bold;
+            font-size: 0.8125rem; width: 4.5rem; text-align: right; outline: none;
+        }
+        .ni:focus { border-color: var(--ac, #3b82f6); }
+
+        input[type="range"] {
+            width: 100%; height: 0.3rem; background-color: #374151; border-radius: 0.5rem;
+            outline: none; cursor: pointer; -webkit-appearance: none; appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 0.8rem; height: 0.8rem; border-radius: 50%; cursor: pointer;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 0.8rem; height: 0.8rem; border-radius: 50%; cursor: pointer; border: none;
+        }
+        .rl { display: flex; justify-content: space-between; font-size: 0.625rem; color: #6b7280; margin-top: 0.1rem; }
+
+        .c0 { --ac: #3b82f6; } .c1 { --ac: #10b981; } .c2 { --ac: #f59e0b; }
+        .c0 h2, .c0 .val { color: #3b82f6; }
+        .c1 h2, .c1 .val { color: #10b981; }
+        .c2 h2, .c2 .val { color: #f59e0b; }
+        .c0 .panel { border-color: rgba(59,130,246,.3); }
+        .c1 .panel { border-color: rgba(16,185,129,.3); }
+        .c2 .panel { border-color: rgba(245,158,11,.3); }
+        .c0 input[type="range"]::-webkit-slider-thumb { background-color: #3b82f6; }
+        .c0 input[type="range"]::-moz-range-thumb     { background-color: #3b82f6; }
+        .c1 input[type="range"]::-webkit-slider-thumb { background-color: #10b981; }
+        .c1 input[type="range"]::-moz-range-thumb     { background-color: #10b981; }
+        .c2 input[type="range"]::-webkit-slider-thumb { background-color: #f59e0b; }
+        .c2 input[type="range"]::-moz-range-thumb     { background-color: #f59e0b; }
+        .c0 .sel { border-color: rgba(59,130,246,.4); }
+        .c1 .sel { border-color: rgba(16,185,129,.4); }
+        .c2 .sel { border-color: rgba(245,158,11,.4); }
+
+        .stats {
+            display: flex; justify-content: space-between; padding-top: 0.6rem;
+            margin-top: 0.75rem; border-top: 1px solid #374151; font-size: 0.8125rem;
+        }
+        .stats .sl { color: #9ca3af; }
+
+        .cvt-row {
+            display: flex; align-items: center; gap: 0.4rem; margin-top: 0.6rem;
+            padding-top: 0.5rem; border-top: 1px solid #374151; font-size: 0.8125rem;
+        }
+        .cvt-row label { color: #9ca3af; white-space: nowrap; }
+        .cvt-row select {
+            background-color: #374151; color: white; border: 1px solid #4b5563;
+            border-radius: 0.375rem; padding: 0.2rem 0.35rem; font-size: 0.75rem; cursor: pointer; outline: none; flex: 1;
+        }
+        .btn {
+            padding: 0.4rem 0.75rem; border: 1px solid var(--ac, #3b82f6); background: transparent;
+            color: var(--ac, #3b82f6); border-radius: 0.375rem; cursor: pointer;
+            font-size: 0.75rem; font-weight: 600; transition: background .15s, color .15s; white-space: nowrap;
+        }
+        .btn:hover { background: var(--ac, #3b82f6); color: #111827; }
+
+        .info { display: none; }
+        .cli-box {
+            background-color: #0f172a; border: 1px solid #1e293b; border-radius: 0.375rem;
+            padding: 0.6rem 0.75rem; margin-top: 0.75rem; font-family: 'Courier New', monospace;
+            font-size: 0.75rem; color: #10b981; position: relative; cursor: pointer;
+            line-height: 1.4; text-align: left;
+        }
+        .cli-box:hover { border-color: #334155; }
+        .cli-box .copy-hint {
+            position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);
+            font-size: 0.625rem; color: #4b5563; font-family: -apple-system, sans-serif;
+        }
+        .cli-box.copied .copy-hint { color: #10b981; }
+
+        /* Togglable results tabs */
+        .results-tabs {
+            display: flex;
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 0.75rem 0.75rem 0 0;
+            overflow: hidden;
+            border-bottom: none;
+        }
+        .results-tab {
+            flex: 1;
+            background: #111827;
+            border: none;
+            color: #9ca3af;
+            padding: 0.85rem 1rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            border-bottom: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-family: inherit;
+        }
+        .results-tab:hover {
+            color: white;
+            background: rgba(255,255,255,0.02);
+        }
+        .results-tab.active {
+            background: #1f2937;
+        }
+        .results-tab.active.ctrl0-active {
+            color: #3b82f6;
+            border-bottom: 2px solid #3b82f6;
+        }
+        .results-tab.active.ctrl1-active {
+            color: #10b981;
+            border-bottom: 2px solid #10b981;
+        }
+        .results-tab.active.ctrl0-active .vbadge-tab {
+            background: rgba(59,130,246,0.15);
+            color: #3b82f6;
+        }
+        .results-tab.active.ctrl1-active .vbadge-tab {
+            background: rgba(16,185,129,0.15);
+            color: #10b981;
+        }
+        .vbadge-tab {
+            font-size: 0.6875rem;
+            font-weight: 500;
+            background: rgba(55,65,81,0.5);
+            padding: 0.15rem 0.5rem;
+            border-radius: 0.25rem;
+            color: #9ca3af;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            transition: all 0.2s;
+        }
+        .chart-tab-content {
+            width: 100%;
+        }
+        .control-tab-content {
+            width: 100%;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../logo/saturn_fpv_logo_white_small.jpg">
+</head>
+<body>
+
+<div class="container">
+    <h1>Betaflight Rate Converter</h1>
+    
+    <!-- Tabbed Charts -->
+    <div class="results-tabs" style="margin-bottom: 0;">
+        <button class="results-tab active" id="tab-btn-chFull" onclick="setChartTab('chFull')">
+            Full Curve
+        </button>
+        <button class="results-tab" id="tab-btn-chCenter" onclick="setChartTab('chCenter')">
+            Center Zoom
+        </button>
+        <button class="results-tab" id="tab-btn-chDeriv" onclick="setChartTab('chDeriv')">
+            Sensitivity
+        </button>
+    </div>
+    <div class="panel" style="border-top-left-radius:0; border-top-right-radius:0; margin-bottom: 1.5rem; border-color: #374151;">
+        <div id="chart-tab-chFull" class="chart-tab-content">
+            <div class="chart-box" style="background:transparent; padding:0.25rem 0 0 0;"><h3>Full Rate Curve &mdash; Stick vs deg/s</h3><canvas id="chFull"></canvas></div>
+        </div>
+        <div id="chart-tab-chCenter" class="chart-tab-content" style="display:none;">
+            <div class="chart-box" style="background:transparent; padding:0.25rem 0 0 0;"><h3>Center Zoom (&plusmn;20% Stick)</h3><canvas id="chCenter"></canvas></div>
+        </div>
+        <div id="chart-tab-chDeriv" class="chart-tab-content" style="display:none;">
+            <div class="chart-box" style="background:transparent; padding:0.25rem 0 0 0;"><h3>Sensitivity (&Delta; deg/s per 1% Stick)</h3><canvas id="chDeriv"></canvas></div>
+        </div>
+    </div>
+
+    <!-- Tabbed Controls -->
+    <div class="results-tabs" style="margin-bottom: 0;">
+        <button class="results-tab active ctrl0-active" id="tab-btn-ctrl-0" onclick="setControlTab(0)">
+            Curve 1 <span class="vbadge-tab" id="badge-ctrl-0">Actual</span>
+        </button>
+        <button class="results-tab" id="tab-btn-ctrl-1" onclick="setControlTab(1)">
+            Curve 2 <span class="vbadge-tab" id="badge-ctrl-1">Betaflight</span>
+        </button>
+    </div>
+    <div class="controls-grid" id="cg" style="grid-template-columns: 1fr; margin-bottom: 1.5rem;"></div>
+    <div class="info">
+        <strong>Betaflight Rate Converter</strong> &mdash;
+        Compare and convert rate curves across Actual, Betaflight, Quick, KISS and RaceFlight rate types.
+        Formulas from <a href="https://github.com/betaflight/betaflight/blob/master/src/main/fc/rc.c" target="_blank">betaflight/src/main/fc/rc.c</a>.
+        Use <strong>Convert</strong> to best-fit one curve to another rate type.
+    </div>
+</div>
+<script>
+var currentChartTab = 'chFull';
+var currentControlTab = 0;
+
+// ================================================================
+//  EXACT RATE FORMULAS from betaflight/src/main/fc/rc.c
+//  All inputs use Configurator-facing values, internally
+//  converted to match CLI values used in the C source.
+// ================================================================
+var LIMIT = 1998;
+var RC_RATE_INCREMENTAL = 14.54;
+
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function power3(x) { return x * x * x; }
+function power5(x) { return x * x * x * x * x; }
+
+// ----------------------------------------------------------------
+//  applyBetaflightRates (from rc.c)
+//  GUI: rcRate 0.01..2.55, superRate 0..1.00, expo 0..1.00
+//  CLI: rcRates = rcRate*100, rates = superRate*100, rcExpo = expo*100
+// ----------------------------------------------------------------
+function bfRate(rc, rcRateGui, superRateGui, expoGui) {
+    var rcAbs = Math.abs(rc);
+    var rcCommandf = rc;
+    // expo (CLI rcExpo = expoGui * 100)
+    var expof = expoGui;
+    if (expof > 0) {
+        rcCommandf = rcCommandf * power3(rcAbs) * expof + rcCommandf * (1 - expof);
+    }
+    // rcRate (CLI rcRates = rcRateGui * 100)
+    var rcRate = rcRateGui;
+    if (rcRate > 2.0) {
+        rcRate += RC_RATE_INCREMENTAL * (rcRate - 2.0);
+    }
+    var angleRate = 200.0 * rcRate * rcCommandf;
+    // superRate (CLI rates = superRateGui * 100)
+    var superRate = superRateGui;
+    if (superRate > 0) {
+        var rcSuperfactor = 1.0 / clamp(1.0 - (rcAbs * superRate), 0.01, 1.0);
+        angleRate *= rcSuperfactor;
+    }
+    return clamp(angleRate, -LIMIT, LIMIT);
+}
+
+// ----------------------------------------------------------------
+//  applyActualRates (from rc.c)
+//  GUI: centerSens (deg/s), maxRate (deg/s), expo 0..1.00
+//  CLI: rcRates = centerSens/10, rates = maxRate/10, rcExpo = expo*100
+//
+//  CRITICAL: expof = rcAbs * (power5(rc) * expo + rc * (1 - expo))
+//  This gives NATURAL curve even at expo=0 since expof = rc² for expo=0
+// ----------------------------------------------------------------
+function actRate(rc, centerSensGui, maxRateGui, expoGui) {
+    var rcAbs = Math.abs(rc);
+    // CLI: rcExpo = expoGui * 100, then /100 in code = expoGui
+    var expo = expoGui;
+    // expof = rcCommandfAbs * (power5(rcCommandf) * expof + rcCommandf * (1 - expof))
+    var expof = rcAbs * (power5(rc) * expo + rc * (1 - expo));
+    // CLI: rcRates * 10 = centerSensGui (already in deg/s)
+    var centerSensitivity = centerSensGui;
+    // CLI: rates * 10 = maxRateGui (already in deg/s)
+    var stickMovement = Math.max(0, maxRateGui - centerSensitivity);
+    var angleRate = rc * centerSensitivity + stickMovement * expof;
+    return clamp(angleRate, -LIMIT, LIMIT);
+}
+
+// ----------------------------------------------------------------
+//  applyQuickRates (from rc.c)
+//  GUI: rcRate 0.01..2.55, maxRate (deg/s), expo 0..1.00
+//  CLI: rcRates = rcRate*100, rates = maxRate/10, rcExpo = expo*100
+//
+//  Quick uses: rcRate = rcRates[axis] * 2 (CLI value * 2)
+//  So GUI rcRate 1.00 -> CLI 100 -> code: rcRate = 100*2 = 200
+//  But GUI shows 0.01..2.55 and code formula wants rcRates*2
+//  rcRates (CLI) = rcRateGui * 100, then code: rcRate = rcRates * 2
+// ----------------------------------------------------------------
+function qkRate(rc, rcRateGui, maxRateGui, expoGui) {
+    var rcAbs = Math.abs(rc);
+    // CLI: rcRates = rcRateGui * 100, code: rcRate = rcRates * 2
+    var rcRate = rcRateGui * 100 * 2;  // in raw units like the C code
+    // CLI: rates = maxRateGui / 10, code: maxDPS = rates * 10
+    var maxDPS = Math.max(maxRateGui, rcRate);  // maxDPS already in matching units? 
+    // Wait - let me re-read: rcRate = rcRates[axis] * 2 where rcRates is CLI value
+    // CLI rcRates for Quick: if GUI shows 1.00, CLI = 100 (same as BF rates)
+    // code: rcRate = 100 * 2 = 200
+    // code: maxDPS = MAX(rates[axis] * 10, rcRate) = MAX(maxRateGui, 200)
+    // But maxRateGui is in deg/s (e.g. 670), and rcRate is 200... units don't match!
+    // Actually looking more carefully: rcRate is used as deg/s directly: angleRate = curve * rcRate * superFactor
+    // So rcRate = rcRates * 2 where rcRates is CLI 1-255, giving rcRate = 2-510 (deg/s)
+    // And maxDPS = rates * 10 where rates is CLI 1-200, giving 10-2000 (deg/s)
+    // GUI rcRate 1.00 = CLI 100, code rcRate = 200 deg/s center base
+    // GUI maxRate 670 = CLI 67, code maxDPS = 670 deg/s
+
+    rcRate = rcRateGui * 200;  // GUI 1.00 -> 200 deg/s base
+    maxDPS = Math.max(maxRateGui, rcRate);
+
+    var expo = expoGui;
+    var superFactorConfig = (maxDPS / rcRate - 1) / (maxDPS / rcRate);
+
+    var curve, superFactor, angleRate;
+    if (expo > 0) {
+        curve = rc * power3(rcAbs) * expo + rc * (1 - expo);
+        superFactor = 1.0 / clamp(1.0 - (rcAbs * superFactorConfig), 0.01, 1.0);
+        angleRate = clamp(curve * rcRate * superFactor, -LIMIT, LIMIT);
+    } else {
+        superFactor = 1.0 / clamp(1.0 - (rcAbs * superFactorConfig), 0.01, 1.0);
+        angleRate = clamp(rc * rcRate * superFactor, -LIMIT, LIMIT);
+    }
+    return angleRate;
+}
+
+// ----------------------------------------------------------------
+//  applyKissRates (from rc.c)
+//  GUI: rcRate 0.01..2.55, rate 0.00..0.99, rcCurve 0.00..1.00
+//  CLI: rcRates = rcRate*100 (but code uses /1000), rates = rate*100, rcExpo = rcCurve*100
+// ----------------------------------------------------------------
+function kissRate(rc, rcRateGui, rateGui, rcCurveGui) {
+    var rcAbs = Math.abs(rc);
+    // CLI rcExpo = rcCurveGui * 100, code: /100 = rcCurveGui
+    var rcCurvef = rcCurveGui;
+    // CLI rates = rateGui * 100, code: /100 = rateGui
+    var kissRpyUseRates = 1.0 / clamp(1.0 - (rcAbs * rateGui), 0.01, 1.0);
+    // CLI rcRates = rcRateGui * 100, code: rcRates / 1000 = rcRateGui * 100 / 1000 = rcRateGui / 10
+    var kissRcCommandf = (power3(rc) * rcCurvef + rc * (1 - rcCurvef)) * (rcRateGui / 10.0);
+    var kissAngle = clamp(2000.0 * kissRpyUseRates * kissRcCommandf, -LIMIT, LIMIT);
+    return kissAngle;
+}
+
+// ----------------------------------------------------------------
+//  applyRaceFlightRates (from rc.c)
+//  GUI: rate (deg/s), expo 0..100, acroPlus 0..100
+//  CLI: rcRates = rate/10, rcExpo = expo (0-100), rates = acroPlus (0-100)
+// ----------------------------------------------------------------
+function rfRate(rc, rateGui, expoGui, acroGui) {
+    var rcAbs = Math.abs(rc);
+    // CLI rcExpo = expoGui (0-100), code: 0.01 * rcExpo = expoGui * 0.01
+    // expo curve: (1 + 0.01 * rcExpo * (rc*rc - 1)) * rc
+    var rcCommandf = (1.0 + 0.01 * expoGui * (rc * rc - 1.0)) * rc;
+    // CLI rcRates = rateGui / 10, code: 10 * rcRates = rateGui
+    var angleRate = rateGui * rcCommandf;
+    // CLI rates = acroGui (0-100), code: rates * 0.01
+    angleRate = angleRate * (1 + rcAbs * acroGui * 0.01);
+    return clamp(angleRate, -LIMIT, LIMIT);
+}
+
+// ================================================================
+//  RATE TYPE DEFINITIONS (GUI-facing values)
+// ================================================================
+var RT = {
+    actual: {
+        name: 'Actual',
+        p: [
+            { k:'p1', label:'Center Sensitivity', unit:'\u00b0/s', min:10, max:2000, step:10, def:70 },
+            { k:'p2', label:'Max Rate',           unit:'\u00b0/s', min:10, max:2000, step:10, def:670 },
+            { k:'p3', label:'Expo',               unit:'',         min:0,  max:1,    step:0.01, def:0 }
+        ],
+        fn: function(rc, p) { return actRate(rc, p.p1, p.p2, p.p3); }
+    },
+    betaflight: {
+        name: 'Betaflight',
+        p: [
+            { k:'p1', label:'RC Rate',    unit:'', min:0.01, max:2.55, step:0.01, def:1.00 },
+            { k:'p2', label:'Super Rate', unit:'', min:0,    max:1.00, step:0.01, def:0.70 },
+            { k:'p3', label:'RC Expo',    unit:'', min:0,    max:1.00, step:0.01, def:0.00 }
+        ],
+        fn: function(rc, p) { return bfRate(rc, p.p1, p.p2, p.p3); }
+    },
+    quick: {
+        name: 'Quick',
+        p: [
+            { k:'p1', label:'RC Rate',  unit:'',         min:0.01, max:2.55, step:0.01, def:1.00 },
+            { k:'p2', label:'Max Rate', unit:'\u00b0/s', min:10,   max:2000, step:10,   def:670 },
+            { k:'p3', label:'Expo',     unit:'',         min:0,    max:1.00, step:0.01, def:0.00 }
+        ],
+        fn: function(rc, p) { return qkRate(rc, p.p1, p.p2, p.p3); }
+    },
+    kiss: {
+        name: 'KISS',
+        p: [
+            { k:'p1', label:'RC Rate',  unit:'', min:0.01, max:2.55, step:0.01, def:0.50 },
+            { k:'p2', label:'Rate',     unit:'', min:0,    max:0.99, step:0.01, def:0.70 },
+            { k:'p3', label:'RC Curve', unit:'', min:0,    max:1.00, step:0.01, def:0.00 }
+        ],
+        fn: function(rc, p) { return kissRate(rc, p.p1, p.p2, p.p3); }
+    },
+    raceflight: {
+        name: 'RaceFlight',
+        p: [
+            { k:'p1', label:'Rate',  unit:'\u00b0/s', min:10, max:1998, step:1,  def:360 },
+            { k:'p2', label:'Expo',  unit:'',          min:0,  max:100,  step:1,  def:0 },
+            { k:'p3', label:'Acro+', unit:'',          min:0,  max:100,  step:1,  def:0 }
+        ],
+        fn: function(rc, p) { return rfRate(rc, p.p1, p.p2, p.p3); }
+    }
+};
+
+// ================================================================
+//  CURVE STATE
+// ================================================================
+var C = [
+    { id:0, type:'actual',     v:{}, col:'#3b82f6', colA:'rgba(59,130,246,.1)',  css:'c0', lbl:'Curve 1' },
+    { id:1, type:'betaflight', v:{}, col:'#10b981', colA:'rgba(16,185,129,.1)',  css:'c1', lbl:'Curve 2' }
+];
+C.forEach(function(c) { RT[c.type].p.forEach(function(p) { c.v[p.k] = p.def; }); });
+
+// ================================================================
+//  CHARTS
+// ================================================================
+function copts(yLbl, xLbl) {
+    return {
+        responsive: true, maintainAspectRatio: true, aspectRatio: 1.35,
+        animation: { duration: 0 },
+        plugins: {
+            legend: { labels: { color:'#9ca3af', font:{ size:12 } } },
+            tooltip: { backgroundColor:'#1f2937', titleColor:'#9ca3af', bodyColor:'#fff', borderColor:'#374151', borderWidth:1 }
+        },
+        scales: {
+            x: { title:{ display:true, text:xLbl, color:'#9ca3af' }, ticks:{ color:'#9ca3af' }, grid:{ color:'#374151' } },
+            y: { title:{ display:true, text:yLbl, color:'#9ca3af' }, ticks:{ color:'#9ca3af' }, grid:{ color:'#374151' } }
+        }
+    };
+}
+function mkds() {
+    return C.map(function(c) {
+        return { label:c.lbl, borderColor:c.col, backgroundColor:c.colA, borderWidth:2.5, tension:0.1, pointRadius:0, data:[] };
+    });
+}
+
+var chFull   = new Chart(document.getElementById('chFull').getContext('2d'),   { type:'line', data:{ labels:[], datasets:mkds() }, options:copts('deg/s','Stick (%)') });
+var chCenter = new Chart(document.getElementById('chCenter').getContext('2d'), { type:'line', data:{ labels:[], datasets:mkds() }, options:copts('deg/s','Stick (%)') });
+var chDeriv  = new Chart(document.getElementById('chDeriv').getContext('2d'),  { type:'line', data:{ labels:[], datasets:mkds() }, options:copts('\u0394 deg/s per 1%','Stick (%)') });
+
+// ================================================================
+//  REFRESH
+// ================================================================
+function refresh() {
+    var N = 200, Nc = 100;
+    var fLabels = [], cLabels = [];
+    for (var i = 0; i <= N; i++) fLabels.push(Math.round(100 * i / N));
+    for (var i = 0; i <= Nc; i++) cLabels.push(Math.round(-20 + 40 * i / Nc));
+    chFull.data.labels = fLabels;
+    chDeriv.data.labels = fLabels;
+    chCenter.data.labels = cLabels;
+
+    for (var idx = 0; idx < C.length; idx++) {
+        var fn = RT[C[idx].type].fn;
+        var fd = [], cd = [], dd = [];
+
+        // Full curve 0..100%
+        for (var i = 0; i <= N; i++) fd.push(fn(i / N, C[idx].v));
+        chFull.data.datasets[idx].data = fd;
+
+        // Center zoom -20..+20%
+        for (var i = 0; i <= Nc; i++) cd.push(fn(-0.2 + 0.4 * i / Nc, C[idx].v));
+        chCenter.data.datasets[idx].data = cd;
+
+        // Sensitivity (derivative)
+        var h = 0.001;
+        for (var i = 0; i <= N; i++) {
+            var rc = i / N;
+            var lo = fn(Math.max(0, rc - h), C[idx].v);
+            var hi = fn(Math.min(1, rc + h), C[idx].v);
+            dd.push((hi - lo) / (2 * h) / 100);
+        }
+        chDeriv.data.datasets[idx].data = dd;
+
+        // Update legend labels
+        var lbl = C[idx].lbl + ' (' + RT[C[idx].type].name + ')';
+        chFull.data.datasets[idx].label = lbl;
+        chFull.data.datasets[idx].borderColor = C[idx].col;
+        chFull.data.datasets[idx].backgroundColor = C[idx].colA;
+        chCenter.data.datasets[idx].label = lbl;
+        chCenter.data.datasets[idx].borderColor = C[idx].col;
+        chCenter.data.datasets[idx].backgroundColor = C[idx].colA;
+        chDeriv.data.datasets[idx].label = lbl;
+        chDeriv.data.datasets[idx].borderColor = C[idx].col;
+        chDeriv.data.datasets[idx].backgroundColor = C[idx].colA;
+    }
+    chFull.update(); chCenter.update(); chDeriv.update();
+    updateStats();
+}
+
+function updateStats() {
+    for (var idx = 0; idx < C.length; idx++) {
+        var c = C[idx], fn = RT[c.type].fn;
+        var maxR = Math.abs(fn(1.0, c.v));
+        var cSens = Math.abs(fn(0.005, c.v)) / 0.005 / 100;
+        document.getElementById('mx' + c.id).textContent = Math.round(maxR);
+        document.getElementById('cs' + c.id).textContent = cSens.toFixed(1);
+        
+        // Update CLI box text dynamically
+        var cliText = getCLIString(c);
+        document.getElementById('cli-text-' + c.id).innerText = cliText;
+    }
+}
+
+function getCLIString(c) {
+    var lines = [];
+    lines.push("# " + c.lbl + " (" + RT[c.type].name + ")");
+    lines.push("set rates_type = " + c.type.toUpperCase());
+    
+    if (c.type === 'actual') {
+        lines.push("set roll_rc_rate = " + Math.round(c.v.p1 / 10));
+        lines.push("set pitch_rc_rate = " + Math.round(c.v.p1 / 10));
+        lines.push("set yaw_rc_rate = " + Math.round(c.v.p1 / 10));
+        lines.push("set roll_expo = " + Math.round(c.v.p3 * 100));
+        lines.push("set pitch_expo = " + Math.round(c.v.p3 * 100));
+        lines.push("set yaw_expo = " + Math.round(c.v.p3 * 100));
+        lines.push("set roll_srate = " + Math.round(c.v.p2 / 10));
+        lines.push("set pitch_srate = " + Math.round(c.v.p2 / 10));
+        lines.push("set yaw_srate = " + Math.round(c.v.p2 / 10));
+    } else if (c.type === 'betaflight') {
+        lines.push("set roll_rc_rate = " + Math.round(c.v.p1 * 100));
+        lines.push("set pitch_rc_rate = " + Math.round(c.v.p1 * 100));
+        lines.push("set yaw_rc_rate = " + Math.round(c.v.p1 * 100));
+        lines.push("set roll_expo = " + Math.round(c.v.p3 * 100));
+        lines.push("set pitch_expo = " + Math.round(c.v.p3 * 100));
+        lines.push("set yaw_expo = " + Math.round(c.v.p3 * 100));
+        lines.push("set roll_srate = " + Math.round(c.v.p2 * 100));
+        lines.push("set pitch_srate = " + Math.round(c.v.p2 * 100));
+        lines.push("set yaw_srate = " + Math.round(c.v.p2 * 100));
+    } else if (c.type === 'quick') {
+        lines.push("set roll_quick_rc_rate = " + Math.round(c.v.p1 * 100));
+        lines.push("set pitch_quick_rc_rate = " + Math.round(c.v.p1 * 100));
+        lines.push("set yaw_quick_rc_rate = " + Math.round(c.v.p1 * 100));
+        lines.push("set roll_quick_max_rate = " + Math.round(c.v.p2 / 10));
+        lines.push("set pitch_quick_max_rate = " + Math.round(c.v.p2 / 10));
+        lines.push("set yaw_quick_max_rate = " + Math.round(c.v.p2 / 10));
+        lines.push("set roll_quick_expo = " + Math.round(c.v.p3 * 100));
+        lines.push("set pitch_quick_expo = " + Math.round(c.v.p3 * 100));
+        lines.push("set yaw_quick_expo = " + Math.round(c.v.p3 * 100));
+    } else if (c.type === 'kiss') {
+        lines.push("set roll_kiss_rc_rate = " + Math.round(c.v.p1 * 1000));
+        lines.push("set pitch_kiss_rc_rate = " + Math.round(c.v.p1 * 1000));
+        lines.push("set yaw_kiss_rc_rate = " + Math.round(c.v.p1 * 1000));
+        lines.push("set roll_kiss_rate = " + Math.round(c.v.p2 * 100));
+        lines.push("set pitch_kiss_rate = " + Math.round(c.v.p2 * 100));
+        lines.push("set yaw_kiss_rate = " + Math.round(c.v.p2 * 100));
+        lines.push("set roll_kiss_expo = " + Math.round(c.v.p3 * 100));
+        lines.push("set pitch_kiss_expo = " + Math.round(c.v.p3 * 100));
+        lines.push("set yaw_kiss_expo = " + Math.round(c.v.p3 * 100));
+    } else if (c.type === 'raceflight') {
+        lines.push("set roll_rf_rate = " + Math.round(c.v.p1 / 10));
+        lines.push("set pitch_rf_rate = " + Math.round(c.v.p1 / 10));
+        lines.push("set yaw_rf_rate = " + Math.round(c.v.p1 / 10));
+        lines.push("set roll_rf_expo = " + Math.round(c.v.p2));
+        lines.push("set pitch_rf_expo = " + Math.round(c.v.p2));
+        lines.push("set yaw_rf_expo = " + Math.round(c.v.p2));
+        lines.push("set roll_rf_acro = " + Math.round(c.v.p3));
+        lines.push("set pitch_rf_acro = " + Math.round(c.v.p3));
+        lines.push("set yaw_rf_acro = " + Math.round(c.v.p3));
+    }
+    return lines.join("\n");
+}
+
+function copyCLI(el) {
+    var text = el.querySelector('span:first-child').innerText;
+    navigator.clipboard.writeText(text).then(function() {
+        var hint = el.querySelector('.copy-hint');
+        hint.textContent = 'Copied!';
+        el.classList.add('copied');
+        setTimeout(function() {
+            hint.textContent = 'Click to copy';
+            el.classList.remove('copied');
+        }, 2000);
+    });
+}
+
+// ================================================================
+//  CONVERSION - Hybrid coarse/fine grid search
+//  Coarse pass at 5x step, then fine search around winner at 1x step
+//  Uses 50 sample points for speed, MSE minimization
+// ================================================================
+function convert(src, tgtType) {
+    var srcFn = RT[src.type].fn;
+    var tgtRT = RT[tgtType];
+    var pDefs = tgtRT.p;
+    var S = 50;
+
+    // Sample source curve
+    var pts = [];
+    for (var i = 0; i <= S; i++) pts.push(srcFn(i / S, src.v));
+
+    function cost(v0, v1, v2) {
+        var tv = { p1: v0, p2: v1, p3: v2 };
+        var err = 0;
+        for (var j = 0; j <= S; j++) {
+            var d = tgtRT.fn(j / S, tv) - pts[j];
+            err += d * d;
+        }
+        return err;
+    }
+
+    // Coarse grid search at 2x step size
+    var cs0 = pDefs[0].step * 2;
+    var cs1 = pDefs[1].step * 2;
+    var cs2 = pDefs[2].step * 2;
+    var bv0 = pDefs[0].def, bv1 = pDefs[1].def, bv2 = pDefs[2].def;
+    var bErr = Infinity;
+
+    for (var v0 = pDefs[0].min; v0 <= pDefs[0].max; v0 += cs0) {
+        for (var v1 = pDefs[1].min; v1 <= pDefs[1].max; v1 += cs1) {
+            for (var v2 = pDefs[2].min; v2 <= pDefs[2].max; v2 += cs2) {
+                var e = cost(v0, v1, v2);
+                if (e < bErr) { bErr = e; bv0 = v0; bv1 = v1; bv2 = v2; }
+            }
+        }
+    }
+
+    // Fine grid search around coarse winner at 1x step
+    var margin = 4; // search ±4 coarse steps around best
+    var s0 = pDefs[0].step, s1 = pDefs[1].step, s2 = pDefs[2].step;
+    var lo0 = Math.max(pDefs[0].min, bv0 - margin * cs0);
+    var hi0 = Math.min(pDefs[0].max, bv0 + margin * cs0);
+    var lo1 = Math.max(pDefs[1].min, bv1 - margin * cs1);
+    var hi1 = Math.min(pDefs[1].max, bv1 + margin * cs1);
+    var lo2 = Math.max(pDefs[2].min, bv2 - margin * cs2);
+    var hi2 = Math.min(pDefs[2].max, bv2 + margin * cs2);
+
+    for (var v0 = lo0; v0 <= hi0; v0 += s0) {
+        for (var v1 = lo1; v1 <= hi1; v1 += s1) {
+            for (var v2 = lo2; v2 <= hi2; v2 += s2) {
+                var e = cost(v0, v1, v2);
+                if (e < bErr) { bErr = e; bv0 = v0; bv1 = v1; bv2 = v2; }
+            }
+        }
+    }
+
+    // Snap to step
+    bv0 = Math.round(bv0 / s0) * s0;
+    bv1 = Math.round(bv1 / s1) * s1;
+    bv2 = Math.round(bv2 / s2) * s2;
+    bv0 = clamp(bv0, pDefs[0].min, pDefs[0].max);
+    bv1 = clamp(bv1, pDefs[1].min, pDefs[1].max);
+    bv2 = clamp(bv2, pDefs[2].min, pDefs[2].max);
+
+    return { p1: bv0, p2: bv1, p3: bv2 };
+}
+
+// ================================================================
+//  UI BUILD
+// ================================================================
+function fmtV(v, step) {
+    if (step < 1) { return Number(v).toFixed(Math.max(1, (String(step).split('.')[1] || '').length)); }
+    return String(Math.round(v));
+}
+
+function build() {
+    var cg = document.getElementById('cg');
+    cg.innerHTML = '';
+    C.forEach(function(c) {
+        var rt = RT[c.type], w = document.createElement('div');
+        w.className = 'control-tab-content ' + c.css;
+        w.id = 'control-tab-' + c.id;
+        if (c.id !== currentControlTab) {
+            w.style.display = 'none';
+        }
+        
+        var h = '<div class="panel" style="border-top-left-radius:0; border-top-right-radius:0;"><div class="panel-hdr"><h2>' + c.lbl + ' Parameters</h2><select class="sel" data-c="' + c.id + '">';
+        Object.keys(RT).forEach(function(k) { h += '<option value="' + k + '"' + (k === c.type ? ' selected' : '') + '>' + RT[k].name + '</option>'; });
+        h += '</select></div>';
+        rt.p.forEach(function(p) {
+            h += '<div class="sg"><label><span class="pn">' + p.label + (p.unit ? ' (' + p.unit + ')' : '') + '</span>';
+            h += '<input class="ni val" type="text" data-c="' + c.id + '" data-p="' + p.k + '" value="' + fmtV(c.v[p.k], p.step) + '"></label>';
+            h += '<input type="range" data-c="' + c.id + '" data-p="' + p.k + '" min="' + p.min + '" max="' + p.max + '" step="' + p.step + '" value="' + c.v[p.k] + '">';
+            h += '<div class="rl"><span>' + fmtV(p.min, p.step) + '</span><span>' + fmtV(p.max, p.step) + '</span></div></div>';
+        });
+        h += '<div class="stats"><span><span class="sl">Max </span><span class="val" id="mx' + c.id + '">\u2014</span><span class="sl"> \u00b0/s</span></span>';
+        h += '<span><span class="sl">Center </span><span class="val" id="cs' + c.id + '">\u2014</span><span class="sl"> \u00b0/s/%</span></span></div>';
+        
+        // CLI copy window
+        h += '<div class="cli-box" id="cli-' + c.id + '" onclick="copyCLI(this)">';
+        h += '<span id="cli-text-' + c.id + '"></span>';
+        h += '<span class="copy-hint">Click to copy</span></div>';
+        
+        h += '<div class="cvt-row"><label>To:</label><select id="ct' + c.id + '">';
+        Object.keys(RT).forEach(function(k) { h += '<option value="' + k + '">' + RT[k].name + '</option>'; });
+        h += '</select><button class="btn" data-c="' + c.id + '">Convert</button></div></div>';
+        w.innerHTML = h;
+        cg.appendChild(w);
+
+        // Update tab dynamic badge
+        var badge = document.getElementById('badge-ctrl-' + c.id);
+        if (badge) {
+            badge.textContent = RT[c.type].name;
+        }
+    });
+    wire();
+    refresh();
+}
+
+function wire() {
+    var sliders = document.querySelectorAll('input[type="range"][data-c]');
+    for (var s = 0; s < sliders.length; s++) {
+        sliders[s].addEventListener('input', function(e) {
+            var ci = +e.target.getAttribute('data-c'), pk = e.target.getAttribute('data-p');
+            var val = parseFloat(e.target.value);
+            C[ci].v[pk] = val;
+            var pDef = RT[C[ci].type].p.find(function(p) { return p.k === pk; });
+            var ni = document.querySelector('.ni[data-c="' + ci + '"][data-p="' + pk + '"]');
+            if (ni) ni.value = fmtV(val, pDef.step);
+            refresh();
+        });
+    }
+    var nis = document.querySelectorAll('.ni[data-c]');
+    for (var n = 0; n < nis.length; n++) {
+        nis[n].addEventListener('change', function(e) {
+            var ci = +e.target.getAttribute('data-c'), pk = e.target.getAttribute('data-p');
+            var pDef = RT[C[ci].type].p.find(function(p) { return p.k === pk; });
+            var val = parseFloat(e.target.value);
+            if (isNaN(val)) return;
+            val = clamp(Math.round(val / pDef.step) * pDef.step, pDef.min, pDef.max);
+            C[ci].v[pk] = val;
+            e.target.value = fmtV(val, pDef.step);
+            var sl = document.querySelector('input[type="range"][data-c="' + ci + '"][data-p="' + pk + '"]');
+            if (sl) sl.value = val;
+            refresh();
+        });
+        nis[n].addEventListener('keydown', function(e) { if (e.key === 'Enter') e.target.blur(); });
+    }
+    var sels = document.querySelectorAll('.sel[data-c]');
+    for (var t = 0; t < sels.length; t++) {
+        sels[t].addEventListener('change', function(e) {
+            var ci = +e.target.getAttribute('data-c');
+            C[ci].type = e.target.value;
+            RT[C[ci].type].p.forEach(function(p) { C[ci].v[p.k] = p.def; });
+            build();
+        });
+    }
+    var btns = document.querySelectorAll('.btn[data-c]');
+    for (var b = 0; b < btns.length; b++) {
+        btns[b].addEventListener('click', function(e) {
+            var ci = +e.target.getAttribute('data-c');
+            var tgt = document.getElementById('ct' + ci).value;
+            if (tgt === C[ci].type) return;
+            var nv = convert(C[ci], tgt);
+            C[ci].type = tgt;
+            C[ci].v = nv;
+            build();
+        });
+    }
+}
+
+function setChartTab(tabKey) {
+    currentChartTab = tabKey;
+    document.querySelectorAll('.chart-tab-content').forEach(function(el) { el.style.display = 'none'; });
+    document.querySelectorAll('[id^="tab-btn-ch"]').forEach(function(el) { el.classList.remove('active'); });
+
+    document.getElementById('chart-tab-' + tabKey).style.display = 'block';
+    document.getElementById('tab-btn-' + tabKey).classList.add('active');
+
+    // Force redraw / resize
+    if (tabKey === 'chFull' && chFull) setTimeout(function() { chFull.resize(); }, 50);
+    if (tabKey === 'chCenter' && chCenter) setTimeout(function() { chCenter.resize(); }, 50);
+    if (tabKey === 'chDeriv' && chDeriv) setTimeout(function() { chDeriv.resize(); }, 50);
+}
+
+function setControlTab(idx) {
+    currentControlTab = idx;
+    document.querySelectorAll('.control-tab-content').forEach(function(el) { el.style.display = 'none'; });
+    document.querySelectorAll('[id^="tab-btn-ctrl-"]').forEach(function(el) {
+        el.classList.remove('active', 'ctrl0-active', 'ctrl1-active');
+    });
+
+    var tabContent = document.getElementById('control-tab-' + idx);
+    if (tabContent) tabContent.style.display = 'block';
+    
+    var tabBtn = document.getElementById('tab-btn-ctrl-' + idx);
+    if (tabBtn) {
+        tabBtn.classList.add('active');
+        if (idx === 0) {
+            tabBtn.classList.add('ctrl0-active');
+        } else {
+            tabBtn.classList.add('ctrl1-active');
+        }
+    }
+}
+
+build();
+</script>
+<script>
+    if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'pageChange', key: 'rate' }, '*');
+    }
+</script>
+</body>
+</html>

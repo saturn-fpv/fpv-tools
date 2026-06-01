@@ -1,0 +1,32 @@
+# Android build outputs and caches
+.gradle/
+.kotlin/
+build/
+**/build/
+*.apk
+*.aab
+
+# Local developer configurations (leaks paths)
+local.properties
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Signing Keystores & Credentials (CRITICAL SECURITY)
+*.jks
+*.keystore
+secrets.properties
+signing.properties
+keystore.properties
+key.properties
+
+# Environment Variables & Local Configs
+*.env
+.env.*
+secrets/
+keys/
+
+# Temporary scratch folders
+temp/
+**/scratch/
