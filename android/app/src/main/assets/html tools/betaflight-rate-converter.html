@@ -179,6 +179,16 @@
         .chart-tab-content {
             width: 100%;
         }
+        .chart-tab-content.hidden {
+            position: absolute;
+            top: 1.25rem;
+            left: 1.25rem;
+            width: calc(100% - 2.5rem);
+            opacity: 0;
+            pointer-events: none;
+            visibility: hidden;
+            z-index: -1;
+        }
         .control-tab-content {
             width: 100%;
         }
@@ -241,14 +251,14 @@
                     Sensitivity
                 </button>
             </div>
-            <div class="panel" style="border-top-left-radius:0; border-top-right-radius:0; margin-bottom: 0; border-color: #374151;">
+            <div class="panel" style="position: relative; border-top-left-radius:0; border-top-right-radius:0; margin-bottom: 0; border-color: #374151;">
                 <div id="chart-tab-chFull" class="chart-tab-content">
                     <div class="chart-box" style="background:transparent; padding:0.25rem 0 0 0;"><h3>Full Rate Curve &mdash; Stick vs deg/s</h3><canvas id="chFull"></canvas></div>
                 </div>
-                <div id="chart-tab-chCenter" class="chart-tab-content" style="display:none;">
+                <div id="chart-tab-chCenter" class="chart-tab-content hidden">
                     <div class="chart-box" style="background:transparent; padding:0.25rem 0 0 0;"><h3>Center Zoom (&plusmn;20% Stick)</h3><canvas id="chCenter"></canvas></div>
                 </div>
-                <div id="chart-tab-chDeriv" class="chart-tab-content" style="display:none;">
+                <div id="chart-tab-chDeriv" class="chart-tab-content hidden">
                     <div class="chart-box" style="background:transparent; padding:0.25rem 0 0 0;"><h3>Sensitivity (&Delta; deg/s per 1% Stick)</h3><canvas id="chDeriv"></canvas></div>
                 </div>
             </div>
@@ -465,7 +475,11 @@ var C = [
     { id:0, type:'actual',     v:{}, col:'#3b82f6', colA:'rgba(59,130,246,.1)',  css:'c0', lbl:'Curve 1' },
     { id:1, type:'betaflight', v:{}, col:'#10b981', colA:'rgba(16,185,129,.1)',  css:'c1', lbl:'Curve 2' }
 ];
-C.forEach(function(c) { RT[c.type].p.forEach(function(p) { c.v[p.k] = p.def; }); });
+C.forEach(function(c) {
+    RT[c.type].p.forEach(function(p) { c.v[p.k] = p.def; });
+    c.sourceType = c.type;
+    c.sourceV = Object.assign({}, c.v);
+});
 
 // ================================================================
 //  CHARTS
@@ -760,6 +774,8 @@ function wire() {
             var ci = +e.target.getAttribute('data-c'), pk = e.target.getAttribute('data-p');
             var val = parseFloat(e.target.value);
             C[ci].v[pk] = val;
+            C[ci].sourceType = C[ci].type;
+            C[ci].sourceV = Object.assign({}, C[ci].v);
             var pDef = RT[C[ci].type].p.find(function(p) { return p.k === pk; });
             var ni = document.querySelector('.ni[data-c="' + ci + '"][data-p="' + pk + '"]');
             if (ni) ni.value = fmtV(val, pDef.step);
@@ -775,6 +791,8 @@ function wire() {
             if (isNaN(val)) return;
             val = clamp(Math.round(val / pDef.step) * pDef.step, pDef.min, pDef.max);
             C[ci].v[pk] = val;
+            C[ci].sourceType = C[ci].type;
+            C[ci].sourceV = Object.assign({}, C[ci].v);
             e.target.value = fmtV(val, pDef.step);
             var sl = document.querySelector('input[type="range"][data-c="' + ci + '"][data-p="' + pk + '"]');
             if (sl) sl.value = val;
@@ -788,6 +806,8 @@ function wire() {
             var ci = +e.target.getAttribute('data-c');
             C[ci].type = e.target.value;
             RT[C[ci].type].p.forEach(function(p) { C[ci].v[p.k] = p.def; });
+            C[ci].sourceType = C[ci].type;
+            C[ci].sourceV = Object.assign({}, C[ci].v);
             build();
         });
     }
@@ -797,7 +817,12 @@ function wire() {
             var ci = +e.target.getAttribute('data-c');
             var tgt = document.getElementById('ct' + ci).value;
             if (tgt === C[ci].type) return;
-            var nv = convert(C[ci], tgt);
+            var nv;
+            if (tgt === C[ci].sourceType) {
+                nv = Object.assign({}, C[ci].sourceV);
+            } else {
+                nv = convert({ type: C[ci].sourceType, v: C[ci].sourceV }, tgt);
+            }
             C[ci].type = tgt;
             C[ci].v = nv;
             build();
@@ -807,16 +832,16 @@ function wire() {
 
 function setChartTab(tabKey) {
     currentChartTab = tabKey;
-    document.querySelectorAll('.chart-tab-content').forEach(function(el) { el.style.display = 'none'; });
+    document.querySelectorAll('.chart-tab-content').forEach(function(el) { el.classList.add('hidden'); });
     document.querySelectorAll('[id^="tab-btn-ch"]').forEach(function(el) { el.classList.remove('active'); });
 
-    document.getElementById('chart-tab-' + tabKey).style.display = 'block';
+    document.getElementById('chart-tab-' + tabKey).classList.remove('hidden');
     document.getElementById('tab-btn-' + tabKey).classList.add('active');
 
     // Force redraw / resize
-    if (tabKey === 'chFull' && chFull) setTimeout(function() { chFull.resize(); }, 50);
-    if (tabKey === 'chCenter' && chCenter) setTimeout(function() { chCenter.resize(); }, 50);
-    if (tabKey === 'chDeriv' && chDeriv) setTimeout(function() { chDeriv.resize(); }, 50);
+    if (tabKey === 'chFull' && chFull) chFull.resize();
+    if (tabKey === 'chCenter' && chCenter) chCenter.resize();
+    if (tabKey === 'chDeriv' && chDeriv) chDeriv.resize();
 }
 
 function setControlTab(idx) {
