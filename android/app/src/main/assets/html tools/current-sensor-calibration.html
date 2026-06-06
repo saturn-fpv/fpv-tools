@@ -220,6 +220,13 @@
         .acc-ok { background: rgba(245,158,11,.15); color: #f59e0b; }
         .acc-poor { background: rgba(239,68,68,.15); color: #ef4444; }
 
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-content .panel {
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+
         .input-results-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -227,6 +234,12 @@
             margin-bottom: 1.5rem;
         }
         @media (min-width: 1024px) {
+            .results-tabs { display: none !important; }
+            .tab-content { display: block !important; }
+            .tab-content .panel {
+                border-top-left-radius: 0.5rem !important;
+                border-top-right-radius: 0.5rem !important;
+            }
             .input-results-grid { grid-template-columns: 1fr 1fr; }
         }
     </style>
@@ -241,9 +254,19 @@
     <h1>Betaflight Sensor Calibration</h1>
     <p class="subtitle">Accurately calibrate your current and voltage sensor scales for reliable telemetry</p>
 
+    <!-- Tabs -->
+    <div class="results-tabs" style="margin-bottom: 0;">
+        <button class="results-tab active current-active" id="tab-btn-current" data-tab="current">
+            Current Sensor <span class="vbadge-tab" style="color: #3b82f6; background: rgba(59,130,246,0.12);">Amperage</span>
+        </button>
+        <button class="results-tab" id="tab-btn-voltage" data-tab="voltage">
+            Voltage Sensor <span class="vbadge-tab" style="color: #10b981; background: rgba(16,185,129,0.12);">VBAT</span>
+        </button>
+    </div>
+
     <div class="input-results-grid">
         <!-- LEFT COLUMN: Current Calibration -->
-        <div>
+        <div class="tab-content active" id="tab-current">
             <div class="panel panel-accent" style="margin-bottom: 1.5rem;">
                 <div class="panel-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <span>Current Sensor Calibration</span>
@@ -319,7 +342,7 @@
         </div>
 
         <!-- RIGHT COLUMN: Voltage Calibration -->
-        <div>
+        <div class="tab-content" id="tab-voltage">
             <div class="panel panel-accent" style="border-color: rgba(245,158,11,.3); margin-bottom: 1.5rem;">
                 <div class="panel-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <span>Voltage Sensor Calibration</span>
@@ -374,6 +397,25 @@
 // ================================================================
 //  STATE
 // ================================================================
+
+// ================================================================
+//  TABS
+// ================================================================
+document.querySelectorAll('.results-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+        document.querySelectorAll('.results-tab').forEach(function(t) {
+            t.classList.remove('active', 'current-active', 'voltage-active');
+        });
+        document.querySelectorAll('.tab-content').forEach(function(tc) { tc.classList.remove('active'); });
+        tab.classList.add('active');
+        if (tab.getAttribute('data-tab') === 'current') {
+            tab.classList.add('current-active');
+        } else {
+            tab.classList.add('voltage-active');
+        }
+        document.getElementById('tab-' + tab.getAttribute('data-tab')).classList.add('active');
+    });
+});
 
 // ================================================================
 //  CURRENT SENSOR CALCULATION

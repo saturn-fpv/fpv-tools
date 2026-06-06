@@ -248,8 +248,20 @@
             gap: 1.5rem;
             margin-bottom: 1.5rem;
         }
+        .input-results-grid > div:first-child {
+            order: 2;
+        }
+        .input-results-grid > div:last-child {
+            order: 1;
+        }
         @media (min-width: 1024px) {
             .input-results-grid { grid-template-columns: 420px 1fr; }
+            .input-results-grid > div:first-child {
+                order: 1;
+            }
+            .input-results-grid > div:last-child {
+                order: 2;
+            }
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
