@@ -233,6 +233,8 @@
         .cross-view {
             text-align: center;
             flex-shrink: 0;
+            width: 100%;
+            max-width: 400px;
         }
         .cross-view canvas {
             width: 100% !important;
@@ -1223,7 +1225,7 @@ function drawCrossTop() {
     ctx.scale(dpr, dpr);
     const S_val = 400; // local constant for drawing calculations
 
-    ctx.fillStyle = '#111827';
+    ctx.fillStyle = '#1f2937';
     ctx.fillRect(0, 0, S, S);
 
     if (motors.length === 0) return;
@@ -1295,7 +1297,7 @@ function drawCrossSide() {
     const ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
 
-    ctx.fillStyle = '#111827';
+    ctx.fillStyle = '#1f2937';
     ctx.fillRect(0, 0, S, S);
 
     if (motors.length === 0) return;

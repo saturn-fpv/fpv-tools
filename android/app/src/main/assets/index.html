@@ -541,6 +541,15 @@
                 <p><strong>PID Controller Simulator Help</strong></p><br>
                 <p>Based on Joshua Bardwell's PID Tuning Masterclass, this tool simulates a single drone axis to help you build an intuitive feel for how each gain and physics parameter affects flight dynamics.</p><br>
                 
+                <p><strong>Core Concepts (PID & FF):</strong></p>
+                <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <li><strong>P (Proportional):</strong> Reacts to the present. Drives the follower toward the setpoint. Excess P causes ringing, overshoot, and rapid oscillations.</li>
+                    <li><strong>I (Integral):</strong> Reacts to the past. Corrects persistent offsets (like unbalanced CG or side winds) by accumulating force over time.</li>
+                    <li><strong>D (Derivative):</strong> Reacts to the future. Dampens acceleration and decelerates the follower as it approaches the setpoint. Excess D causes high-frequency noise amplification, heating up motors.</li>
+                    <li><strong>FF (Feedforward):</strong> Reacts to stick velocity. Instantly adds force during stick movement to eliminate gyro latency, dropping to zero when stick stops.</li>
+                    <li><strong>The Scope (Blackbox Log):</strong> The real-time Scope simulates a flight controller's Blackbox log. It records and plots Setpoint (stick input), Follower (gyro rotation), Error, and individual PID/FF trace lines so you can diagnose controller behaviors exactly like analyzing real flight logs.</li>
+                </ul><br>
+
                 <p><strong>Tuning Approach (How to Use):</strong></p>
                 <ol style="padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
                     <li><strong>Zero Out Gains:</strong> Turn P, I, D, and FF all the way to 0 to observe the "broken" system (the follower won't move).</li>
