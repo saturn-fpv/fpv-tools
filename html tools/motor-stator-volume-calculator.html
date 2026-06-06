@@ -218,10 +218,18 @@
         /* Cross-section viz */
         .cross-section-container {
             display: flex;
-            gap: 2rem;
-            justify-content: center;
-            align-items: flex-end;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+        @media (min-width: 600px) {
+            .cross-section-container {
+                flex-direction: row;
+                justify-content: center;
+                align-items: flex-start;
+                gap: 2rem;
+            }
         }
         .cross-view { text-align: center; }
         .cross-view .cv-label { font-size: 0.6875rem; color: #6b7280; margin-bottom: 0.5rem; }
@@ -332,8 +340,23 @@
             font-family: 'JetBrains Mono', 'Fira Code', monospace;
             transition: all 0.2s;
         }
+        .tab-wrapper {
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr;
+        }
         .viz-tab-content {
+            grid-area: 1 / 1 / 2 / 2;
             width: 100%;
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transition: opacity 0.15s ease;
+        }
+        .viz-tab-content.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
         }
 
         @media (max-width: 900px) {
@@ -348,12 +371,7 @@
             .slot-input-group input[type="range"] { width: 100px; }
             .presets-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
         }
-        @media (max-width: 480px) {
-            #cross-top-canvas, #cross-side-canvas {
-                width: 140px !important;
-                height: 140px !important;
-            }
-        }
+
         .input-results-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -406,68 +424,56 @@
                 <button class="results-tab" id="tab-btn-viz-table" onclick="setVizTab('table')">Comparison Table</button>
             </div>
             
-            <div class="panel" style="border-top-left-radius:0; border-top-right-radius:0; margin-bottom: 0; border-color: #374151;">
+            <div class="panel tab-wrapper" style="border-top-left-radius:0; border-top-right-radius:0; margin-bottom: 0; border-color: #374151;">
                 <!-- Tab 1: Volume Map -->
                 <div id="viz-tab-map" class="viz-tab-content">
-                    <div class="viz-panel" style="background:transparent; border:none; padding:0;">
-                        <h3><span class="icon">&#10687;</span> Diameter vs Height Map</h3>
-                        <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
-                            <label style="font-size:0.6875rem; color:#6b7280; white-space:nowrap;">Heatmap</label>
-                            <input type="range" id="heatmap-opacity" min="0" max="100" step="5" value="45"
-                                style="width:90px; accent-color:#3b82f6; cursor:pointer;"
-                                oninput="heatmapOpacity=this.value/100; document.getElementById('heatmap-val').textContent=this.value+'%'; drawScatter();">
-                            <span id="heatmap-val" style="font-size:0.6875rem; color:#6b7280; font-family:'JetBrains Mono','Fira Code',monospace; min-width:28px;">45%</span>
-                        </div>
-                        <canvas id="scatter-canvas" height="380"></canvas>
+                    <h3><span class="icon">&#10687;</span> Diameter vs Height Map</h3>
+                    <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                        <label style="font-size:0.6875rem; color:#6b7280; white-space:nowrap;">Heatmap</label>
+                        <input type="range" id="heatmap-opacity" min="0" max="100" step="5" value="45"
+                            style="width:90px; accent-color:#3b82f6; cursor:pointer;"
+                            oninput="heatmapOpacity=this.value/100; document.getElementById('heatmap-val').textContent=this.value+'%'; drawScatter();">
+                        <span id="heatmap-val" style="font-size:0.6875rem; color:#6b7280; font-family:'JetBrains Mono','Fira Code',monospace; min-width:28px;">45%</span>
                     </div>
+                    <canvas id="scatter-canvas" height="380"></canvas>
                 </div>
 
                 <!-- Tab 2: Volume Bars -->
-                <div id="viz-tab-bars" class="viz-tab-content" style="display:none;">
-                    <div class="viz-panel" style="background:transparent; border:none; padding:0;">
-                        <h3><span class="icon">&#9644;</span> Volume Comparison</h3>
-                        <canvas id="bar-canvas" height="320"></canvas>
-                    </div>
+                <div id="viz-tab-bars" class="viz-tab-content hidden">
+                    <h3><span class="icon">&#9644;</span> Volume Comparison</h3>
+                    <canvas id="bar-canvas" height="320"></canvas>
                 </div>
 
                 <!-- Tab 3: Cross Sections -->
-                <div id="viz-tab-cross" class="viz-tab-content" style="display:none;">
-                    <div class="viz-panel" style="background:transparent; border:none; padding:0;">
-                        <h3><span class="icon">&#9711;</span> Stator Cross-Sections (to scale)</h3>
-                        <div style="display:flex; gap:1.5rem; justify-content:center; align-items:flex-start; flex-wrap:wrap; margin-top:0.5rem;">
-                            <div style="text-align:center;">
-                                <div style="font-size:0.6875rem; color:#6b7280; margin-bottom:0.5rem;">Top View</div>
-                                <canvas id="cross-top-canvas" width="200" height="200" style="max-width:200px; height:200px;"></canvas>
-                            </div>
-                            <div style="text-align:center;">
-                                <div style="font-size:0.6875rem; color:#6b7280; margin-bottom:0.5rem;">Side View</div>
-                                <canvas id="cross-side-canvas" width="200" height="200" style="max-width:200px; height:200px;"></canvas>
-                            </div>
+                <div id="viz-tab-cross" class="viz-tab-content hidden">
+                    <h3><span class="icon">&#9711;</span> Stator Cross-Sections (to scale)</h3>
+                    <div class="cross-section-container">
+                        <div class="cross-view">
+                            <div class="cv-label">Top View</div>
+                            <canvas id="cross-top-canvas" width="200" height="200" style="max-width:200px; height:200px;"></canvas>
+                        </div>
+                        <div class="cross-view">
+                            <div class="cv-label">Side View</div>
+                            <canvas id="cross-side-canvas" width="200" height="200" style="max-width:200px; height:200px;"></canvas>
                         </div>
                     </div>
                 </div>
 
                 <!-- Tab 4: Comparison Table -->
-                <div id="viz-tab-table" class="viz-tab-content" style="display:none;">
-                    <div class="viz-panel" style="background:transparent; border:none; padding:0;">
-                        <h3><span class="icon">&#9638;</span> Comparison Table</h3>
-                        <div style="overflow-x:auto;">
-                            <table class="comp-table" id="comp-table">
-                                <thead>
-                                    <tr>
-                                        <th onclick="sortTable('name')">Motor <span class="sort-arrow"></span></th>
-                                        <th onclick="sortTable('diam')">Dia <span class="sort-arrow"></span></th>
-                                        <th onclick="sortTable('height')">Height <span class="sort-arrow"></span></th>
-                                        <th onclick="sortTable('volume')">Volume <span class="sort-arrow"></span></th>
-                                        <th onclick="sortTable('pctSmall')">vs Smallest <span class="sort-arrow"></span></th>
-                                        <th onclick="sortTable('pctLarge')">vs Largest <span class="sort-arrow"></span></th>
-                                        <th onclick="sortTable('weight')">Est. Weight <span class="sort-arrow"></span></th>
-                                        <th>Props / KV</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="comp-tbody"></tbody>
-                            </table>
-                        </div>
+                <div id="viz-tab-table" class="viz-tab-content hidden">
+                    <h3><span class="icon">&#9638;</span> Comparison Table</h3>
+                    <div style="overflow-x:auto;">
+                        <table class="comp-table" id="comp-table">
+                            <thead>
+                                <tr>
+                                    <th>Metric</th>
+                                    <th id="th-motor-0" style="color: #3b82f6;">Motor A</th>
+                                    <th id="th-motor-1" style="color: #10b981;">Motor B</th>
+                                    <th>Difference</th>
+                                </tr>
+                            </thead>
+                            <tbody id="comp-tbody"></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -672,16 +678,16 @@ function setMotorTab(idx) {
 
 function setVizTab(tabKey) {
     currentVizTab = tabKey;
-    document.querySelectorAll('.viz-tab-content').forEach(c => c.style.display = 'none');
+    document.querySelectorAll('.viz-tab-content').forEach(c => c.classList.add('hidden'));
     document.querySelectorAll('[id^="tab-btn-viz-"]').forEach(t => t.classList.remove('active'));
     
-    document.getElementById('viz-tab-' + tabKey).style.display = 'block';
+    document.getElementById('viz-tab-' + tabKey).classList.remove('hidden');
     document.getElementById('tab-btn-viz-' + tabKey).classList.add('active');
 
     // Force canvas resize/redraw
-    if (tabKey === 'map') setTimeout(drawScatter, 50);
-    if (tabKey === 'bars') setTimeout(drawBarChart, 50);
-    if (tabKey === 'cross') setTimeout(drawCrossSections, 50);
+    if (tabKey === 'map') drawScatter();
+    if (tabKey === 'bars') drawBarChart();
+    if (tabKey === 'cross') drawCrossSections();
 }
 
 function renderMotorSlots() {
@@ -739,7 +745,7 @@ function drawScatter() {
     const canvas = document.getElementById('scatter-canvas');
     const dpr = window.devicePixelRatio || 1;
     const parentRect = canvas.parentElement.getBoundingClientRect();
-    const W = Math.max(240, parentRect.width - 40); // 1.25rem padding left/right
+    const W = parentRect.width;
     canvas.width = W * dpr;
     canvas.height = 380 * dpr;
     canvas.style.height = '380px';
@@ -1040,7 +1046,7 @@ function drawBarChart() {
     const canvas = document.getElementById('bar-canvas');
     const dpr = window.devicePixelRatio || 1;
     const parentRect = canvas.parentElement.getBoundingClientRect();
-    const W = Math.max(240, parentRect.width - 40); // 1.25rem padding left/right
+    const W = parentRect.width;
     canvas.width = W * dpr;
     canvas.height = 320 * dpr;
     canvas.style.height = '320px';
@@ -1053,107 +1059,101 @@ function drawBarChart() {
 
     if (motors.length === 0) return;
 
-    // measure the widest label so we can reserve space for it
+    // Use original indices so colors match Motor A (blue) and Motor B (green)
     const data = motors.map((m, i) => ({
         name: motorName(m.d, m.h),
         vol: statorVolume(m.d, m.h),
         color: COLORS[i],
         colorDim: COLORS_DIM[i],
         i
-    })).sort((a, b) => b.vol - a.vol);
+    }));
 
     const maxVol = Math.max(...data.map(d => d.vol));
     const minVol = Math.min(...data.map(d => d.vol));
 
-    // pre-measure the longest label to reserve right margin
-    ctx.font = '11px -apple-system, sans-serif';
-    let maxLabelW = 0;
-    data.forEach(d => {
-        const volText = d.vol.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' mm\u00B3';
-        const tw = ctx.measureText(volText).width;
-        if (tw > maxLabelW) maxLabelW = tw;
-    });
-    ctx.font = '9px -apple-system, sans-serif';
-    data.forEach(d => {
-        const pctText = d.vol === minVol ? '(baseline)' : '+' + ((d.vol - minVol) / minVol * 100).toFixed(0) + '% vs smallest';
-        const tw = ctx.measureText(pctText).width;
-        if (tw > maxLabelW) maxLabelW = tw;
-    });
-    const labelMargin = maxLabelW + 20;
-
-    const pad = { t: 20, r: labelMargin, b: 30, l: 75 };
+    const pad = { t: 35, r: 20, b: 45, l: 65 };
     const pw = W - pad.l - pad.r;
     const ph = H - pad.t - pad.b;
 
-    const barH = Math.min(40, (ph - (data.length - 1) * 8) / data.length);
-    const gap = 8;
-    const totalH = data.length * barH + (data.length - 1) * gap;
-    const startY = pad.t + (ph - totalH) / 2;
-
-    // grid
+    // Grid lines (y-axis)
     ctx.strokeStyle = 'rgba(55,65,81,0.3)';
     ctx.lineWidth = 0.5;
     const steps = 5;
     for (let s = 0; s <= steps; s++) {
-        const x = pad.l + (s / steps) * pw;
+        const y = pad.t + ph - (s / steps) * ph;
         ctx.beginPath();
-        ctx.moveTo(x, pad.t);
-        ctx.lineTo(x, pad.t + ph);
+        ctx.moveTo(pad.l, y);
+        ctx.lineTo(pad.l + pw, y);
         ctx.stroke();
+
         ctx.fillStyle = '#6b7280';
         ctx.font = '9px -apple-system, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(Math.round(maxVol * s / steps).toLocaleString(), x, H - pad.b + 15);
+        ctx.textAlign = 'right';
+        ctx.fillText(Math.round(maxVol * s / steps).toLocaleString(), pad.l - 8, y + 3);
     }
 
-    // volume axis label
+    // Y-axis label
+    ctx.save();
+    ctx.translate(15, pad.t + ph / 2);
+    ctx.rotate(-Math.PI / 2);
     ctx.fillStyle = '#9ca3af';
     ctx.font = '10px -apple-system, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Volume (mm\u00B3)', pad.l + pw / 2, H - 2);
+    ctx.fillText('Volume (mm\u00B3)', 0, 0);
+    ctx.restore();
+
+    // Draw vertical bars
+    const secW = pw / data.length;
+    const barW = Math.min(65, secW * 0.5);
 
     data.forEach((d, idx) => {
-        const y = startY + idx * (barH + gap);
-        const barW = (d.vol / maxVol) * pw;
+        const cx = pad.l + idx * secW + secW / 2;
+        const bx = cx - barW / 2;
+        const bh = (d.vol / maxVol) * ph;
+        const by = pad.t + ph - bh;
 
         // bar background
         ctx.fillStyle = d.colorDim;
         ctx.beginPath();
-        ctx.roundRect(pad.l, y, barW, barH, 4);
+        ctx.roundRect(bx, by, barW, bh, [4, 4, 0, 0]);
         ctx.fill();
 
-        // bar fill
-        const grad = ctx.createLinearGradient(pad.l, 0, pad.l + barW, 0);
+        // bar fill gradient
+        const grad = ctx.createLinearGradient(0, by + bh, 0, by);
         grad.addColorStop(0, d.color + '33');
         grad.addColorStop(1, d.color + 'cc');
         ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.roundRect(pad.l, y, barW, barH, 4);
+        ctx.roundRect(bx, by, barW, bh, [4, 4, 0, 0]);
         ctx.fill();
 
         // border
         ctx.strokeStyle = d.color;
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.roundRect(pad.l, y, barW, barH, 4);
+        ctx.roundRect(bx, by, barW, bh, [4, 4, 0, 0]);
         ctx.stroke();
 
-        // motor name
+        // motor name below bar
         ctx.fillStyle = d.color;
         ctx.font = 'bold 12px -apple-system, sans-serif';
-        ctx.textAlign = 'right';
-        ctx.fillText(d.name, pad.l - 8, y + barH / 2 + 4);
+        ctx.textAlign = 'center';
+        ctx.fillText('Motor ' + (d.i === 0 ? 'A' : 'B'), cx, pad.t + ph + 16);
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '10px -apple-system, sans-serif';
+        ctx.fillText('(' + d.name + ')', cx, pad.t + ph + 28);
 
-        // volume value + percentage (always to the right of the bar, within reserved space)
+        // volume value + percentage above bar
         ctx.fillStyle = '#e5e7eb';
-        ctx.font = '11px -apple-system, sans-serif';
-        ctx.textAlign = 'left';
+        ctx.font = 'bold 11px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
         const volText = d.vol.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' mm\u00B3';
-        const pctText = d.vol === minVol ? '(baseline)' : '+' + ((d.vol - minVol) / minVol * 100).toFixed(0) + '% vs smallest';
-        ctx.fillText(volText, pad.l + barW + 8, y + barH / 2 - 1);
+        ctx.fillText(volText, cx, by - 14);
+
         ctx.fillStyle = '#6b7280';
         ctx.font = '9px -apple-system, sans-serif';
-        ctx.fillText(pctText, pad.l + barW + 8, y + barH / 2 + 11);
+        const pctText = d.vol === minVol ? '(baseline)' : '+' + ((d.vol - minVol) / minVol * 100).toFixed(0) + '%';
+        ctx.fillText(pctText, cx, by - 3);
     });
 }
 
@@ -1321,62 +1321,62 @@ function drawCrossSide() {
 // ─── Comparison Table ───
 function renderTable() {
     const tbody = document.getElementById('comp-tbody');
-    if (motors.length === 0) { tbody.innerHTML = ''; return; }
+    if (motors.length < 2) { tbody.innerHTML = ''; return; }
 
-    const data = motors.map((m, i) => {
-        const v = statorVolume(m.d, m.h);
-        const meta = getMotorMeta(m.d, m.h);
-        const w = estWeight(v);
-        return { name: motorName(m.d, m.h), d: m.d, h: m.h, vol: v, weight: w, meta, color: COLORS[i], i };
-    });
+    const mA = motors[0];
+    const mB = motors[1];
+    const volA = statorVolume(mA.d, mA.h);
+    const volB = statorVolume(mB.d, mB.h);
+    const nameA = motorName(mA.d, mA.h);
+    const nameB = motorName(mB.d, mB.h);
+    const metaA = getMotorMeta(mA.d, mA.h);
+    const metaB = getMotorMeta(mB.d, mB.h);
+    const weightA = estWeight(volA);
+    const weightB = estWeight(volB);
 
-    const minV = Math.min(...data.map(d => d.vol));
-    const maxV = Math.max(...data.map(d => d.vol));
+    // Update table headers to include current names
+    document.getElementById('th-motor-0').textContent = 'Motor A (' + nameA + ')';
+    document.getElementById('th-motor-1').textContent = 'Motor B (' + nameB + ')';
 
-    // sort
-    const sorted = [...data].sort((a, b) => {
-        let va, vb;
-        switch (sortCol) {
-            case 'name': va = a.name; vb = b.name; return sortDir * va.localeCompare(vb);
-            case 'diam': va = a.d; vb = b.d; break;
-            case 'height': va = a.h; vb = b.h; break;
-            case 'volume': va = a.vol; vb = b.vol; break;
-            case 'pctSmall': va = a.vol; vb = b.vol; break;
-            case 'pctLarge': va = a.vol; vb = b.vol; break;
-            case 'weight': va = a.weight; vb = b.weight; break;
-            default: va = a.vol; vb = b.vol;
-        }
-        return sortDir * (va - vb);
-    });
-
-    tbody.innerHTML = sorted.map(d => {
-        const pctSmall = d.vol === minV ? '-' : '+' + ((d.vol - minV) / minV * 100).toFixed(1) + '%';
-        const pctLarge = d.vol === maxV ? '-' : '-' + ((maxV - d.vol) / maxV * 100).toFixed(1) + '%';
-        const pctSmallClass = d.vol === minV ? 'td-baseline' : 'td-pct-pos';
-        const pctLargeClass = d.vol === maxV ? 'td-baseline' : 'td-pct-neg';
-        return `<tr>
-            <td class="td-name" style="color:${d.color};">${d.name}</td>
-            <td>${d.d} mm</td>
-            <td>${d.h} mm</td>
-            <td>${d.vol.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} mm&sup3;</td>
-            <td class="${pctSmallClass}">${pctSmall}</td>
-            <td class="${pctLargeClass}">${pctLarge}</td>
-            <td>~${d.weight.toFixed(1)} g</td>
-            <td style="font-family:-apple-system,sans-serif; font-size:0.6875rem; color:#9ca3af;">
-                ${d.meta.props}<br>${d.meta.kv}
-            </td>
-        </tr>`;
-    }).join('');
-}
-
-function sortTable(col) {
-    if (sortCol === col) {
-        sortDir *= -1;
-    } else {
-        sortCol = col;
-        sortDir = col === 'name' ? 1 : -1;
+    function getDiffPct(valA, valB) {
+        if (valA === 0) return '';
+        const diff = ((valB - valA) / valA) * 100;
+        const sign = diff >= 0 ? '+' : '';
+        const colorClass = diff >= 0 ? 'td-pct-pos' : 'td-pct-neg';
+        return `<span class="${colorClass}">${sign}${diff.toFixed(1)}%</span>`;
     }
-    renderTable();
+
+    function getDiffVal(valA, valB, unit) {
+        const diff = valB - valA;
+        const sign = diff >= 0 ? '+' : '';
+        const colorClass = diff >= 0 ? 'td-pct-pos' : 'td-pct-neg';
+        return `<span class="${colorClass}">${sign}${diff.toFixed(1)} ${unit}</span>`;
+    }
+
+    const rows = [
+        { metric: 'Stator Size Code', valA: nameA, valB: nameB, diff: '-' },
+        { metric: 'Stator Diameter', valA: mA.d.toFixed(1) + ' mm', valB: mB.d.toFixed(1) + ' mm', diff: getDiffVal(mA.d, mB.d, 'mm') },
+        { metric: 'Stator Height', valA: mA.h.toFixed(1) + ' mm', valB: mB.h.toFixed(1) + ' mm', diff: getDiffVal(mA.h, mB.h, 'mm') },
+        { 
+            metric: 'Stator Volume', 
+            valA: volA.toLocaleString('en-US', {maximumFractionDigits:0}) + ' mm³', 
+            valB: volB.toLocaleString('en-US', {maximumFractionDigits:0}) + ' mm³', 
+            diff: `${getDiffVal(volA, volB, 'mm³')}<br>(${getDiffPct(volA, volB)})` 
+        },
+        { metric: 'Est. Motor Weight', valA: '~' + weightA.toFixed(1) + ' g', valB: '~' + weightB.toFixed(1) + ' g', diff: getDiffVal(weightA, weightB, 'g') },
+        { metric: 'Recommended Props', valA: metaA.props, valB: metaB.props, diff: '-' },
+        { metric: 'Typical KV Range', valA: metaA.kv, valB: metaB.kv, diff: '-' },
+        { metric: 'Typical Application', valA: metaA.use, valB: metaB.use, diff: '-' }
+    ];
+
+    tbody.innerHTML = rows.map(r => `
+        <tr>
+            <td style="font-family:-apple-system,sans-serif; font-weight: 500; color: #9ca3af;">${r.metric}</td>
+            <td style="color: ${COLORS[0]};">${r.valA}</td>
+            <td style="color: ${COLORS[1]};">${r.valB}</td>
+            <td>${r.diff}</td>
+        </tr>
+    `).join('');
 }
 
 // ─── Master render ───
