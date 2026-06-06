@@ -753,7 +753,8 @@ function build() {
         
         h += '<div class="cvt-row"><label>To:</label><select id="ct' + c.id + '">';
         Object.keys(RT).forEach(function(k) { h += '<option value="' + k + '">' + RT[k].name + '</option>'; });
-        h += '</select><button class="btn" data-c="' + c.id + '">Convert</button></div></div>';
+        h += '</select><button class="btn" data-c="' + c.id + '">Convert</button>';
+        h += '<button class="btn" data-reset="' + c.id + '">Default</button></div></div>';
         w.innerHTML = h;
         cg.appendChild(w);
 
@@ -825,6 +826,16 @@ function wire() {
             }
             C[ci].type = tgt;
             C[ci].v = nv;
+            build();
+        });
+    }
+    var rstBtns = document.querySelectorAll('.btn[data-reset]');
+    for (var r = 0; r < rstBtns.length; r++) {
+        rstBtns[r].addEventListener('click', function(e) {
+            var ci = +e.target.getAttribute('data-reset');
+            RT[C[ci].type].p.forEach(function(p) { C[ci].v[p.k] = p.def; });
+            C[ci].sourceType = C[ci].type;
+            C[ci].sourceV = Object.assign({}, C[ci].v);
             build();
         });
     }
