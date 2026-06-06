@@ -104,6 +104,7 @@
             width: 0.8rem;
             height: 0.8rem;
             border-radius: 50%;
+            background-color: #3b82f6;
             cursor: pointer;
             transition: transform 0.1s ease, background-color 0.1s ease;
         }
@@ -112,6 +113,7 @@
             width: 0.8rem;
             height: 0.8rem;
             border-radius: 50%;
+            background-color: #3b82f6;
             cursor: pointer;
             border: none;
             transition: transform 0.1s ease, background-color 0.1s ease;
@@ -436,7 +438,7 @@
                 <button class="results-tab active" id="tab-btn-viz-map" onclick="setVizTab('map')">Volume Map</button>
                 <button class="results-tab" id="tab-btn-viz-bars" onclick="setVizTab('bars')">Volume Bars</button>
                 <button class="results-tab" id="tab-btn-viz-cross" onclick="setVizTab('cross')">Cross-Sections</button>
-                <button class="results-tab" id="tab-btn-viz-table" onclick="setVizTab('table')">Comparison Table</button>
+                <button class="results-tab" id="tab-btn-viz-table" onclick="setVizTab('table')">Table</button>
             </div>
             
             <div class="panel tab-wrapper" style="border-top-left-radius:0; border-top-right-radius:0; margin-bottom: 0; border-color: #374151;">
@@ -476,7 +478,7 @@
 
                 <!-- Tab 4: Comparison Table -->
                 <div id="viz-tab-table" class="viz-tab-content hidden">
-                    <h3><span class="icon">&#9638;</span> Comparison Table</h3>
+                    <h3><span class="icon">&#9638;</span> Table</h3>
                     <div style="overflow-x:auto;">
                         <table class="comp-table" id="comp-table">
                             <thead>
@@ -484,7 +486,6 @@
                                     <th>Metric</th>
                                     <th id="th-motor-0" style="color: #3b82f6;">Motor A</th>
                                     <th id="th-motor-1" style="color: #10b981;">Motor B</th>
-                                    <th>Difference</th>
                                 </tr>
                             </thead>
                             <tbody id="comp-tbody"></tbody>
@@ -772,11 +773,11 @@ function drawScatter() {
     ctx.fillStyle = '#1f2937';
     ctx.fillRect(0, 0, W, H);
 
-    const pad = { t: 20, r: 40, b: 40, l: 50 };
+    const pad = { t: 15, r: 25, b: 55, l: 45 };
     const pw = W - pad.l - pad.r;
     const ph = H - pad.t - pad.b;
 
-    // axis ranges - zoom to fit motors with ~30% padding
+    // axis ranges - zoom to fit motors with ~15% padding
     const allD = motors.map(m => m.d);
     const allH = motors.map(m => m.h);
     const rawMinD = Math.min(...allD);
@@ -785,7 +786,7 @@ function drawScatter() {
     const rawMaxH = Math.max(...allH);
     const spanD = rawMaxD - rawMinD || rawMaxD * 0.5;
     const spanH = rawMaxH - rawMinH || rawMaxH * 0.5;
-    const padFrac = 0.35;
+    const padFrac = 0.15;
     const minD = Math.max(0, rawMinD - spanD * padFrac);
     const maxD = rawMaxD + spanD * padFrac;
     const minH = Math.max(0, rawMinH - spanH * padFrac);
@@ -924,7 +925,7 @@ function drawScatter() {
     ctx.textAlign = 'center';
     for (let d = gridStartD; d <= maxD; d += stepD) {
         const label = stepD < 1 ? d.toFixed(1) : Math.round(d);
-        ctx.fillText(label + 'mm', xPos(d), pad.t + ph + 15);
+        ctx.fillText(label + 'mm', xPos(d), pad.t + ph + 14);
     }
     ctx.textAlign = 'right';
     for (let h = gridStartH; h <= maxH; h += stepH) {
@@ -936,7 +937,7 @@ function drawScatter() {
     ctx.fillStyle = '#9ca3af';
     ctx.font = '11px -apple-system, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Stator Diameter (mm)', pad.l + pw / 2, H - 4);
+    ctx.fillText('Stator Diameter (mm)', pad.l + pw / 2, pad.t + ph + 30);
     ctx.save();
     ctx.translate(12, pad.t + ph / 2);
     ctx.rotate(-Math.PI / 2);
@@ -1054,7 +1055,7 @@ function drawScatter() {
     ctx.fillStyle = 'rgba(255,255,255,0.3)';
     ctx.font = '8px -apple-system, sans-serif';
     ctx.textAlign = 'right';
-    ctx.fillText('curves = equal volume   |   brighter = more volume', pad.l + pw, pad.t + ph + 30);
+    ctx.fillText('curves = equal volume   |   brighter = more volume', pad.l + pw, pad.t + ph + 44);
 }
 
 // ─── Bar Chart ───
@@ -1169,7 +1170,17 @@ function drawBarChart() {
 
         ctx.fillStyle = '#6b7280';
         ctx.font = '9px -apple-system, sans-serif';
-        const pctText = d.vol === minVol ? '(baseline)' : '+' + ((d.vol - minVol) / minVol * 100).toFixed(0) + '%';
+        const otherIdx = 1 - d.i;
+        const otherVol = statorVolume(motors[otherIdx].d, motors[otherIdx].h);
+        let pctText = '0%';
+        if (otherVol > 0 && d.vol !== otherVol) {
+            const diffPct = ((d.vol - otherVol) / otherVol) * 100;
+            const rounded = Math.round(diffPct);
+            if (rounded !== 0) {
+                const sign = rounded > 0 ? '+' : '';
+                pctText = sign + rounded + '%';
+            }
+        }
         ctx.fillText(pctText, cx, by - 3);
     });
 }
@@ -1325,15 +1336,15 @@ function drawCrossSide() {
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(10, S - 8);
-    ctx.lineTo(10 + scaleBarPx, S - 8);
-    ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(10, S - 11); ctx.lineTo(10, S - 5); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(10 + scaleBarPx, S - 11); ctx.lineTo(10 + scaleBarPx, S - 5); ctx.stroke();
-    ctx.fillStyle = '#6b7280';
-    ctx.font = '8px -apple-system, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(scaleBarMm + ' mm', 10 + scaleBarPx / 2, S - 12);
-}
+        ctx.lineTo(10 + scaleBarPx, S - 8);
+        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(10, S - 11); ctx.lineTo(10, S - 5); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(10 + scaleBarPx, S - 11); ctx.lineTo(10 + scaleBarPx, S - 5); ctx.stroke();
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '8px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(scaleBarMm + ' mm', 10 + scaleBarPx / 2, S - 12);
+    }
 
 // ─── Comparison Table ───
 function renderTable() {
@@ -1355,33 +1366,32 @@ function renderTable() {
     document.getElementById('th-motor-0').textContent = 'Motor A (' + nameA + ')';
     document.getElementById('th-motor-1').textContent = 'Motor B (' + nameB + ')';
 
-    function getDiffPct(valA, valB) {
-        if (valA === 0) return '';
-        const diff = ((valB - valA) / valA) * 100;
-        const sign = diff >= 0 ? '+' : '';
-        const colorClass = diff >= 0 ? 'td-pct-pos' : 'td-pct-neg';
-        return `<span class="${colorClass}">${sign}${diff.toFixed(1)}%</span>`;
-    }
-
-    function getDiffVal(valA, valB, unit) {
-        const diff = valB - valA;
-        const sign = diff >= 0 ? '+' : '';
-        const colorClass = diff >= 0 ? 'td-pct-pos' : 'td-pct-neg';
-        return `<span class="${colorClass}">${sign}${diff.toFixed(1)} ${unit}</span>`;
+    function formatCell(val, diffVal, unit, otherVal = null, decimals = 1) {
+        if (diffVal === 0) {
+            const zeroStr = decimals === 0 ? '0' : '0.0';
+            return `${val}<br><span style="color: #ef4444; font-size: 0.72rem; font-style: italic; font-weight: normal;">(${zeroStr} ${unit})</span>`;
+        }
+        const sign = diffVal > 0 ? '+' : '';
+        let diffStr = sign + diffVal.toFixed(decimals) + ' ' + unit;
+        if (otherVal !== null && otherVal > 0) {
+            const pct = (diffVal / otherVal) * 100;
+            const pctSign = pct > 0 ? '+' : '';
+            diffStr += ', ' + pctSign + pct.toFixed(0) + '%';
+        }
+        return `${val}<br><span style="color: #ef4444; font-size: 0.72rem; font-style: italic; font-weight: normal;">(${diffStr})</span>`;
     }
 
     const rows = [
-        { metric: 'Stator Size Code', valA: nameA, valB: nameB, diff: '-' },
-        { metric: 'Stator Diameter', valA: mA.d.toFixed(1) + ' mm', valB: mB.d.toFixed(1) + ' mm', diff: getDiffVal(mA.d, mB.d, 'mm') },
-        { metric: 'Stator Height', valA: mA.h.toFixed(1) + ' mm', valB: mB.h.toFixed(1) + ' mm', diff: getDiffVal(mA.h, mB.h, 'mm') },
+        { metric: 'Stator Size Code', valA: nameA, valB: nameB },
+        { metric: 'Stator Diameter', valA: formatCell(mA.d.toFixed(1) + ' mm', mA.d - mB.d, 'mm'), valB: formatCell(mB.d.toFixed(1) + ' mm', mB.d - mA.d, 'mm') },
+        { metric: 'Stator Height', valA: formatCell(mA.h.toFixed(1) + ' mm', mA.h - mB.h, 'mm'), valB: formatCell(mB.h.toFixed(1) + ' mm', mB.h - mA.h, 'mm') },
         { 
             metric: 'Stator Volume', 
-            valA: volA.toLocaleString('en-US', {maximumFractionDigits:0}) + ' mm³', 
-            valB: volB.toLocaleString('en-US', {maximumFractionDigits:0}) + ' mm³', 
-            diff: `${getDiffVal(volA, volB, 'mm³')}<br>(${getDiffPct(volA, volB)})` 
+            valA: formatCell(volA.toLocaleString('en-US', {maximumFractionDigits:0}) + ' mm³', volA - volB, 'mm³', volB, 0), 
+            valB: formatCell(volB.toLocaleString('en-US', {maximumFractionDigits:0}) + ' mm³', volB - volA, 'mm³', volA, 0) 
         },
-        { metric: 'Est. Motor Weight', valA: '~' + weightA.toFixed(1) + ' g', valB: '~' + weightB.toFixed(1) + ' g', diff: getDiffVal(weightA, weightB, 'g') },
-        { metric: 'Props / KV', valA: `${metaA.props}<br>${metaA.kv}`, valB: `${metaB.props}<br>${metaB.kv}`, diff: '-' }
+        { metric: 'Est. Motor Weight', valA: formatCell('~' + weightA.toFixed(1) + ' g', weightA - weightB, 'g'), valB: formatCell('~' + weightB.toFixed(1) + ' g', weightB - weightA, 'g') },
+        { metric: 'Props / KV', valA: `${metaA.props}<br>${metaA.kv}`, valB: `${metaB.props}<br>${metaB.kv}` }
     ];
 
     tbody.innerHTML = rows.map(r => `
@@ -1389,7 +1399,6 @@ function renderTable() {
             <td style="font-family:-apple-system,sans-serif; font-weight: 500; color: #9ca3af;">${r.metric}</td>
             <td style="color: ${COLORS[0]};">${r.valA}</td>
             <td style="color: ${COLORS[1]};">${r.valB}</td>
-            <td>${r.diff}</td>
         </tr>
     `).join('');
 }
