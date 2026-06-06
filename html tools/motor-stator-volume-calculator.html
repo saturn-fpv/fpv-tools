@@ -220,20 +220,31 @@
         /* Cross-section viz */
         .cross-section-container {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
+            justify-content: flex-start;
+            align-items: flex-start;
             gap: 1.5rem;
-            align-items: center;
             margin-top: 0.5rem;
+            overflow-x: auto;
+            width: 100%;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 0.5rem;
         }
         @media (min-width: 600px) {
             .cross-section-container {
-                flex-direction: row;
                 justify-content: center;
-                align-items: flex-start;
                 gap: 2rem;
             }
         }
-        .cross-view { text-align: center; }
+        .cross-view {
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .cross-view canvas {
+            width: 200px !important;
+            height: 200px !important;
+            border-radius: 0.375rem;
+        }
         .cross-view .cv-label { font-size: 0.6875rem; color: #6b7280; margin-bottom: 0.5rem; }
 
         /* Comparison table */
@@ -1168,7 +1179,7 @@ function drawBarChart() {
         const volText = d.vol.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' mm\u00B3';
         ctx.fillText(volText, cx, by - 14);
 
-        ctx.fillStyle = '#6b7280';
+        ctx.fillStyle = '#ef4444';
         ctx.font = '9px -apple-system, sans-serif';
         const otherIdx = 1 - d.i;
         const otherVol = statorVolume(motors[otherIdx].d, motors[otherIdx].h);
