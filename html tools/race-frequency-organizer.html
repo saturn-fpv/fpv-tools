@@ -760,12 +760,40 @@ function autoAssign() {
         }
     }
 
-    // Fallback: couldn't solve cleanly
-    S.assignments = pilots.map((p,i) => {
-        const chs = vtxChannels(p.vtxId, pilotsHaveDjiPub(pilots));
-        const ch = chs[i % chs.length] || chs[0];
-        return { id:'A'+(i+1), ch:ch?ch.k:'--', freq:ch?ch.f:0, vtx:p.vtxId, heat:'A' };
+    // Fallback: couldn't solve cleanly, but we still split into heats
+    const maxPilotsPerHeat = 6;
+    const numHeats = Math.max(1, Math.ceil(pilots.length / maxPilotsPerHeat));
+    const heatsList = [];
+    for (let h = 0; h < numHeats; h++) heatsList.push([]);
+    
+    // Distribute pilots into heats (round-robin to keep sizes even)
+    pilots.forEach((p, index) => {
+        heatsList[index % numHeats].push(p);
     });
+
+    const assignments = [];
+    heatsList.forEach((heatPilots, hIdx) => {
+        const heatLetter = letters[hIdx] || 'A';
+        // For each heat, assign channels round-robin from available channels
+        // Keep track of channel indices per VTX type in this heat to minimize overlaps
+        const vtxIndices = {};
+        heatPilots.forEach((p, pIdx) => {
+            const chs = vtxChannels(p.vtxId, pilotsHaveDjiPub(pilots));
+            if (!vtxIndices[p.vtxId]) vtxIndices[p.vtxId] = 0;
+            const chIdx = vtxIndices[p.vtxId];
+            const ch = chs[chIdx % chs.length] || chs[0];
+            vtxIndices[p.vtxId]++;
+            
+            assignments.push({
+                id: heatLetter + (pIdx + 1),
+                ch: ch ? ch.k : '--',
+                freq: ch ? ch.f : 0,
+                vtx: p.vtxId,
+                heat: heatLetter
+            });
+        });
+    });
+    S.assignments = assignments;
     renderAll();
 }
 

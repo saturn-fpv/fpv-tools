@@ -451,7 +451,7 @@ var RT = {
     kiss: {
         name: 'KISS',
         p: [
-            { k:'p1', label:'RC Rate',  unit:'', min:0.01, max:2.55, step:0.01, def:0.50 },
+            { k:'p1', label:'RC Rate',  unit:'', min:0.01, max:2.55, step:0.01, def:1.00 },
             { k:'p2', label:'Rate',     unit:'', min:0,    max:0.99, step:0.01, def:0.70 },
             { k:'p3', label:'RC Curve', unit:'', min:0,    max:1.00, step:0.01, def:0.00 }
         ],
@@ -460,9 +460,9 @@ var RT = {
     raceflight: {
         name: 'RaceFlight',
         p: [
-            { k:'p1', label:'Rate',  unit:'\u00b0/s', min:10, max:1998, step:1,  def:360 },
-            { k:'p2', label:'Expo',  unit:'',          min:0,  max:100,  step:1,  def:0 },
-            { k:'p3', label:'Acro+', unit:'',          min:0,  max:100,  step:1,  def:0 }
+            { k:'p1', label:'Rate',  unit:'\u00b0/s', min:10, max:1998, step:1,  def:370 },
+            { k:'p2', label:'Expo',  unit:'',          min:0,  max:100,  step:1,  def:50 },
+            { k:'p3', label:'Acro+', unit:'',          min:0,  max:100,  step:1,  def:80 }
         ],
         fn: function(rc, p) { return rfRate(rc, p.p1, p.p2, p.p3); }
     }
