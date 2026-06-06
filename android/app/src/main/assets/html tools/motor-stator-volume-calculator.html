@@ -394,6 +394,9 @@
                 padding: 0.6rem 0.75rem;
                 font-size: 0.75rem;
             }
+            .motor-tabs .results-tab {
+                flex: 1 !important;
+            }
         }
 
         .input-results-grid {
@@ -426,7 +429,7 @@
     <div class="input-results-grid">
         <!-- Motor Inputs (Left) -->
         <div>
-            <div class="results-tabs" style="margin-bottom: 0;">
+            <div class="results-tabs motor-tabs" style="margin-bottom: 0;">
                 <button class="results-tab active" id="tab-btn-motor-0" onclick="setMotorTab(0)">
                     Motor A <span class="vbadge-tab" id="badge-motor-0">2207</span>
                 </button>
@@ -1391,31 +1394,22 @@ function renderTable() {
     document.getElementById('th-motor-0').textContent = 'Motor A (' + nameA + ')';
     document.getElementById('th-motor-1').textContent = 'Motor B (' + nameB + ')';
 
-    function formatCell(val, diffVal, unit, otherVal = null, decimals = 1) {
-        if (diffVal === 0) {
-            const zeroStr = decimals === 0 ? '0' : '0.0';
-            return `${val}<br><span style="color: #ef4444; font-size: 0.72rem; font-style: italic; font-weight: normal;">(${zeroStr} ${unit})</span>`;
-        }
-        const sign = diffVal > 0 ? '+' : '';
-        let diffStr = sign + diffVal.toFixed(decimals) + ' ' + unit;
-        if (otherVal !== null && otherVal > 0) {
-            const pct = (diffVal / otherVal) * 100;
-            const pctSign = pct > 0 ? '+' : '';
-            diffStr += ', ' + pctSign + pct.toFixed(0) + '%';
-        }
-        return `${val}<br><span style="color: #ef4444; font-size: 0.72rem; font-style: italic; font-weight: normal;">(${diffStr})</span>`;
-    }
+    const pctA = volB > 0 ? ((volA - volB) / volB) * 100 : 0;
+    const pctSignA = pctA > 0 ? '+' : '';
+    const pctStrA = pctSignA + pctA.toFixed(0) + '%';
+    const volumeValA = `${volA.toLocaleString('en-US', {maximumFractionDigits:0})} mm³<br><span style="color: #ef4444; font-size: 0.72rem; font-style: italic; font-weight: normal;">(${pctStrA})</span>`;
+
+    const pctB = volA > 0 ? ((volB - volA) / volA) * 100 : 0;
+    const pctSignB = pctB > 0 ? '+' : '';
+    const pctStrB = pctSignB + pctB.toFixed(0) + '%';
+    const volumeValB = `${volB.toLocaleString('en-US', {maximumFractionDigits:0})} mm³<br><span style="color: #ef4444; font-size: 0.72rem; font-style: italic; font-weight: normal;">(${pctStrB})</span>`;
 
     const rows = [
         { metric: 'Stator Size Code', valA: nameA, valB: nameB },
-        { metric: 'Stator Diameter', valA: formatCell(mA.d.toFixed(1) + ' mm', mA.d - mB.d, 'mm'), valB: formatCell(mB.d.toFixed(1) + ' mm', mB.d - mA.d, 'mm') },
-        { metric: 'Stator Height', valA: formatCell(mA.h.toFixed(1) + ' mm', mA.h - mB.h, 'mm'), valB: formatCell(mB.h.toFixed(1) + ' mm', mB.h - mA.h, 'mm') },
-        { 
-            metric: 'Stator Volume', 
-            valA: formatCell(volA.toLocaleString('en-US', {maximumFractionDigits:0}) + ' mm³', volA - volB, 'mm³', volB, 0), 
-            valB: formatCell(volB.toLocaleString('en-US', {maximumFractionDigits:0}) + ' mm³', volB - volA, 'mm³', volA, 0) 
-        },
-        { metric: 'Est. Motor Weight', valA: formatCell('~' + weightA.toFixed(1) + ' g', weightA - weightB, 'g'), valB: formatCell('~' + weightB.toFixed(1) + ' g', weightB - weightA, 'g') },
+        { metric: 'Stator Diameter', valA: mA.d.toFixed(1) + ' mm', valB: mB.d.toFixed(1) + ' mm' },
+        { metric: 'Stator Height', valA: mA.h.toFixed(1) + ' mm', valB: mB.h.toFixed(1) + ' mm' },
+        { metric: 'Stator Volume', valA: volumeValA, valB: volumeValB },
+        { metric: 'Est. Motor Weight', valA: '~' + weightA.toFixed(1) + ' g', valB: '~' + weightB.toFixed(1) + ' g' },
         { metric: 'Props / KV', valA: `${metaA.props}<br>${metaA.kv}`, valB: `${metaB.props}<br>${metaB.kv}` }
     ];
 
