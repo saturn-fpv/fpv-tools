@@ -353,6 +353,38 @@
                 height: 16px;
             }
         }
+
+        @media (min-width: 1024px) {
+            /* Keep drawer permanently open on the right */
+            .drawer-menu {
+                position: fixed;
+                top: calc(var(--header-height) + env(safe-area-inset-top, 0px));
+                right: 0 !important;
+                width: 300px;
+                height: calc(100% - var(--header-height) - env(safe-area-inset-top, 0px));
+                border-left: 1px solid var(--border);
+                border-top: none;
+                box-shadow: none;
+                background: var(--dark);
+                transform: none !important;
+            }
+            /* Hide drawer close button */
+            .drawer-close {
+                display: none !important;
+            }
+            /* Hide the hamburger menu button in the header */
+            .btn-menu {
+                display: none !important;
+            }
+            /* Shrink content frame to make room for the persistent sidebar */
+            .view-container {
+                width: calc(100% - 300px);
+            }
+            /* Shrink help panel to align with the active content area */
+            .help-panel {
+                width: calc(100% - 300px) !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -552,7 +584,14 @@
                     <li>Configure altitude offset and track width/color.</li>
                     <li>Inspect the GPS track path on the interactive map preview and review the speed and altitude profile graphs.</li>
                     <li>Click <strong>Download</strong> to save your KML/KMZ/GPX file for interactive 3D fly-overs in Google Earth.</li>
-                </ul>
+                </ul><br>
+                <p><strong>How to set up EdgeTX Logging:</strong></p>
+                <ol style="list-style: decimal; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <li>Power on your drone and radio. On the radio, go to the <strong>Telemetry</strong> screen and select <strong>Discover new sensors</strong>. Ensure GPS coordinates show up.</li>
+                    <li>Go to the <strong>Special Functions</strong> tab on your radio (e.g. SF1).</li>
+                    <li>Set the switch to your **ARM switch** (so it logs only when armed).</li>
+                    <li>Set the action to <strong>SD Logs</strong>, set the interval to <strong>1.0s</strong> (every 1 second), and check the box to enable it.</li>
+                </ol>
             `
         };
 

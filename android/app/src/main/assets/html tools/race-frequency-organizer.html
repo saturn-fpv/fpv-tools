@@ -11,7 +11,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #111827; color: white; padding: 1.5rem; min-height: 100vh; }
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { max-width: 900px; margin: 0 auto; }
         h1 { font-family: 'Outfit', sans-serif; font-size: 1.875rem; font-weight: bold; margin-bottom: 0.5rem; text-align: center; }
         .subtitle { text-align: center; color: #9ca3af; font-size: 0.875rem; margin-bottom: 1.5rem; }
         .panel { background: #1f2937; border: 1px solid #374151; border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1.5rem; }
@@ -1052,7 +1052,7 @@ function renderHeats() {
             const pilotSlots = byVtx[vtxId].map(p => {
                 const displayId = h + (pilotNum++);
                 const gi = S.assignments.indexOf(p);
-                const col = PC[gi%PC.length];
+                const col = vColor;
                 const has2way = p.freq>0 && conf2only.some(c=>c.hit===p.freq);
                 const has3way = p.freq>0 && !has2way && conf3only.some(c=>c.hit===p.freq);
                 const vBw = vDef ? vDef.bw : 25;
@@ -1235,8 +1235,8 @@ function drawSpectrum(heatKey, pilots) {
     pilots.forEach((a,i) => {
         if (!a||a.freq===0) return;
         const gi = S.assignments.indexOf(a);
-        const col = PC[gi%PC.length];
         const vDef = VTX.find(v=>v.id===a.vtx);
+        const col = vDef ? vDef.color : PC[gi%PC.length];
         const bw = vDef?vDef.bw:25;
         const px2 = x(a.freq);
 
@@ -1277,7 +1277,8 @@ function renderGrid() {
             const match = allAssigned.find(a=>a.ch===k);
             let cls = '', st = '';
             if (match) {
-                const col = PC[S.assignments.indexOf(match)%PC.length];
+                const vDef = VTX.find(v=>v.id===match.vtx);
+                const col = vDef ? vDef.color : '#3b82f6';
                 const bg2 = col+'20';
                 cls = 'assigned'; st = `--pc:${col};--pb:${bg2};`;
                 h += `<div class="cg-cell ${cls}" style="${st}" title="${k} ${f} MHz - ${match.id}">${f}<br>${match.id}</div>`;
