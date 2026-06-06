@@ -342,12 +342,13 @@
         }
         .tab-wrapper {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
             grid-template-rows: 1fr;
         }
         .viz-tab-content {
             grid-area: 1 / 1 / 2 / 2;
             width: 100%;
+            min-width: 0;
             opacity: 1;
             visibility: visible;
             pointer-events: auto;
@@ -357,6 +358,10 @@
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
+        }
+        .viz-tab-content canvas {
+            width: 100%;
+            border-radius: 0.375rem;
         }
 
         @media (max-width: 900px) {
@@ -370,16 +375,26 @@
             .btn-remove { margin-left: 0; display: none !important; }
             .slot-input-group input[type="range"] { width: 100px; }
             .presets-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
+            .results-tabs {
+                overflow-x: auto;
+                white-space: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+            .results-tab {
+                flex: none;
+                padding: 0.6rem 0.75rem;
+                font-size: 0.75rem;
+            }
         }
 
         .input-results-grid {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
             gap: 1.5rem;
             margin-bottom: 1.5rem;
         }
         @media (min-width: 1024px) {
-            .input-results-grid { grid-template-columns: 420px 1fr; }
+            .input-results-grid { grid-template-columns: 420px minmax(0, 1fr); }
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -748,12 +763,13 @@ function drawScatter() {
     const W = parentRect.width;
     canvas.width = W * dpr;
     canvas.height = 380 * dpr;
+    canvas.style.width = W + 'px';
     canvas.style.height = '380px';
     const ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
     const H = 380;
 
-    ctx.fillStyle = '#111827';
+    ctx.fillStyle = '#1f2937';
     ctx.fillRect(0, 0, W, H);
 
     const pad = { t: 20, r: 40, b: 40, l: 50 };
@@ -1049,12 +1065,13 @@ function drawBarChart() {
     const W = parentRect.width;
     canvas.width = W * dpr;
     canvas.height = 320 * dpr;
+    canvas.style.width = W + 'px';
     canvas.style.height = '320px';
     const ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
     const H = 320;
 
-    ctx.fillStyle = '#111827';
+    ctx.fillStyle = '#1f2937';
     ctx.fillRect(0, 0, W, H);
 
     if (motors.length === 0) return;
@@ -1172,7 +1189,7 @@ function drawCrossTop() {
     ctx.scale(dpr, dpr);
     const S = 200;
 
-    ctx.fillStyle = '#111827';
+    ctx.fillStyle = '#1f2937';
     ctx.fillRect(0, 0, S, S);
 
     if (motors.length === 0) return;
@@ -1239,7 +1256,7 @@ function drawCrossSide() {
     ctx.scale(dpr, dpr);
     const S = 200;
 
-    ctx.fillStyle = '#111827';
+    ctx.fillStyle = '#1f2937';
     ctx.fillRect(0, 0, S, S);
 
     if (motors.length === 0) return;
@@ -1364,9 +1381,7 @@ function renderTable() {
             diff: `${getDiffVal(volA, volB, 'mm³')}<br>(${getDiffPct(volA, volB)})` 
         },
         { metric: 'Est. Motor Weight', valA: '~' + weightA.toFixed(1) + ' g', valB: '~' + weightB.toFixed(1) + ' g', diff: getDiffVal(weightA, weightB, 'g') },
-        { metric: 'Recommended Props', valA: metaA.props, valB: metaB.props, diff: '-' },
-        { metric: 'Typical KV Range', valA: metaA.kv, valB: metaB.kv, diff: '-' },
-        { metric: 'Typical Application', valA: metaA.use, valB: metaB.use, diff: '-' }
+        { metric: 'Props / KV', valA: `${metaA.props}<br>${metaA.kv}`, valB: `${metaB.props}<br>${metaB.kv}`, diff: '-' }
     ];
 
     tbody.innerHTML = rows.map(r => `
