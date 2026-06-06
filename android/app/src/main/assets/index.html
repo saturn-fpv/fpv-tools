@@ -539,14 +539,32 @@
             `,
             pid: `
                 <p><strong>PID Controller Simulator Help</strong></p><br>
-                <p>A mathematically rigorous, interactive simulator of a single drone rotary axis (roll, pitch, or yaw) under standard PID and Feedforward controllers.</p><br>
-                <p><strong>Core Concepts:</strong></p>
+                <p>Based on Joshua Bardwell's PID Tuning Masterclass, this tool simulates a single drone axis to help you build an intuitive feel for how each gain and physics parameter affects flight dynamics.</p><br>
+                
+                <p><strong>Tuning Approach (How to Use):</strong></p>
+                <ol style="padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <li><strong>Zero Out Gains:</strong> Turn P, I, D, and FF all the way to 0 to observe the "broken" system (the follower won't move).</li>
+                    <li><strong>Find P Limit:</strong> Raise P until the follower matches the setpoint. Note how P-only causes endless overshoot and oscillations (undamped ringing).</li>
+                    <li><strong>Add D to Damp:</strong> Raise D to act as a brake. It counteracts P's momentum, damping the overshoot and stabilizing the line.</li>
+                    <li><strong>Set I for Bias:</strong> Turn up CG (disturbance) to simulate wind or an off-center battery. Note how the follower drifts. Turn up I to correct this steady-state error.</li>
+                    <li><strong>Snappiness with FF:</strong> Notice the delay between moving the target and the follower responding (due to physics/loop delay). Raise FF to inject a kick based on stick speed, making the response snappy and eliminating latency.</li>
+                </ol><br>
+
+                <p><strong>Physics Parameters:</strong></p>
                 <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                    <li><strong>P (Proportional):</strong> Reacts to the present. Drives the follower toward the setpoint. Excess P causes ringing, overshoot, and rapid oscillations.</li>
-                    <li><strong>I (Integral):</strong> Reacts to the past. Corrects persistent offsets (like unbalanced CG or side winds) by accumulating force over time.</li>
-                    <li><strong>D (Derivative):</strong> Reacts to the future. Dampens acceleration and decelerates the follower as it approaches the setpoint. Excess D causes high-frequency noise amplification, heating up motors.</li>
-                    <li><strong>FF (Feedforward):</strong> Reacts to stick velocity. Instantly adds force during stick movement to eliminate gyro latency, dropping to zero when stick stops.</li>
-                    <li>Use the sliders to adjust mass, drag, sensor noise, control loop delay, and center-of-gravity offsets. Use the Scope to inspect the blackbox-style trace feeds.</li>
+                    <li><strong>Mass:</strong> Weight of the craft. Higher mass slows down response and demands higher P/D gains.</li>
+                    <li><strong>Drag:</strong> Air resistance. Higher drag acts as natural damping (like D) but requires more continuous thrust to maintain rates.</li>
+                    <li><strong>Delay:</strong> Latency in the loop (control calculations & ESC latency). <em>Critical: Higher delay makes the system highly unstable and prone to oscillation, limiting your maximum gains!</em></li>
+                    <li><strong>Noise:</strong> Gyro electrical/mechanical vibration. Amplified by high D-term gains, leading to excess "Motor Heat".</li>
+                    <li><strong>CG (Disturbance):</strong> Unbalanced mass/constant force. Requires I-term to prevent steady-state drift.</li>
+                </ul><br>
+
+                <p><strong>Interpreting Step Response:</strong></p>
+                <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <li><strong>Rise Time:</strong> Snappiness. Time taken to climb from 10% to 90% of setpoint.</li>
+                    <li><strong>Overshoot:</strong> Bounce. Percentage by which the follower exceeds the setpoint. Try to keep this minimal (&lt; 5%).</li>
+                    <li><strong>Settle Time:</strong> Lock-in. Time required for oscillations to decay within 2% of setpoint.</li>
+                    <li><strong>SS Error:</strong> Drift. The steady-state gap left when control inputs stop. Corrected by I.</li>
                 </ul>
             `,
             speed: `
