@@ -354,6 +354,15 @@
                 height: 140px !important;
             }
         }
+        .input-results-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        @media (min-width: 1024px) {
+            .input-results-grid { grid-template-columns: 420px 1fr; }
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -372,89 +381,94 @@
         <div class="presets-grid" id="presets-grid"></div>
     </div>
 
-    <!-- Motor Inputs -->
-    <!-- Motor Inputs -->
-    <div class="results-tabs" style="margin-bottom: 0;">
-        <button class="results-tab active" id="tab-btn-motor-0" onclick="setMotorTab(0)">
-            Motor A <span class="vbadge-tab" id="badge-motor-0">2207</span>
-        </button>
-        <button class="results-tab" id="tab-btn-motor-1" onclick="setMotorTab(1)">
-            Motor B <span class="vbadge-tab" id="badge-motor-1">2306</span>
-        </button>
-    </div>
-    <div class="panel" style="border-top-left-radius:0; border-top-right-radius:0; margin-bottom: 1.5rem; border-color: #374151;">
-        <div class="motor-slots" id="motor-slots"></div>
-    </div>
-
-    <!-- Visualizations -->
-    <div class="results-tabs" style="margin-bottom: 0;">
-        <button class="results-tab active" id="tab-btn-viz-map" onclick="setVizTab('map')">Volume Map</button>
-        <button class="results-tab" id="tab-btn-viz-bars" onclick="setVizTab('bars')">Volume Bars</button>
-        <button class="results-tab" id="tab-btn-viz-cross" onclick="setVizTab('cross')">Cross-Sections</button>
-        <button class="results-tab" id="tab-btn-viz-table" onclick="setVizTab('table')">Comparison Table</button>
-    </div>
-    
-    <div class="panel" style="border-top-left-radius:0; border-top-right-radius:0; margin-bottom: 1.5rem; border-color: #374151;">
-        <!-- Tab 1: Volume Map -->
-        <div id="viz-tab-map" class="viz-tab-content">
-            <div class="viz-panel" style="background:transparent; border:none; padding:0;">
-                <h3><span class="icon">&#10687;</span> Diameter vs Height Map</h3>
-                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
-                    <label style="font-size:0.6875rem; color:#6b7280; white-space:nowrap;">Heatmap</label>
-                    <input type="range" id="heatmap-opacity" min="0" max="100" step="5" value="45"
-                        style="width:90px; accent-color:#3b82f6; cursor:pointer;"
-                        oninput="heatmapOpacity=this.value/100; document.getElementById('heatmap-val').textContent=this.value+'%'; drawScatter();">
-                    <span id="heatmap-val" style="font-size:0.6875rem; color:#6b7280; font-family:'JetBrains Mono','Fira Code',monospace; min-width:28px;">45%</span>
-                </div>
-                <canvas id="scatter-canvas" height="380"></canvas>
+    <div class="input-results-grid">
+        <!-- Motor Inputs (Left) -->
+        <div>
+            <div class="results-tabs" style="margin-bottom: 0;">
+                <button class="results-tab active" id="tab-btn-motor-0" onclick="setMotorTab(0)">
+                    Motor A <span class="vbadge-tab" id="badge-motor-0">2207</span>
+                </button>
+                <button class="results-tab" id="tab-btn-motor-1" onclick="setMotorTab(1)">
+                    Motor B <span class="vbadge-tab" id="badge-motor-1">2306</span>
+                </button>
+            </div>
+            <div class="panel" style="border-top-left-radius:0; border-top-right-radius:0; margin-bottom: 0; border-color: #374151;">
+                <div class="motor-slots" id="motor-slots"></div>
             </div>
         </div>
 
-        <!-- Tab 2: Volume Bars -->
-        <div id="viz-tab-bars" class="viz-tab-content" style="display:none;">
-            <div class="viz-panel" style="background:transparent; border:none; padding:0;">
-                <h3><span class="icon">&#9644;</span> Volume Comparison</h3>
-                <canvas id="bar-canvas" height="320"></canvas>
+        <!-- Visualizations (Right) -->
+        <div>
+            <div class="results-tabs" style="margin-bottom: 0;">
+                <button class="results-tab active" id="tab-btn-viz-map" onclick="setVizTab('map')">Volume Map</button>
+                <button class="results-tab" id="tab-btn-viz-bars" onclick="setVizTab('bars')">Volume Bars</button>
+                <button class="results-tab" id="tab-btn-viz-cross" onclick="setVizTab('cross')">Cross-Sections</button>
+                <button class="results-tab" id="tab-btn-viz-table" onclick="setVizTab('table')">Comparison Table</button>
             </div>
-        </div>
-
-        <!-- Tab 3: Cross Sections -->
-        <div id="viz-tab-cross" class="viz-tab-content" style="display:none;">
-            <div class="viz-panel" style="background:transparent; border:none; padding:0;">
-                <h3><span class="icon">&#9711;</span> Stator Cross-Sections (to scale)</h3>
-                <div style="display:flex; gap:1.5rem; justify-content:center; align-items:flex-start; flex-wrap:wrap; margin-top:0.5rem;">
-                    <div style="text-align:center;">
-                        <div style="font-size:0.6875rem; color:#6b7280; margin-bottom:0.5rem;">Top View</div>
-                        <canvas id="cross-top-canvas" width="200" height="200" style="max-width:200px; height:200px;"></canvas>
-                    </div>
-                    <div style="text-align:center;">
-                        <div style="font-size:0.6875rem; color:#6b7280; margin-bottom:0.5rem;">Side View</div>
-                        <canvas id="cross-side-canvas" width="200" height="200" style="max-width:200px; height:200px;"></canvas>
+            
+            <div class="panel" style="border-top-left-radius:0; border-top-right-radius:0; margin-bottom: 0; border-color: #374151;">
+                <!-- Tab 1: Volume Map -->
+                <div id="viz-tab-map" class="viz-tab-content">
+                    <div class="viz-panel" style="background:transparent; border:none; padding:0;">
+                        <h3><span class="icon">&#10687;</span> Diameter vs Height Map</h3>
+                        <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                            <label style="font-size:0.6875rem; color:#6b7280; white-space:nowrap;">Heatmap</label>
+                            <input type="range" id="heatmap-opacity" min="0" max="100" step="5" value="45"
+                                style="width:90px; accent-color:#3b82f6; cursor:pointer;"
+                                oninput="heatmapOpacity=this.value/100; document.getElementById('heatmap-val').textContent=this.value+'%'; drawScatter();">
+                            <span id="heatmap-val" style="font-size:0.6875rem; color:#6b7280; font-family:'JetBrains Mono','Fira Code',monospace; min-width:28px;">45%</span>
+                        </div>
+                        <canvas id="scatter-canvas" height="380"></canvas>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Tab 4: Comparison Table -->
-        <div id="viz-tab-table" class="viz-tab-content" style="display:none;">
-            <div class="viz-panel" style="background:transparent; border:none; padding:0;">
-                <h3><span class="icon">&#9638;</span> Comparison Table</h3>
-                <div style="overflow-x:auto;">
-                    <table class="comp-table" id="comp-table">
-                        <thead>
-                            <tr>
-                                <th onclick="sortTable('name')">Motor <span class="sort-arrow"></span></th>
-                                <th onclick="sortTable('diam')">Dia <span class="sort-arrow"></span></th>
-                                <th onclick="sortTable('height')">Height <span class="sort-arrow"></span></th>
-                                <th onclick="sortTable('volume')">Volume <span class="sort-arrow"></span></th>
-                                <th onclick="sortTable('pctSmall')">vs Smallest <span class="sort-arrow"></span></th>
-                                <th onclick="sortTable('pctLarge')">vs Largest <span class="sort-arrow"></span></th>
-                                <th onclick="sortTable('weight')">Est. Weight <span class="sort-arrow"></span></th>
-                                <th>Props / KV</th>
-                            </tr>
-                        </thead>
-                        <tbody id="comp-tbody"></tbody>
-                    </table>
+                <!-- Tab 2: Volume Bars -->
+                <div id="viz-tab-bars" class="viz-tab-content" style="display:none;">
+                    <div class="viz-panel" style="background:transparent; border:none; padding:0;">
+                        <h3><span class="icon">&#9644;</span> Volume Comparison</h3>
+                        <canvas id="bar-canvas" height="320"></canvas>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Cross Sections -->
+                <div id="viz-tab-cross" class="viz-tab-content" style="display:none;">
+                    <div class="viz-panel" style="background:transparent; border:none; padding:0;">
+                        <h3><span class="icon">&#9711;</span> Stator Cross-Sections (to scale)</h3>
+                        <div style="display:flex; gap:1.5rem; justify-content:center; align-items:flex-start; flex-wrap:wrap; margin-top:0.5rem;">
+                            <div style="text-align:center;">
+                                <div style="font-size:0.6875rem; color:#6b7280; margin-bottom:0.5rem;">Top View</div>
+                                <canvas id="cross-top-canvas" width="200" height="200" style="max-width:200px; height:200px;"></canvas>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:0.6875rem; color:#6b7280; margin-bottom:0.5rem;">Side View</div>
+                                <canvas id="cross-side-canvas" width="200" height="200" style="max-width:200px; height:200px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 4: Comparison Table -->
+                <div id="viz-tab-table" class="viz-tab-content" style="display:none;">
+                    <div class="viz-panel" style="background:transparent; border:none; padding:0;">
+                        <h3><span class="icon">&#9638;</span> Comparison Table</h3>
+                        <div style="overflow-x:auto;">
+                            <table class="comp-table" id="comp-table">
+                                <thead>
+                                    <tr>
+                                        <th onclick="sortTable('name')">Motor <span class="sort-arrow"></span></th>
+                                        <th onclick="sortTable('diam')">Dia <span class="sort-arrow"></span></th>
+                                        <th onclick="sortTable('height')">Height <span class="sort-arrow"></span></th>
+                                        <th onclick="sortTable('volume')">Volume <span class="sort-arrow"></span></th>
+                                        <th onclick="sortTable('pctSmall')">vs Smallest <span class="sort-arrow"></span></th>
+                                        <th onclick="sortTable('pctLarge')">vs Largest <span class="sort-arrow"></span></th>
+                                        <th onclick="sortTable('weight')">Est. Weight <span class="sort-arrow"></span></th>
+                                        <th>Props / KV</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="comp-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

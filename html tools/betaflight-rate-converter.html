@@ -182,6 +182,15 @@
         .control-tab-content {
             width: 100%;
         }
+        .input-results-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        @media (min-width: 1024px) {
+            .input-results-grid { grid-template-columns: 420px 1fr; }
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -193,40 +202,47 @@
 <div class="container">
     <h1>Betaflight Rate Converter</h1>
     
-    <!-- Tabbed Charts -->
-    <div class="results-tabs" style="margin-bottom: 0;">
-        <button class="results-tab active" id="tab-btn-chFull" onclick="setChartTab('chFull')">
-            Full Curve
-        </button>
-        <button class="results-tab" id="tab-btn-chCenter" onclick="setChartTab('chCenter')">
-            Center Zoom
-        </button>
-        <button class="results-tab" id="tab-btn-chDeriv" onclick="setChartTab('chDeriv')">
-            Sensitivity
-        </button>
-    </div>
-    <div class="panel" style="border-top-left-radius:0; border-top-right-radius:0; margin-bottom: 1.5rem; border-color: #374151;">
-        <div id="chart-tab-chFull" class="chart-tab-content">
-            <div class="chart-box" style="background:transparent; padding:0.25rem 0 0 0;"><h3>Full Rate Curve &mdash; Stick vs deg/s</h3><canvas id="chFull"></canvas></div>
+    <div class="input-results-grid">
+        <!-- Curve Controls (Inputs) -->
+        <div>
+            <div class="results-tabs" style="margin-bottom: 0;">
+                <button class="results-tab active ctrl0-active" id="tab-btn-ctrl-0" onclick="setControlTab(0)">
+                    Curve 1 <span class="vbadge-tab" id="badge-ctrl-0">Actual</span>
+                </button>
+                <button class="results-tab" id="tab-btn-ctrl-1" onclick="setControlTab(1)">
+                    Curve 2 <span class="vbadge-tab" id="badge-ctrl-1">Betaflight</span>
+                </button>
+            </div>
+            <div class="controls-grid" id="cg" style="grid-template-columns: 1fr; margin-bottom: 0;"></div>
         </div>
-        <div id="chart-tab-chCenter" class="chart-tab-content" style="display:none;">
-            <div class="chart-box" style="background:transparent; padding:0.25rem 0 0 0;"><h3>Center Zoom (&plusmn;20% Stick)</h3><canvas id="chCenter"></canvas></div>
-        </div>
-        <div id="chart-tab-chDeriv" class="chart-tab-content" style="display:none;">
-            <div class="chart-box" style="background:transparent; padding:0.25rem 0 0 0;"><h3>Sensitivity (&Delta; deg/s per 1% Stick)</h3><canvas id="chDeriv"></canvas></div>
+
+        <!-- Charts (Outputs) -->
+        <div>
+            <div class="results-tabs" style="margin-bottom: 0;">
+                <button class="results-tab active" id="tab-btn-chFull" onclick="setChartTab('chFull')">
+                    Full Curve
+                </button>
+                <button class="results-tab" id="tab-btn-chCenter" onclick="setChartTab('chCenter')">
+                    Center Zoom
+                </button>
+                <button class="results-tab" id="tab-btn-chDeriv" onclick="setChartTab('chDeriv')">
+                    Sensitivity
+                </button>
+            </div>
+            <div class="panel" style="border-top-left-radius:0; border-top-right-radius:0; margin-bottom: 0; border-color: #374151;">
+                <div id="chart-tab-chFull" class="chart-tab-content">
+                    <div class="chart-box" style="background:transparent; padding:0.25rem 0 0 0;"><h3>Full Rate Curve &mdash; Stick vs deg/s</h3><canvas id="chFull"></canvas></div>
+                </div>
+                <div id="chart-tab-chCenter" class="chart-tab-content" style="display:none;">
+                    <div class="chart-box" style="background:transparent; padding:0.25rem 0 0 0;"><h3>Center Zoom (&plusmn;20% Stick)</h3><canvas id="chCenter"></canvas></div>
+                </div>
+                <div id="chart-tab-chDeriv" class="chart-tab-content" style="display:none;">
+                    <div class="chart-box" style="background:transparent; padding:0.25rem 0 0 0;"><h3>Sensitivity (&Delta; deg/s per 1% Stick)</h3><canvas id="chDeriv"></canvas></div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Tabbed Controls -->
-    <div class="results-tabs" style="margin-bottom: 0;">
-        <button class="results-tab active ctrl0-active" id="tab-btn-ctrl-0" onclick="setControlTab(0)">
-            Curve 1 <span class="vbadge-tab" id="badge-ctrl-0">Actual</span>
-        </button>
-        <button class="results-tab" id="tab-btn-ctrl-1" onclick="setControlTab(1)">
-            Curve 2 <span class="vbadge-tab" id="badge-ctrl-1">Betaflight</span>
-        </button>
-    </div>
-    <div class="controls-grid" id="cg" style="grid-template-columns: 1fr; margin-bottom: 1.5rem;"></div>
     <div class="info">
         <strong>Betaflight Rate Converter</strong> &mdash;
         Compare and convert rate curves across Actual, Betaflight, Quick, KISS and RaceFlight rate types.

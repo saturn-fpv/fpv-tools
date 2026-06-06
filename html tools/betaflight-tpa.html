@@ -242,6 +242,15 @@
         .tpa-tab-content {
             width: 100%;
         }
+        .input-results-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        @media (min-width: 1024px) {
+            .input-results-grid { grid-template-columns: 420px 1fr; }
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -253,80 +262,88 @@
     <div class="container">
         <h1>Betaflight TPA Comparison</h1>
         
-        <div class="chart-container">
-            <canvas id="tpaChart"></canvas>
-        </div>
-        
-        <!-- Tabbed Controls -->
-        <div class="results-tabs" style="margin-bottom: 0;">
-            <button class="results-tab active" id="tab-btn-tpa-0" onclick="setTpaTab(0)">
-                TPA 1 Profile <span class="vbadge-tab" style="color: #3b82f6; background: rgba(59,130,246,0.12);">Blue</span>
-            </button>
-            <button class="results-tab" id="tab-btn-tpa-1" onclick="setTpaTab(1)">
-                TPA 2 Profile <span class="vbadge-tab" style="color: #10b981; background: rgba(16,185,129,0.12);">Green</span>
-            </button>
-        </div>
+        <div class="input-results-grid">
+            <!-- Curve Controls (Inputs) -->
+            <div>
+                <!-- Tabbed Controls -->
+                <div class="results-tabs" style="margin-bottom: 0;">
+                    <button class="results-tab active" id="tab-btn-tpa-0" onclick="setTpaTab(0)">
+                        TPA 1 Profile <span class="vbadge-tab" style="color: #3b82f6; background: rgba(59,130,246,0.12);">Blue</span>
+                    </button>
+                    <button class="results-tab" id="tab-btn-tpa-1" onclick="setTpaTab(1)">
+                        TPA 2 Profile <span class="vbadge-tab" style="color: #10b981; background: rgba(16,185,129,0.12);">Green</span>
+                    </button>
+                </div>
 
-        <div class="controls-grid panel" style="border-top: none; border-top-left-radius: 0; border-top-right-radius: 0; display: block; padding: 0; border-color: #374151;">
-            <div class="control-panel tpa1 tpa-tab-content" id="tpa-tab-0" style="background:transparent; border-radius:0;">
-                <h2>TPA 1 Settings</h2>
-                
-                <div class="slider-group">
-                    <label>
-                        Rate: <span class="value" id="tpa1RateValue">0.65</span>
-                    </label>
-                    <input type="range" id="tpa1Rate" min="0" max="1" step="0.01" value="0.65">
-                    <div class="range-labels">
-                        <span>0.00</span>
-                        <span>1.00</span>
+                <div class="controls-grid panel" style="border-top: none; border-top-left-radius: 0; border-top-right-radius: 0; display: block; padding: 0; border-color: #374151; margin-bottom: 0;">
+                    <div class="control-panel tpa1 tpa-tab-content" id="tpa-tab-0" style="background:transparent; border-radius:0;">
+                        <h2>TPA 1 Settings</h2>
+                        
+                        <div class="slider-group">
+                            <label>
+                                Rate: <span class="value" id="tpa1RateValue">0.65</span>
+                            </label>
+                            <input type="range" id="tpa1Rate" min="0" max="1" step="0.01" value="0.65">
+                            <div class="range-labels">
+                                <span>0.00</span>
+                                <span>1.00</span>
+                            </div>
+                        </div>
+                        
+                        <div class="slider-group">
+                            <label>
+                                Breakpoint: <span class="value" id="tpa1BreakpointValue">1500</span>
+                            </label>
+                            <input type="range" id="tpa1Breakpoint" min="1000" max="2000" step="50" value="1500">
+                            <div class="range-labels">
+                                <span>1000</span>
+                                <span>2000</span>
+                            </div>
+                        </div>
+                        
+                        <div class="cli-box" onclick="copyCLI(this)">
+                            <span id="tpa1-cli-text"></span>
+                            <span class="copy-hint">Click to copy</span>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="slider-group">
-                    <label>
-                        Breakpoint: <span class="value" id="tpa1BreakpointValue">1500</span>
-                    </label>
-                    <input type="range" id="tpa1Breakpoint" min="1000" max="2000" step="50" value="1500">
-                    <div class="range-labels">
-                        <span>1000</span>
-                        <span>2000</span>
+                    
+                    <div class="control-panel tpa2 tpa-tab-content" id="tpa-tab-1" style="background:transparent; border-radius:0; display:none;">
+                        <h2>TPA 2 Settings</h2>
+                        
+                        <div class="slider-group">
+                            <label>
+                                Rate: <span class="value" id="tpa2RateValue">0.50</span>
+                            </label>
+                            <input type="range" id="tpa2Rate" min="0" max="1" step="0.01" value="0.50">
+                            <div class="range-labels">
+                                <span>0.00</span>
+                                <span>1.00</span>
+                            </div>
+                        </div>
+                        
+                        <div class="slider-group">
+                            <label>
+                                Breakpoint: <span class="value" id="tpa2BreakpointValue">1650</span>
+                            </label>
+                            <input type="range" id="tpa2Breakpoint" min="1000" max="2000" step="50" value="1650">
+                            <div class="range-labels">
+                                <span>1000</span>
+                                <span>2000</span>
+                            </div>
+                        </div>
+                        
+                        <div class="cli-box" onclick="copyCLI(this)">
+                            <span id="tpa2-cli-text"></span>
+                            <span class="copy-hint">Click to copy</span>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="cli-box" onclick="copyCLI(this)">
-                    <span id="tpa1-cli-text"></span>
-                    <span class="copy-hint">Click to copy</span>
                 </div>
             </div>
-            
-            <div class="control-panel tpa2 tpa-tab-content" id="tpa-tab-1" style="background:transparent; border-radius:0; display:none;">
-                <h2>TPA 2 Settings</h2>
-                
-                <div class="slider-group">
-                    <label>
-                        Rate: <span class="value" id="tpa2RateValue">0.50</span>
-                    </label>
-                    <input type="range" id="tpa2Rate" min="0" max="1" step="0.01" value="0.50">
-                    <div class="range-labels">
-                        <span>0.00</span>
-                        <span>1.00</span>
-                    </div>
-                </div>
-                
-                <div class="slider-group">
-                    <label>
-                        Breakpoint: <span class="value" id="tpa2BreakpointValue">1650</span>
-                    </label>
-                    <input type="range" id="tpa2Breakpoint" min="1000" max="2000" step="50" value="1650">
-                    <div class="range-labels">
-                        <span>1000</span>
-                        <span>2000</span>
-                    </div>
-                </div>
-                
-                <div class="cli-box" onclick="copyCLI(this)">
-                    <span id="tpa2-cli-text"></span>
-                    <span class="copy-hint">Click to copy</span>
+
+            <!-- Chart (Outputs) -->
+            <div>
+                <div class="chart-container" style="margin-bottom: 0; border: 1px solid #374151;">
+                    <canvas id="tpaChart"></canvas>
                 </div>
             </div>
         </div>

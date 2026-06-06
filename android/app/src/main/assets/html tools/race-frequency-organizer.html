@@ -281,6 +281,15 @@
 
         @media (max-width: 900px) { .spectrum-grid.sg-2, .spectrum-grid.sg-3 { grid-template-columns: 1fr; } .heats-container.cols-3, .heats-container.cols-2 { grid-template-columns: 1fr; } .preset-row { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 640px) { body { padding: 1rem; } h1 { font-size: 1.375rem; } .results-grid { grid-template-columns: 1fr; } .cg-cell { font-size: 0.45rem; } }
+        .input-results-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        @media (min-width: 1024px) {
+            .input-results-grid { grid-template-columns: 420px 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -306,66 +315,70 @@
         </div>
     </div>
 
-    <!-- VTX System Sliders -->
-    <div class="panel">
-        <h2><span class="icon">&#128225;</span> Pilots per Video System</h2>
-        <p style="font-size:0.75rem; color:#9ca3af; margin-bottom:0.75rem;">Set how many pilots are on each system. Total = sum of all sliders.</p>
-        <div id="vtx-sliders"></div>
-        <div class="total-pilots" id="total-pilots">Total: 0 pilots</div>
+    <div class="input-results-grid">
+        <!-- VTX System Sliders (Left) -->
+        <div>
+            <div class="panel" style="margin-bottom: 0;">
+                <h2><span class="icon">&#128225;</span> Pilots per Video System</h2>
+                <p style="font-size:0.75rem; color:#9ca3af; margin-bottom:0.75rem;">Set how many pilots are on each system. Total = sum of all sliders.</p>
+                <div id="vtx-sliders"></div>
+                <div class="total-pilots" id="total-pilots">Total: 0 pilots</div>
 
-        <div style="margin-top:0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-            <button id="btn-toggle-warnings" onclick="toggleWarningsVisibility()" style="border: 1px solid #374151; background: #111827; color: #d1d5db; padding: 0.35rem 0.75rem; font-size: 0.75rem; font-weight: 600; border-radius: 6px; cursor: pointer; transition: all 0.2s; outline: none; display: inline-flex; align-items: center; gap: 0.25rem;">
-                No Warnings
-            </button>
-        </div>
-        <div style="margin-top:0.5rem; display:none;" id="warnings-container">
-            <div class="warn-banner warn-dji" id="warn-dji"><strong>&#9888; DJI V1/Walksnail Public Channel:</strong> These units broadcast on <strong>D8 (5839 MHz)</strong> at full power on startup. Ensure pilots switch to manual channel before others arm. Keep goggles 3m away.</div>
-            <div class="warn-banner warn-o3" id="warn-o3"><strong>&#9888; DJI O3 Data Carrier:</strong> Wide OFDM carrier (~5720-5850 MHz) interferes with other systems. Other pilots must use frequencies whose ~25 MHz bandwidth footprint stays outside this zone. Only a few channels qualify - the tool calculates which ones are safe.</div>
-            <div class="warn-banner warn-o4p" id="warn-o4p"><strong>&#9888; DJI O4 Data Carrier (HAM):</strong> O4 shares O3 frequencies (requires HAM unlock). Wide OFDM carrier blocks ~5720-5850 MHz for other systems.</div>
-            <div class="warn-banner warn-50m" id="warn-50m"><strong>&#9888; 50 Mbps / 40+ MHz:</strong> Very few usable channels at this bandwidth. <strong>Always use 25 Mbps / 20 MHz for racing when possible.</strong></div>
-        </div>
-
-        <div class="option-row">
-            <label class="option-toggle"><input type="checkbox" id="force-single" onchange="renderAll()"> Force single heat (freestyle - accept IMD)</label>
-        </div>
-        <button class="btn-auto-big" onclick="autoAssign()">&#9733; Auto-Assign Frequencies</button>
-    </div>
-
-    <!-- Results Section (Tabs & Contents) -->
-    <div id="results-container" style="display:none;">
-        <!-- Tabs Header -->
-        <div class="results-tabs">
-            <button class="results-tab active" onclick="setOrganizerTab('assignment')">
-                <span>&#9733; Frequency Assignment</span>
-            </button>
-            <button class="results-tab" onclick="setOrganizerTab('spectrum')">
-                <span>&#9638; Spectrum & Grid</span>
-            </button>
-        </div>
-
-        <!-- Tab A: Frequency Assignment -->
-        <div class="panel" id="tab-assignment" style="border-top-left-radius:0; border-top-right-radius:0;">
-            <!-- Premium double-badge stats card -->
-            <div class="stats-card-premium" style="display: flex; align-items: center; gap: 0.5rem; justify-content: flex-start;">
-                <span style="font-size: 0.8125rem; font-weight: 600; color: #9ca3af;">Status:</span>
-                <div class="stats-badges" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                    <span class="stats-badge sb-status" id="stat-premium-status">imd-free</span>
-                    <span class="stats-badge sb-sep" id="stat-premium-sep">--mhz min sep</span>
+                <div style="margin-top:0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <button id="btn-toggle-warnings" onclick="toggleWarningsVisibility()" style="border: 1px solid #374151; background: #111827; color: #d1d5db; padding: 0.35rem 0.75rem; font-size: 0.75rem; font-weight: 600; border-radius: 6px; cursor: pointer; transition: all 0.2s; outline: none; display: inline-flex; align-items: center; gap: 0.25rem;">
+                        No Warnings
+                    </button>
                 </div>
+                <div style="margin-top:0.5rem; display:none;" id="warnings-container">
+                    <div class="warn-banner warn-dji" id="warn-dji"><strong>&#9888; DJI V1/Walksnail Public Channel:</strong> These units broadcast on <strong>D8 (5839 MHz)</strong> at full power on startup. Ensure pilots switch to manual channel before others arm. Keep goggles 3m away.</div>
+                    <div class="warn-banner warn-o3" id="warn-o3"><strong>&#9888; DJI O3 Data Carrier:</strong> Wide OFDM carrier (~5720-5850 MHz) interferes with other systems. Other pilots must use frequencies whose ~25 MHz bandwidth footprint stays outside this zone. Only a few channels qualify - the tool calculates which ones are safe.</div>
+                    <div class="warn-banner warn-o4p" id="warn-o4p"><strong>&#9888; DJI O4 Data Carrier (HAM):</strong> O4 shares O3 frequencies (requires HAM unlock). Wide OFDM carrier blocks ~5720-5850 MHz for other systems.</div>
+                    <div class="warn-banner warn-50m" id="warn-50m"><strong>&#9888; 50 Mbps / 40+ MHz:</strong> Very few usable channels at this bandwidth. <strong>Always use 25 Mbps / 20 MHz for racing when possible.</strong></div>
+                </div>
+
+                <div class="option-row">
+                    <label class="option-toggle"><input type="checkbox" id="force-single" onchange="renderAll()"> Force single heat (freestyle - accept IMD)</label>
+                </div>
+                <button class="btn-auto-big" onclick="autoAssign()">&#9733; Auto-Assign Frequencies</button>
             </div>
-            <div class="heats-container" id="heats-container"></div>
         </div>
 
-        <!-- Tab B: Spectrum & Grid -->
-        <div class="panel" id="tab-spectrum" style="display:none; border-top-left-radius:0; border-top-right-radius:0;">
-            <!-- Spectrum per heat -->
-            <div id="spectrum-panels"></div>
-            <div class="sep"></div>
-            <!-- Channel grid -->
-            <div class="viz-panel" id="viz-section" style="border: none; padding: 0; background: transparent; margin-bottom: 0;">
-                <h3><span class="icon">&#9638;</span> Channel Grid</h3>
-                <p style="font-size:0.5625rem; color:#6b7280; margin-bottom:0.5rem;">Orange underline = O3/O4 carrier zone. Assigned channels highlighted per heat.</p>
-                <div class="channel-grid" id="channel-grid"></div>
+        <!-- Results Section (Right) -->
+        <div id="results-container" style="display:none;">
+            <!-- Tabs Header -->
+            <div class="results-tabs">
+                <button class="results-tab active" onclick="setOrganizerTab('assignment')">
+                    <span>&#9733; Frequency Assignment</span>
+                </button>
+                <button class="results-tab" onclick="setOrganizerTab('spectrum')">
+                    <span>&#9638; Spectrum & Grid</span>
+                </button>
+            </div>
+
+            <!-- Tab A: Frequency Assignment -->
+            <div class="panel" id="tab-assignment" style="border-top-left-radius:0; border-top-right-radius:0; margin-bottom: 0;">
+                <!-- Premium double-badge stats card -->
+                <div class="stats-card-premium" style="display: flex; align-items: center; gap: 0.5rem; justify-content: flex-start;">
+                    <span style="font-size: 0.8125rem; font-weight: 600; color: #9ca3af;">Status:</span>
+                    <div class="stats-badges" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <span class="stats-badge sb-status" id="stat-premium-status">imd-free</span>
+                        <span class="stats-badge sb-sep" id="stat-premium-sep">--mhz min sep</span>
+                    </div>
+                </div>
+                <div class="heats-container" id="heats-container"></div>
+            </div>
+
+            <!-- Tab B: Spectrum & Grid -->
+            <div class="panel" id="tab-spectrum" style="display:none; border-top-left-radius:0; border-top-right-radius:0; margin-bottom: 0;">
+                <!-- Spectrum per heat -->
+                <div id="spectrum-panels"></div>
+                <div class="sep"></div>
+                <!-- Channel grid -->
+                <div class="viz-panel" id="viz-section" style="border: none; padding: 0; background: transparent; margin-bottom: 0;">
+                    <h3><span class="icon">&#9638;</span> Channel Grid</h3>
+                    <p style="font-size:0.5625rem; color:#6b7280; margin-bottom:0.5rem;">Orange underline = O3/O4 carrier zone. Assigned channels highlighted per heat.</p>
+                    <div class="channel-grid" id="channel-grid"></div>
+                </div>
             </div>
         </div>
     </div>

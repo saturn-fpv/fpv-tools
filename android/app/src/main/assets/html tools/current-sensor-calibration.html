@@ -219,6 +219,16 @@
         .acc-good { background: rgba(16,185,129,.15); color: #10b981; }
         .acc-ok { background: rgba(245,158,11,.15); color: #f59e0b; }
         .acc-poor { background: rgba(239,68,68,.15); color: #ef4444; }
+
+        .input-results-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        @media (min-width: 1024px) {
+            .input-results-grid { grid-template-columns: 1fr 1fr; }
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -228,235 +238,142 @@
 <body>
 
 <div class="container">
-    <h1>Betaflight Current Sensor Calibration</h1>
-    <p class="subtitle">Accurately calibrate your current sensor scale for reliable mAh readings</p>
+    <h1>Betaflight Sensor Calibration</h1>
+    <p class="subtitle">Accurately calibrate your current and voltage sensor scales for reliable telemetry</p>
 
-    <!-- Tabs -->
-    <div class="results-tabs" style="margin-bottom: 0;">
-        <button class="results-tab active current-active" id="tab-btn-current" data-tab="current">
-            Current Sensor <span class="vbadge-tab" style="color: #3b82f6; background: rgba(59,130,246,0.12);">Amperage</span>
-        </button>
-        <button class="results-tab" id="tab-btn-voltage" data-tab="voltage">
-            Voltage Sensor <span class="vbadge-tab" style="color: #10b981; background: rgba(16,185,129,0.12);">VBAT</span>
-        </button>
-    </div>
+    <div class="input-results-grid">
+        <!-- LEFT COLUMN: Current Calibration -->
+        <div>
+            <div class="panel panel-accent" style="margin-bottom: 1.5rem;">
+                <div class="panel-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <span>Current Sensor Calibration</span>
+                    <span class="vbadge-tab" style="color: #3b82f6; background: rgba(59,130,246,0.12);">Amperage</span>
+                </div>
+                
+                <div class="sg">
+                    <label>
+                        <span class="pn">
+                            <span class="tooltip">Betaflight mAh Consumed
+                                <span class="tt-text">The mAh reading from your OSD or Betaflight Configurator after your flight.</span>
+                            </span>
+                        </span>
+                    </label>
+                    <input class="ni ni-lg" type="number" id="bf-mah" placeholder="e.g. 850" min="1" step="1">
+                </div>
+                <div class="sg">
+                    <label>
+                        <span class="pn">
+                            <span class="tooltip">Charger mAh Replaced
+                                <span class="tt-text">The mAh your charger put back into the battery. Use a charger that displays this value.</span>
+                            </span>
+                        </span>
+                    </label>
+                    <input class="ni ni-lg" type="number" id="charger-mah" placeholder="e.g. 1050" min="1" step="1">
+                </div>
+                <div class="sg">
+                    <label>
+                        <span class="pn">
+                            <span class="tooltip">Current Betaflight Scale
+                                <span class="tt-text">Found in Betaflight Configurator → Power &amp; Battery tab → Amperage Meter → Scale. Default is usually 400.</span>
+                            </span>
+                        </span>
+                    </label>
+                    <input class="ni ni-lg" type="number" id="old-scale" placeholder="e.g. 400" min="1" step="1">
+                </div>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         TAB 1: CURRENT SENSOR CALIBRATION
-         ═══════════════════════════════════════════════════════════ -->
-    <div class="tab-content active" id="tab-current">
-        <div class="grid-2">
-            <!-- LEFT: Instructions -->
-            <div class="panel" style="display:none;">
-                <div class="panel-title">How to Calibrate</div>
-                <div class="step">
-                    <div class="step-num">1</div>
-                    <div class="step-text">Fly a battery pack until you're comfortable its capacity has been used (aim for ~80% of rated mAh).</div>
+                <div class="result-box" id="result-box" style="display:none;">
+                    <div class="result-label">New Betaflight Scale</div>
+                    <div class="result-value" id="new-scale">—</div>
+                    <div class="result-sub" id="result-info"></div>
+                    <div id="accuracy-badge"></div>
                 </div>
-                <div class="step">
-                    <div class="step-num">2</div>
-                    <div class="step-text">After landing, note the <strong style="color:#3b82f6">mAh consumed</strong> shown in the Betaflight OSD or Configurator.</div>
-                </div>
-                <div class="step">
-                    <div class="step-num">3</div>
-                    <div class="step-text">Recharge the battery and record the <strong style="color:#3b82f6">mAh charged</strong> shown by your charger.</div>
-                </div>
-                <div class="step">
-                    <div class="step-num">4</div>
-                    <div class="step-text">Connect to Betaflight and find the <strong style="color:#3b82f6">Current Scale</strong> in the Power &amp; Battery tab.</div>
-                </div>
-                <div class="step">
-                    <div class="step-num">5</div>
-                    <div class="step-text">Enter all three values below to calculate your new scale. Apply it in Betaflight.</div>
-                </div>
-                <div class="step">
-                    <div class="step-num">6</div>
-                    <div class="step-text">Repeat 2–3 times for best accuracy. Each iteration gets you closer to a perfect calibration.</div>
+
+                <div class="cli-box" id="cli-box" style="display:none;" onclick="copyCLI(this)">
+                    <span id="cli-text"></span>
+                    <span class="copy-hint" id="copy-hint">Click to copy</span>
                 </div>
             </div>
 
-            <!-- RIGHT: Calculator -->
-            <div>
-                <div class="panel panel-accent">
-                    <div class="panel-title">Calculator</div>
-                    <div class="sg">
-                        <label>
-                            <span class="pn">
-                                <span class="tooltip">Betaflight mAh Consumed
-                                    <span class="tt-text">The mAh reading from your OSD or Betaflight Configurator after your flight.</span>
-                                </span>
-                            </span>
-                        </label>
-                        <input class="ni ni-lg" type="number" id="bf-mah" placeholder="e.g. 850" min="1" step="1">
-                    </div>
-                    <div class="sg">
-                        <label>
-                            <span class="pn">
-                                <span class="tooltip">Charger mAh Replaced
-                                    <span class="tt-text">The mAh your charger put back into the battery. Use a charger that displays this value.</span>
-                                </span>
-                            </span>
-                        </label>
-                        <input class="ni ni-lg" type="number" id="charger-mah" placeholder="e.g. 1050" min="1" step="1">
-                    </div>
-                    <div class="sg">
-                        <label>
-                            <span class="pn">
-                                <span class="tooltip">Current Betaflight Scale
-                                    <span class="tt-text">Found in Betaflight Configurator → Power &amp; Battery tab → Amperage Meter → Scale. Default is usually 400.</span>
-                                </span>
-                            </span>
-                        </label>
-                        <input class="ni ni-lg" type="number" id="old-scale" placeholder="e.g. 400" min="1" step="1">
-                    </div>
-
-                    <div class="result-box" id="result-box" style="display:none;">
-                        <div class="result-label">New Betaflight Scale</div>
-                        <div class="result-value" id="new-scale">—</div>
-                        <div class="result-sub" id="result-info"></div>
-                        <div id="accuracy-badge"></div>
-                    </div>
-
-                    <div class="cli-box" id="cli-box" style="display:none;" onclick="copyCLI(this)">
-                        <span id="cli-text"></span>
-                        <span class="copy-hint" id="copy-hint">Click to copy</span>
-                    </div>
-
-
-                </div>
-
-                <!-- Error % Visualizer -->
-                <div class="panel" style="margin-top: 1rem;" id="error-panel" style="display:none;">
-                    <div class="panel-title">Reading Error</div>
-                    <div style="display:flex; align-items:center; gap:1rem;">
-                        <div style="flex:1;">
-                            <div style="background:#374151; border-radius:0.25rem; height:1.5rem; position:relative; overflow:hidden;">
-                                <div id="error-bar" style="height:100%; border-radius:0.25rem; transition: width .3s; width:0%;"></div>
-                            </div>
+            <!-- Error % Visualizer -->
+            <div class="panel" style="margin-bottom: 1.5rem;" id="error-panel" style="display:none;">
+                <div class="panel-title">Reading Error</div>
+                <div style="display:flex; align-items:center; gap:1rem;">
+                    <div style="flex:1;">
+                        <div style="background:#374151; border-radius:0.25rem; height:1.5rem; position:relative; overflow:hidden;">
+                            <div id="error-bar" style="height:100%; border-radius:0.25rem; transition: width .3s; width:0%;"></div>
                         </div>
-                        <div class="val" id="error-pct" style="min-width:4rem; text-align:right;">—</div>
                     </div>
-                    <div style="display:flex; justify-content:space-between; font-size:0.625rem; color:#6b7280; margin-top:0.25rem;">
-                        <span>0% (Perfect)</span>
-                        <span>50%+ (Very off)</span>
-                    </div>
+                    <div class="val" id="error-pct" style="min-width:4rem; text-align:right;">—</div>
                 </div>
+                <div style="display:flex; justify-content:space-between; font-size:0.625rem; color:#6b7280; margin-top:0.25rem;">
+                    <span>0% (Perfect)</span>
+                    <span>50%+ (Very off)</span>
+                </div>
+            </div>
+
+            <div class="info" style="margin-bottom: 1.5rem;">
+                <strong>Formula:</strong> New Scale = Old Scale × (Charger mAh ÷ Betaflight mAh)<br><br>
+                <strong>Why calibrate?</strong> Current sensors vary significantly between flight controllers and ESCs. Factory defaults are often inaccurate. An uncalibrated sensor can show 850 mAh when you've actually used 1050 mAh — meaning you're over-discharging batteries without knowing it.<br><br>
+                <strong>Pro tip:</strong> After applying the new scale, fly another pack and repeat. Each iteration narrows the error. After 2–3 rounds, you'll typically be within 2–3% accuracy.
             </div>
         </div>
 
-        <div class="info">
-            <strong>Formula:</strong> New Scale = Old Scale × (Charger mAh ÷ Betaflight mAh)<br><br>
-            <strong>Why calibrate?</strong> Current sensors vary significantly between flight controllers and ESCs. Factory defaults are often inaccurate. An uncalibrated sensor can show 850 mAh when you've actually used 1050 mAh — meaning you're over-discharging batteries without knowing it.<br><br>
-            <strong>Pro tip:</strong> After applying the new scale, fly another pack and repeat. Each iteration narrows the error. After 2–3 rounds, you'll typically be within 2–3% accuracy.
+        <!-- RIGHT COLUMN: Voltage Calibration -->
+        <div>
+            <div class="panel panel-accent" style="border-color: rgba(245,158,11,.3); margin-bottom: 1.5rem;">
+                <div class="panel-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <span>Voltage Sensor Calibration</span>
+                    <span class="vbadge-tab" style="color: #10b981; background: rgba(16,185,129,0.12);">VBAT</span>
+                </div>
+                <div class="sg">
+                    <label><span class="pn">
+                        <span class="tooltip">Actual Battery Voltage (V)
+                            <span class="tt-text">Measured with a multimeter or LiPo checker while the battery is plugged into the quad.</span>
+                        </span>
+                    </span></label>
+                    <input class="ni ni-lg" type="number" id="actual-voltage" placeholder="e.g. 15.8" min="0" step="0.01">
+                </div>
+                <div class="sg">
+                    <label><span class="pn">
+                        <span class="tooltip">Betaflight Voltage Reading (V)
+                            <span class="tt-text">The voltage shown in Betaflight Configurator's Power &amp; Battery tab.</span>
+                        </span>
+                    </span></label>
+                    <input class="ni ni-lg" type="number" id="bf-voltage" placeholder="e.g. 16.2" min="0" step="0.01">
+                </div>
+                <div class="sg">
+                    <label><span class="pn">
+                        <span class="tooltip">Current Voltage Scale
+                            <span class="tt-text">Found in Betaflight Configurator → Power &amp; Battery tab → Voltage Meter → Scale. Default is usually 110.</span>
+                        </span>
+                    </span></label>
+                    <input class="ni ni-lg" type="number" id="old-vscale" placeholder="e.g. 110" min="1" step="1">
+                </div>
+
+                <div class="result-box" id="volt-result-box" style="display:none;">
+                    <div class="result-label">New Voltage Scale</div>
+                    <div class="result-value" id="new-vscale">—</div>
+                    <div class="result-sub" id="volt-result-info"></div>
+                </div>
+
+                <div class="cli-box" id="volt-cli-box" style="display:none;" onclick="copyCLI(this)">
+                    <span id="volt-cli-text"></span>
+                    <span class="copy-hint">Click to copy</span>
+                </div>
+            </div>
+
+            <div class="info">
+                <strong>Formula:</strong> New Scale = Old Scale × (Actual Voltage ÷ Betaflight Voltage)<br><br>
+                <strong>Note:</strong> Unlike current calibration, voltage calibration only needs to be done once per flight controller. Measure voltage while the battery is connected to the quad — unplugged voltage will differ due to voltage sag/rise.
+            </div>
         </div>
     </div>
-
-    <!-- ═══════════════════════════════════════════════════════════
-         TAB 2: VOLTAGE SENSOR CALIBRATION
-         ═══════════════════════════════════════════════════════════ -->
-    <div class="tab-content" id="tab-voltage">
-        <div class="grid-2 volt-accent">
-            <!-- LEFT: Instructions -->
-            <div class="panel" style="display:none;">
-                <div class="panel-title">How to Calibrate Voltage</div>
-                <div class="step">
-                    <div class="step-num">1</div>
-                    <div class="step-text">Plug a battery into your quad and power it up.</div>
-                </div>
-                <div class="step">
-                    <div class="step-num">2</div>
-                    <div class="step-text">Connect to Betaflight Configurator and go to the <strong style="color:#f59e0b">Power &amp; Battery</strong> tab.</div>
-                </div>
-                <div class="step">
-                    <div class="step-num">3</div>
-                    <div class="step-text">Measure the <strong style="color:#f59e0b">actual battery voltage</strong> with a multimeter or LiPo checker (while the battery is still plugged into the quad).</div>
-                </div>
-                <div class="step">
-                    <div class="step-num">4</div>
-                    <div class="step-text">Note the <strong style="color:#f59e0b">voltage reading</strong> shown in Betaflight Configurator and the current <strong style="color:#f59e0b">Voltage Scale</strong>.</div>
-                </div>
-                <div class="step">
-                    <div class="step-num">5</div>
-                    <div class="step-text">Enter all values below and apply the new scale to Betaflight.</div>
-                </div>
-            </div>
-
-            <!-- RIGHT: Calculator -->
-            <div>
-                <div class="panel panel-accent" style="border-color: rgba(245,158,11,.3);">
-                    <div class="panel-title">Voltage Scale Calculator</div>
-                    <div class="sg">
-                        <label><span class="pn">
-                            <span class="tooltip">Actual Battery Voltage (V)
-                                <span class="tt-text">Measured with a multimeter or LiPo checker while the battery is plugged into the quad.</span>
-                            </span>
-                        </span></label>
-                        <input class="ni ni-lg" type="number" id="actual-voltage" placeholder="e.g. 15.8" min="0" step="0.01">
-                    </div>
-                    <div class="sg">
-                        <label><span class="pn">
-                            <span class="tooltip">Betaflight Voltage Reading (V)
-                                <span class="tt-text">The voltage shown in Betaflight Configurator's Power &amp; Battery tab.</span>
-                            </span>
-                        </span></label>
-                        <input class="ni ni-lg" type="number" id="bf-voltage" placeholder="e.g. 16.2" min="0" step="0.01">
-                    </div>
-                    <div class="sg">
-                        <label><span class="pn">
-                            <span class="tooltip">Current Voltage Scale
-                                <span class="tt-text">Found in Betaflight Configurator → Power &amp; Battery tab → Voltage Meter → Scale. Default is usually 110.</span>
-                            </span>
-                        </span></label>
-                        <input class="ni ni-lg" type="number" id="old-vscale" placeholder="e.g. 110" min="1" step="1">
-                    </div>
-
-                    <div class="result-box" id="volt-result-box" style="display:none;">
-                        <div class="result-label">New Voltage Scale</div>
-                        <div class="result-value" id="new-vscale">—</div>
-                        <div class="result-sub" id="volt-result-info"></div>
-                    </div>
-
-                    <div class="cli-box" id="volt-cli-box" style="display:none;" onclick="copyCLI(this)">
-                        <span id="volt-cli-text"></span>
-                        <span class="copy-hint">Click to copy</span>
-                    </div>
-
-
-                </div>
-            </div>
-        </div>
-
-        <div class="info" style="margin-top:1.5rem;">
-            <strong>Formula:</strong> New Scale = Old Scale × (Actual Voltage ÷ Betaflight Voltage)<br><br>
-            <strong>Note:</strong> Unlike current calibration, voltage calibration only needs to be done once per flight controller. Measure voltage while the battery is connected to the quad — unplugged voltage will differ due to voltage sag/rise.
-        </div>
-    </div>
-
-
 </div>
 
 <script>
 // ================================================================
 //  STATE
 // ================================================================
-// ================================================================
-//  TABS
-// ================================================================
-document.querySelectorAll('.results-tab').forEach(function(tab) {
-    tab.addEventListener('click', function() {
-        document.querySelectorAll('.results-tab').forEach(function(t) {
-            t.classList.remove('active', 'current-active', 'voltage-active');
-        });
-        document.querySelectorAll('.tab-content').forEach(function(tc) { tc.classList.remove('active'); });
-        tab.classList.add('active');
-        if (tab.getAttribute('data-tab') === 'current') {
-            tab.classList.add('current-active');
-        } else {
-            tab.classList.add('voltage-active');
-        }
-        document.getElementById('tab-' + tab.getAttribute('data-tab')).classList.add('active');
-    });
-});
 
 // ================================================================
 //  CURRENT SENSOR CALCULATION
