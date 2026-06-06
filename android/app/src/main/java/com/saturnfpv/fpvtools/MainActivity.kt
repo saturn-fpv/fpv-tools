@@ -128,8 +128,7 @@ class MainActivity : ComponentActivity() {
                 if (webView.canGoBack()) {
                     webView.goBack()
                 } else {
-                    isEnabled = false
-                    onBackPressedDispatcher.onBackPressed()
+                    moveTaskToBack(true)
                 }
             }
         })

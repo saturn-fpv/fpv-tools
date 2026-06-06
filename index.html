@@ -559,8 +559,10 @@
         let currentActiveTool = 'home';
 
         function goHome() {
-            document.getElementById('app-iframe').src = 'menu.html';
-            updateActiveDrawer('home');
+            if (currentActiveTool !== 'home') {
+                document.getElementById('app-iframe').src = 'menu.html';
+                updateActiveDrawer('home');
+            }
             closeAllOverlays();
         }
 
