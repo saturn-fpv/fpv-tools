@@ -917,7 +917,7 @@ function decrementSlider(id) {
 }
 
 function incrementSlider(id) {
-    const val = Math.min(8, (S.sliders[id] || 0) + 1);
+    const val = Math.min(20, (S.sliders[id] || 0) + 1);
     setSlider(id, val);
 }
 
@@ -1023,7 +1023,7 @@ function renderHeats() {
     const heats = getHeatGroups();
     const hKeys = Object.keys(heats).sort();
     const container = document.getElementById('heats-container');
-    container.className = 'heats-container cols-'+Math.min(hKeys.length,4);
+    container.className = 'heats-container cols-1';
     const hCol = {A:'#3b82f6',B:'#10b981',C:'#f59e0b',D:'#a855f7'};
     const hBg = {A:'rgba(59,130,246,0.08)',B:'rgba(16,185,129,0.08)',C:'rgba(245,158,11,0.08)',D:'rgba(168,85,247,0.08)'};
 

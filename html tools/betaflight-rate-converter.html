@@ -486,10 +486,10 @@ C.forEach(function(c) {
 // ================================================================
 function copts(yLbl, xLbl) {
     return {
-        responsive: true, maintainAspectRatio: true, aspectRatio: 1.35,
+        responsive: true, maintainAspectRatio: true, aspectRatio: 1,
         animation: { duration: 0 },
         plugins: {
-            legend: { labels: { color:'#9ca3af', font:{ size:12 } } },
+            legend: { align: 'start', labels: { color:'#9ca3af', font:{ size:12 } } },
             tooltip: { backgroundColor:'#1f2937', titleColor:'#9ca3af', bodyColor:'#fff', borderColor:'#374151', borderWidth:1 }
         },
         scales: {
