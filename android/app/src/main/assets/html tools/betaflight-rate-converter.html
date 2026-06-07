@@ -176,6 +176,14 @@
             font-family: 'JetBrains Mono', 'Fira Code', monospace;
             transition: all 0.2s;
         }
+        .vbadge-blue {
+            color: #3b82f6 !important;
+            background: rgba(59, 130, 246, 0.12) !important;
+        }
+        .vbadge-green {
+            color: #10b981 !important;
+            background: rgba(16, 185, 129, 0.12) !important;
+        }
         .chart-tab-content {
             width: 100%;
         }
@@ -229,10 +237,10 @@
         <div>
             <div class="results-tabs" style="margin-bottom: 0;">
                 <button class="results-tab active ctrl0-active" id="tab-btn-ctrl-0" onclick="setControlTab(0)">
-                    Curve 1 <span class="vbadge-tab" id="badge-ctrl-0">Actual</span>
+                    Curve 1 <span class="vbadge-tab vbadge-blue" id="badge-ctrl-0">Actual</span>
                 </button>
                 <button class="results-tab" id="tab-btn-ctrl-1" onclick="setControlTab(1)">
-                    Curve 2 <span class="vbadge-tab" id="badge-ctrl-1">Betaflight</span>
+                    Curve 2 <span class="vbadge-tab vbadge-green" id="badge-ctrl-1">Betaflight</span>
                 </button>
             </div>
             <div class="controls-grid" id="cg" style="grid-template-columns: 1fr; margin-bottom: 0;"></div>
@@ -486,7 +494,7 @@ C.forEach(function(c) {
 // ================================================================
 function copts(yLbl, xLbl) {
     return {
-        responsive: true, maintainAspectRatio: true, aspectRatio: 1,
+        responsive: true, maintainAspectRatio: true, aspectRatio: 1.35,
         animation: { duration: 0 },
         plugins: {
             legend: { align: 'start', labels: { color:'#9ca3af', font:{ size:12 } } },

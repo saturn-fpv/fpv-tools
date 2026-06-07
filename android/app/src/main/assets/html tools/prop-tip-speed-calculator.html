@@ -188,6 +188,14 @@
             font-family: 'JetBrains Mono', 'Fira Code', monospace;
             transition: all 0.2s;
         }
+        .vbadge-blue {
+            color: #3b82f6 !important;
+            background: rgba(59, 130, 246, 0.12) !important;
+        }
+        .vbadge-green {
+            color: #10b981 !important;
+            background: rgba(16, 185, 129, 0.12) !important;
+        }
 
         .sep { border-top: 1px solid #374151; margin: 1rem 0; }
 
@@ -504,10 +512,10 @@
         <div>
             <div class="results-tabs">
                 <button class="results-tab active" id="tab-btn-full" onclick="setVoltTab('full')">
-                    Fully Charged <span class="vbadge-tab" id="v-full-badge">25.2V</span>
+                    Fully Charged <span class="vbadge-tab vbadge-blue" id="v-full-badge">25.2V</span>
                 </button>
                 <button class="results-tab" id="tab-btn-avg" onclick="setVoltTab('avg')">
-                    Average Voltage <span class="vbadge-tab" id="v-avg-badge">22.2V</span>
+                    Average Voltage <span class="vbadge-tab vbadge-green" id="v-avg-badge">22.2V</span>
                 </button>
             </div>
             

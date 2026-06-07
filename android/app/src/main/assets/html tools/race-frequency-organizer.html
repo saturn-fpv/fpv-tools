@@ -213,9 +213,24 @@
             background: rgba(255,255,255,0.02);
         }
         .results-tab.active {
-            color: #3b82f6;
             background: #1f2937;
+        }
+        .results-tab.active.assign-active {
+            color: #3b82f6;
             border-bottom: 2px solid #3b82f6;
+        }
+        .results-tab.active.spec-active {
+            color: #10b981;
+            border-bottom: 2px solid #10b981;
+        }
+        .tab-icon-color {
+            transition: color 0.2s;
+        }
+        .icon-blue {
+            color: #3b82f6 !important;
+        }
+        .icon-green {
+            color: #10b981 !important;
         }
 
         /* Premium stats card */
@@ -347,11 +362,11 @@
         <div id="results-container" style="display:none;">
             <!-- Tabs Header -->
             <div class="results-tabs">
-                <button class="results-tab active" onclick="setOrganizerTab('assignment')">
-                    <span>&#9733; Frequency Assignment</span>
+                <button class="results-tab active assign-active" onclick="setOrganizerTab('assignment')">
+                    <span class="tab-icon-color icon-blue">&#9733;</span> <span>Frequency Assignment</span>
                 </button>
                 <button class="results-tab" onclick="setOrganizerTab('spectrum')">
-                    <span>&#9638; Spectrum & Grid</span>
+                    <span class="tab-icon-color icon-green">&#9638;</span> <span>Spectrum & Grid</span>
                 </button>
             </div>
 
@@ -1360,16 +1375,16 @@ function copyAssignments() {
 let currentOrganizerTab = 'assignment';
 function setOrganizerTab(tab) {
     currentOrganizerTab = tab;
-    document.querySelectorAll('.results-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.results-tab').forEach(t => t.classList.remove('active', 'assign-active', 'spec-active'));
     document.getElementById('tab-assignment').style.display = 'none';
     document.getElementById('tab-spectrum').style.display = 'none';
 
     if (tab === 'assignment') {
         document.getElementById('tab-assignment').style.display = 'block';
-        document.querySelectorAll('.results-tab')[0].classList.add('active');
+        document.querySelectorAll('.results-tab')[0].classList.add('active', 'assign-active');
     } else {
         document.getElementById('tab-spectrum').style.display = 'block';
-        document.querySelectorAll('.results-tab')[1].classList.add('active');
+        document.querySelectorAll('.results-tab')[1].classList.add('active', 'spec-active');
         // Force redraw spectrum
         renderSpectrums();
     }

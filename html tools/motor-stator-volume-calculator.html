@@ -351,6 +351,14 @@
             font-family: 'JetBrains Mono', 'Fira Code', monospace;
             transition: all 0.2s;
         }
+        .vbadge-blue {
+            color: #3b82f6 !important;
+            background: rgba(59, 130, 246, 0.12) !important;
+        }
+        .vbadge-green {
+            color: #10b981 !important;
+            background: rgba(16, 185, 129, 0.12) !important;
+        }
         .tab-wrapper {
             display: grid;
             grid-template-columns: minmax(0, 1fr);
@@ -433,10 +441,10 @@
         <div>
             <div class="results-tabs motor-tabs" style="margin-bottom: 0;">
                 <button class="results-tab active" id="tab-btn-motor-0" onclick="setMotorTab(0)">
-                    Motor A <span class="vbadge-tab" id="badge-motor-0">2207</span>
+                    Motor A <span class="vbadge-tab vbadge-blue" id="badge-motor-0">2207</span>
                 </button>
                 <button class="results-tab" id="tab-btn-motor-1" onclick="setMotorTab(1)">
-                    Motor B <span class="vbadge-tab" id="badge-motor-1">2306</span>
+                    Motor B <span class="vbadge-tab vbadge-green" id="badge-motor-1">2306</span>
                 </button>
             </div>
             <div class="panel" style="border-top-left-radius:0; border-top-right-radius:0; margin-bottom: 0; border-color: #374151;">
