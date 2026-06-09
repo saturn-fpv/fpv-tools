@@ -27,6 +27,7 @@ import java.io.FileOutputStream
 class MainActivity : ComponentActivity() {
 
     private lateinit var webView: WebView
+    private lateinit var container: FrameLayout
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
 
     private val fileChooserLauncher = registerForActivityResult(
@@ -51,9 +52,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val isSystemDark = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
-        setSystemBarsTheme(!isSystemDark)
-
         webView = WebView(this)
         
         webView.settings.apply {
@@ -70,7 +68,7 @@ class MainActivity : ComponentActivity() {
         webView.addJavascriptInterface(AndroidBridge(this), "AndroidBridge")
 
         // Create a FrameLayout container to safely apply system bar insets (safe area padding)
-        val container = FrameLayout(this).apply {
+        container = FrameLayout(this).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
@@ -131,6 +129,13 @@ class MainActivity : ComponentActivity() {
 
         setContentView(container)
 
+        // Set system bar colors based on system theme now that content view is set.
+        // We post it to ensure the decorView is fully attached and laid out before changing theme.
+        val isSystemDark = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+        window.decorView.post {
+            setSystemBarsTheme(!isSystemDark)
+        }
+
         // Load the index.html from Android Assets folder
         webView.loadUrl("file:///android_asset/index.html")
     }
@@ -141,10 +146,18 @@ class MainActivity : ComponentActivity() {
         } else {
             android.graphics.Color.parseColor("#111827")
         }
+        
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+        window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+        
         window.statusBarColor = barColor
         window.navigationBarColor = barColor
 
-        val windowInsetsController = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
+        if (::container.isInitialized) {
+            container.setBackgroundColor(barColor)
+        }
+
+        val windowInsetsController = androidx.core.view.WindowInsetsControllerCompat(window, window.decorView)
         windowInsetsController.isAppearanceLightStatusBars = isLight
         windowInsetsController.isAppearanceLightNavigationBars = isLight
     }

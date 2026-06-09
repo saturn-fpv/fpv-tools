@@ -866,6 +866,13 @@
             applyTheme(currentTheme);
         });
 
+        // Ensure theme is synced with the native bridge once the window is fully loaded (and the bridge is injected)
+        window.addEventListener('load', function() {
+            if (window.AndroidBridge && window.AndroidBridge.updateTheme) {
+                window.AndroidBridge.updateTheme(currentTheme);
+            }
+        });
+
         // Whenever the iframe finishes loading, push active theme configuration to it
         document.getElementById('app-iframe').addEventListener('load', function() {
             this.contentWindow.postMessage({ type: 'setTheme', theme: currentTheme }, '*');
