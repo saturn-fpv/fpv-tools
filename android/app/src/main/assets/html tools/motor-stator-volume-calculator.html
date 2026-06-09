@@ -418,6 +418,122 @@
         @media (min-width: 1024px) {
             .input-results-grid { grid-template-columns: 420px minmax(0, 1fr); }
         }
+        body.light-theme {
+            background-color: #f3f4f6 !important;
+            color: #1f2937 !important;
+        }
+        body.light-theme .panel,
+        body.light-theme .control-panel,
+        body.light-theme .viz-panel,
+        body.light-theme .viz-tab-content,
+        body.light-theme .presets-section {
+            background-color: #ffffff !important;
+            border-color: #d1d5db !important;
+            color: #1f2937 !important;
+        }
+        body.light-theme label,
+        body.light-theme .control-panel h3,
+        body.light-theme .control-panel h2,
+        body.light-theme .sg label,
+        body.light-theme .rl,
+        body.light-theme .help-text,
+        body.light-theme .slot-label,
+        body.light-theme .desc-section {
+            color: #4b5563 !important;
+        }
+        body.light-theme input[type="number"],
+        body.light-theme select {
+            background-color: #f9fafb !important;
+            color: #111827 !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme input[type="number"]:focus,
+        body.light-theme select:focus {
+            border-color: #3b82f6 !important;
+        }
+        body.light-theme input[type="range"] {
+            background-color: #e5e7eb !important;
+        }
+        body.light-theme h1,
+        body.light-theme h2,
+        body.light-theme .val,
+        body.light-theme .slot-title,
+        body.light-theme .stat-box .number {
+            color: #111827 !important;
+        }
+        body.light-theme .results-tabs {
+            background-color: #f3f4f6 !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme .results-tab {
+            background-color: #f3f4f6 !important;
+            color: #4b5563 !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme .results-tab.active {
+            background-color: #ffffff !important;
+            color: #1f2937 !important;
+        }
+        body.light-theme .results-tab:hover {
+            background-color: #e5e7eb !important;
+            color: #111827 !important;
+        }
+        body.light-theme .stat-box {
+            background-color: #f9fafb !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme .preset-btn {
+            background-color: #f3f4f6 !important;
+            border-color: #d1d5db !important;
+            color: #1f2937 !important;
+        }
+        body.light-theme .preset-btn:hover {
+            background-color: #e5e7eb !important;
+        }
+        body.light-theme .c0 h2, body.light-theme .c0 .val { color: #2563eb !important; }
+        body.light-theme .c1 h2, body.light-theme .c1 .val { color: #10b981 !important; }
+        body.light-theme .c0 .control-panel { border-color: rgba(37,99,235,.3) !important; }
+        body.light-theme .c1 .control-panel { border-color: rgba(16,185,129,.3) !important; }
+        body.light-theme .c0 input[type="range"]::-webkit-slider-thumb { background-color: #2563eb !important; }
+        body.light-theme .c0 input[type="range"]::-moz-range-thumb     { background-color: #2563eb !important; }
+        body.light-theme .c1 input[type="range"]::-webkit-slider-thumb { background-color: #10b981 !important; }
+        body.light-theme .c1 input[type="range"]::-moz-range-thumb     { background-color: #10b981 !important; }
+        body.light-theme .info-card {
+            background-color: rgba(59, 123, 246, 0.05) !important;
+            border-color: rgba(59, 123, 246, 0.2) !important;
+            color: #1e3a8a !important;
+        }
+        body.light-theme .info-card h4 {
+            color: #1e3a8a !important;
+        }
+        body.light-theme .info-card ul li {
+            color: #4b5563 !important;
+        }
+        body.light-theme .slot-volume {
+            color: #111827 !important;
+        }
+        body.light-theme .slot-meta {
+            border-top-color: #cbd5e1 !important;
+            color: #4b5563 !important;
+        }
+        body.light-theme .comp-table th {
+            border-bottom-color: #d1d5db !important;
+            color: #4b5563 !important;
+        }
+        body.light-theme .comp-table th:hover {
+            color: #111827 !important;
+        }
+        body.light-theme .comp-table td {
+            border-bottom-color: #e5e7eb !important;
+            color: #1f2937 !important;
+        }
+        .meta-line-use {
+            font-weight: 600;
+            color: #e5e7eb;
+        }
+        body.light-theme .meta-line-use {
+            color: #111827 !important;
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -425,6 +541,17 @@
     <link rel="icon" type="image/png" href="../logo/saturn_fpv_logo_white_small.jpg">
 </head>
 <body>
+    <script>
+        (function() {
+            var theme = localStorage.getItem('fpv-tools-theme');
+            if (!theme) {
+                theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            if (theme === 'light') {
+                document.body.classList.add('light-theme');
+            }
+        })();
+    </script>
 
 <div class="container">
     <h1>Motor Stator Volume Calculator</h1>
@@ -447,7 +574,7 @@
                     Motor B <span class="vbadge-tab vbadge-green" id="badge-motor-1">2306</span>
                 </button>
             </div>
-            <div class="panel" style="border-top-left-radius:0; border-top-right-radius:0; margin-bottom: 0; border-color: #374151;">
+            <div class="panel" style="border-top-left-radius:0; border-top-right-radius:0; margin-bottom: 0;">
                 <div class="motor-slots" id="motor-slots"></div>
             </div>
         </div>
@@ -462,7 +589,7 @@
                 <button class="results-tab" id="tab-btn-viz-table" onclick="setVizTab('table')">Table</button>
             </div>
             
-            <div class="panel tab-wrapper" style="border-top-left-radius:0; border-top-right-radius:0; margin-bottom: 0; border-color: #374151;">
+            <div class="panel tab-wrapper" style="border-top-left-radius:0; border-top-right-radius:0; margin-bottom: 0;">
                 <!-- Tab 1: Volume Map -->
                 <div id="viz-tab-map" class="viz-tab-content">
                     <h3><span class="icon">&#10687;</span> Diameter vs Height Map</h3>
@@ -526,6 +653,17 @@
 </div>
 
 <script>
+// ─── Theme Colors for Canvas ───
+let canvasBg = '#1f2937';
+let canvasTextDim = '#6b7280';
+let canvasTextMut = '#9ca3af';
+let canvasTextLight = '#e5e7eb';
+let canvasGridLight = 'rgba(55,65,81,0.3)';
+let canvasGridMedium = 'rgba(255,255,255,0.12)';
+let canvasBorder = '#374151';
+let canvasTooltipBg = 'rgba(17,24,39,0.75)';
+let canvasTooltipText = 'rgba(255,255,255,0.6)';
+
 // ─── Colors ───
 const COLORS = ['#3b82f6','#10b981','#f59e0b','#ef4444','#a855f7'];
 const COLORS_DIM = ['rgba(59,130,246,0.3)','rgba(16,185,129,0.3)','rgba(245,158,11,0.3)','rgba(239,68,68,0.3)','rgba(168,85,247,0.3)'];
@@ -643,12 +781,12 @@ function buildSlotHTML(m, i) {
                     oninput="updateHeightSlider(${i}, this.value)">
             </div>
 
-            <div class="slot-volume" style="font-size: 2rem; font-weight: 700; color: #ffffff; text-align: left; margin: 0.5rem 0 0.25rem 0; font-family: 'Outfit', sans-serif;">
+            <div class="slot-volume" style="font-size: 2rem; font-weight: 700; text-align: left; margin: 0.5rem 0 0.25rem 0; font-family: 'Outfit', sans-serif;">
                 ${v.toLocaleString('en-US',{maximumFractionDigits:0})} <span style="font-size: 1.125rem; color: #6b7280; font-weight: 500;">mm&sup3;</span>
             </div>
 
-            <div class="slot-meta" style="font-size: 0.8125rem; color: #9ca3af; line-height: 1.6; border-top: 1px solid #374151; padding-top: 0.75rem; margin-top: 0.25rem;">
-                <div class="meta-line" style="font-weight:600; color:#e5e7eb;">${meta.use}</div>
+            <div class="slot-meta">
+                <div class="meta-line meta-line-use">${meta.use}</div>
                 <div class="meta-line">${meta.props} props - ${meta.kv}</div>
                 <div class="meta-line">~${w.toFixed(1)} g est.</div>
             </div>
@@ -797,7 +935,7 @@ function drawScatter() {
     ctx.scale(dpr, dpr);
     const H = 380;
 
-    ctx.fillStyle = '#1f2937';
+    ctx.fillStyle = canvasBg;
     ctx.fillRect(0, 0, W, H);
 
     const pad = { t: 15, r: 25, b: 55, l: 45 };
@@ -891,7 +1029,7 @@ function drawScatter() {
             if (!started) { ctx.moveTo(px, py); started = true; }
             else { ctx.lineTo(px, py); }
         }
-        ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+        ctx.strokeStyle = canvasGridLight;
         ctx.lineWidth = 1;
         ctx.stroke();
 
@@ -899,7 +1037,7 @@ function drawScatter() {
         const labelD = minD + (maxD - minD) * 0.92;
         const labelH = (4 * vol) / (Math.PI * labelD * labelD);
         if (labelH >= minH + (maxH - minH) * 0.05 && labelH <= maxH - (maxH - minH) * 0.05) {
-            ctx.fillStyle = 'rgba(255,255,255,0.22)';
+            ctx.fillStyle = canvasGridMedium;
             ctx.font = '8px -apple-system, sans-serif';
             ctx.textAlign = 'left';
             const volLabel = vol >= 1000 ? (vol / 1000).toFixed(vol >= 10000 ? 0 : 1) + 'k' : '' + vol;
@@ -920,7 +1058,7 @@ function drawScatter() {
     const stepD = niceStep(maxD - minD);
     const stepH = niceStep(maxH - minH);
 
-    ctx.strokeStyle = 'rgba(55,65,81,0.3)';
+    ctx.strokeStyle = canvasGridLight;
     ctx.lineWidth = 0.5;
     const gridStartD = Math.ceil(minD / stepD) * stepD;
     for (let d = gridStartD; d <= maxD; d += stepD) {
@@ -938,7 +1076,7 @@ function drawScatter() {
     }
 
     // ── Axes ──
-    ctx.strokeStyle = '#374151';
+    ctx.strokeStyle = canvasBorder;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(pad.l, pad.t);
@@ -947,7 +1085,7 @@ function drawScatter() {
     ctx.stroke();
 
     // axis labels (adaptive)
-    ctx.fillStyle = '#6b7280';
+    ctx.fillStyle = canvasTextDim;
     ctx.font = '10px -apple-system, sans-serif';
     ctx.textAlign = 'center';
     for (let d = gridStartD; d <= maxD; d += stepD) {
@@ -961,7 +1099,7 @@ function drawScatter() {
     }
 
     // axis titles
-    ctx.fillStyle = '#9ca3af';
+    ctx.fillStyle = canvasTextMut;
     ctx.font = '11px -apple-system, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('Stator Diameter (mm)', pad.l + pw / 2, pad.t + ph + 30);
@@ -1005,7 +1143,7 @@ function drawScatter() {
             const mx = (ax + bx) / 2, my = (ay + by) / 2;
 
             ctx.save();
-            ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+            ctx.strokeStyle = canvasGridMedium;
             ctx.lineWidth = 1;
             ctx.setLineDash([2, 3]);
             ctx.beginPath();
@@ -1022,9 +1160,9 @@ function drawScatter() {
             const txt = '+' + pct + '%';
             ctx.font = '9px -apple-system, sans-serif';
             const tw = ctx.measureText(txt).width;
-            ctx.fillStyle = 'rgba(17,24,39,0.7)';
+            ctx.fillStyle = canvasTooltipBg;
             ctx.fillRect(lx - tw / 2 - 3, ly - 8, tw + 6, 12);
-            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+            ctx.fillStyle = canvasTooltipText;
             ctx.textAlign = 'center';
             ctx.fillText(txt, lx, ly);
             ctx.restore();
@@ -1066,20 +1204,20 @@ function drawScatter() {
         const volText = v.toFixed(0) + ' mm\u00B3';
         const volW = ctx.measureText(volText).width;
         const labelW = Math.max(nameW, volW);
-        ctx.fillStyle = 'rgba(17,24,39,0.75)';
+        ctx.fillStyle = canvasTooltipBg;
         ctx.fillRect(x + 8, y - 14, labelW + 6, 24);
 
         ctx.fillStyle = COLORS[i];
         ctx.font = 'bold 11px -apple-system, sans-serif';
         ctx.textAlign = 'left';
         ctx.fillText(name, x + 11, y - 3);
-        ctx.fillStyle = '#9ca3af';
+        ctx.fillStyle = canvasTextMut;
         ctx.font = '9px -apple-system, sans-serif';
         ctx.fillText(volText, x + 11, y + 9);
     });
 
     // ── Legend: iso-curve explanation ──
-    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.fillStyle = canvasGridMedium;
     ctx.font = '8px -apple-system, sans-serif';
     ctx.textAlign = 'right';
     ctx.fillText('curves = equal volume   |   brighter = more volume', pad.l + pw, pad.t + ph + 44);
@@ -1099,7 +1237,7 @@ function drawBarChart() {
     ctx.scale(dpr, dpr);
     const H = 320;
 
-    ctx.fillStyle = '#1f2937';
+    ctx.fillStyle = canvasBg;
     ctx.fillRect(0, 0, W, H);
 
     if (motors.length === 0) return;
@@ -1121,7 +1259,7 @@ function drawBarChart() {
     const ph = H - pad.t - pad.b;
 
     // Grid lines (y-axis)
-    ctx.strokeStyle = 'rgba(55,65,81,0.3)';
+    ctx.strokeStyle = canvasGridLight;
     ctx.lineWidth = 0.5;
     const steps = 5;
     for (let s = 0; s <= steps; s++) {
@@ -1131,7 +1269,7 @@ function drawBarChart() {
         ctx.lineTo(pad.l + pw, y);
         ctx.stroke();
 
-        ctx.fillStyle = '#6b7280';
+        ctx.fillStyle = canvasTextDim;
         ctx.font = '9px -apple-system, sans-serif';
         ctx.textAlign = 'right';
         ctx.fillText(Math.round(maxVol * s / steps).toLocaleString(), pad.l - 8, y + 3);
@@ -1141,7 +1279,7 @@ function drawBarChart() {
     ctx.save();
     ctx.translate(15, pad.t + ph / 2);
     ctx.rotate(-Math.PI / 2);
-    ctx.fillStyle = '#9ca3af';
+    ctx.fillStyle = canvasTextMut;
     ctx.font = '10px -apple-system, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('Volume (mm\u00B3)', 0, 0);
@@ -1184,12 +1322,12 @@ function drawBarChart() {
         ctx.font = 'bold 12px -apple-system, sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText('Motor ' + (d.i === 0 ? 'A' : 'B'), cx, pad.t + ph + 16);
-        ctx.fillStyle = '#9ca3af';
+        ctx.fillStyle = canvasTextMut;
         ctx.font = '10px -apple-system, sans-serif';
         ctx.fillText('(' + d.name + ')', cx, pad.t + ph + 28);
 
         // volume value + percentage above bar
-        ctx.fillStyle = '#e5e7eb';
+        ctx.fillStyle = canvasTextLight;
         ctx.font = 'bold 11px -apple-system, sans-serif';
         ctx.textAlign = 'center';
         const volText = d.vol.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' mm\u00B3';
@@ -1233,7 +1371,7 @@ function drawCrossTop() {
     ctx.scale(dpr, dpr);
     const S_val = 400; // local constant for drawing calculations
 
-    ctx.fillStyle = '#1f2937';
+    ctx.fillStyle = canvasBg;
     ctx.fillRect(0, 0, S, S);
 
     if (motors.length === 0) return;
@@ -1277,7 +1415,7 @@ function drawCrossTop() {
     // scale indicator
     const scaleBarMm = 5;
     const scaleBarPx = scaleBarMm * scale;
-    ctx.strokeStyle = '#6b7280';
+    ctx.strokeStyle = canvasTextDim;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(10, S - 12);
@@ -1285,7 +1423,7 @@ function drawCrossTop() {
     ctx.stroke();
     ctx.beginPath(); ctx.moveTo(10, S - 15); ctx.lineTo(10, S - 9); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(10 + scaleBarPx, S - 15); ctx.lineTo(10 + scaleBarPx, S - 9); ctx.stroke();
-    ctx.fillStyle = '#6b7280';
+    ctx.fillStyle = canvasTextDim;
     ctx.font = '8px -apple-system, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(scaleBarMm + ' mm', 10 + scaleBarPx / 2, S - 3);
@@ -1305,7 +1443,7 @@ function drawCrossSide() {
     const ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
 
-    ctx.fillStyle = '#1f2937';
+    ctx.fillStyle = canvasBg;
     ctx.fillRect(0, 0, S, S);
 
     if (motors.length === 0) return;
@@ -1345,7 +1483,7 @@ function drawCrossSide() {
         ctx.fillText(name, x + w / 2, y - 5);
 
         // width dimension
-        ctx.fillStyle = '#6b7280';
+        ctx.fillStyle = canvasTextDim;
         ctx.font = '7px -apple-system, sans-serif';
         ctx.fillText(m.d + 'mm', x + w / 2, baseline + 10);
 
@@ -1360,7 +1498,7 @@ function drawCrossSide() {
     });
 
     // baseline
-    ctx.strokeStyle = '#374151';
+    ctx.strokeStyle = canvasBorder;
     ctx.lineWidth = 0.5;
     ctx.beginPath();
     ctx.moveTo(5, baseline);
@@ -1370,7 +1508,7 @@ function drawCrossSide() {
     // scale bar
     const scaleBarMm = 5;
     const scaleBarPx = scaleBarMm * scale;
-    ctx.strokeStyle = '#6b7280';
+    ctx.strokeStyle = canvasTextDim;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(10, S - 8);
@@ -1378,7 +1516,7 @@ function drawCrossSide() {
     ctx.stroke();
     ctx.beginPath(); ctx.moveTo(10, S - 11); ctx.lineTo(10, S - 5); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(10 + scaleBarPx, S - 11); ctx.lineTo(10 + scaleBarPx, S - 5); ctx.stroke();
-    ctx.fillStyle = '#6b7280';
+    ctx.fillStyle = canvasTextDim;
     ctx.font = '8px -apple-system, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(scaleBarMm + ' mm', 10 + scaleBarPx / 2, S - 12);
@@ -1455,6 +1593,43 @@ window.addEventListener('resize', () => {
         drawBarChart();
     }, 100);
 });
+
+function updateChartsTheme(theme) {
+    const isLight = (theme === 'light');
+    canvasBg = isLight ? '#ffffff' : '#1f2937';
+    canvasTextDim = isLight ? '#4b5563' : '#6b7280';
+    canvasTextMut = isLight ? '#6b7280' : '#9ca3af';
+    canvasTextLight = isLight ? '#111827' : '#e5e7eb';
+    canvasGridLight = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(55,65,81,0.3)';
+    canvasGridMedium = isLight ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.12)';
+    canvasBorder = isLight ? '#d1d5db' : '#374151';
+    canvasTooltipBg = isLight ? '#f3f4f6' : 'rgba(17,24,39,0.75)';
+    canvasTooltipText = isLight ? '#111827' : 'rgba(255,255,255,0.6)';
+    
+    renderAll();
+}
+
+// Listen for theme change from parent wrapper
+window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'setTheme') {
+        if (event.data.theme === 'light') {
+            document.body.classList.add('light-theme');
+            updateChartsTheme('light');
+        } else {
+            document.body.classList.remove('light-theme');
+            updateChartsTheme('dark');
+        }
+    }
+});
+
+// Init theme on load
+(function() {
+    const t = localStorage.getItem('fpv-tools-theme') || 'dark';
+    if (t === 'light') {
+        document.body.classList.add('light-theme');
+        updateChartsTheme('light');
+    }
+})();
 </script>
 
 <script>

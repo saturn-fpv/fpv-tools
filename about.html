@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About FPV Tools - Saturn FPV</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --black: #0A0A0B;
+            --dark: #111113;
+            --card: #18181B;
+            --card-hover: #1E1E22;
+            --border: #27272A;
+            --text: #FAFAFA;
+            --text-muted: #A1A1AA;
+            --text-dim: #71717A;
+            --orange: #E8722A;
+            --blue: #3B7BF6;
+            --orange-glow: rgba(232, 114, 42, 0.12);
+            --blue-glow: rgba(59, 123, 246, 0.12);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--black);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #FFF 0%, var(--text-muted) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        /* Card Section */
+        .card-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            border-color: var(--text-dim);
+            transform: translateY(-2px);
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text);
+        }
+
+        .card-icon {
+            font-size: 1.25rem;
+        }
+
+        .card-content {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .card-content a {
+            color: var(--blue);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.15s;
+        }
+
+        .card-content a:hover {
+            color: var(--orange);
+            text-decoration: underline;
+        }
+
+        /* Buttons footer */
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--orange);
+            color: white;
+            border: 1px solid var(--orange);
+        }
+
+        .btn-primary:hover {
+            background: #d45e1a;
+            border-color: #d45e1a;
+            box-shadow: 0 0 12px rgba(232, 114, 42, 0.2);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--card-hover);
+            border-color: var(--text-dim);
+        }
+
+        body.light-theme {
+            --black: #F4F4F5;
+            --dark: #E4E4E7;
+            --card: #FFFFFF;
+            --card-hover: #F4F4F5;
+            --border: #D4D4D8;
+            --text: #09090B;
+            --text-muted: #27272A;
+            --text-dim: #71717A;
+        }
+        
+        body.light-theme .header h1 {
+            background: linear-gradient(135deg, #09090B 0%, #3F3F46 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        (function() {
+            var theme = localStorage.getItem('fpv-tools-theme');
+            if (!theme) {
+                theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            if (theme === 'light') {
+                document.body.classList.add('light-theme');
+            }
+        })();
+    </script>
+    <div class="container">
+        <div class="header">
+            <h1>FPV Tools</h1>
+            <p>Version 1.0.2 • By pilots for pilots</p>
+        </div>
+
+        <div class="card-grid">
+            <!-- Offline & Field Ready -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="card-icon">✈️</span>
+                    <span>100% Offline & Field Ready</span>
+                </div>
+                <div class="card-content">
+                    Designed to work anywhere, even at remote flight spots with absolutely zero cellular service. All calculations, graphs, and simulation physics run entirely on your local device.
+                </div>
+            </div>
+
+            <!-- Open Source & GPL v3 -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="card-icon">⚖️</span>
+                    <span>Open Source (GPL v3)</span>
+                </div>
+                <div class="card-content">
+                    This software is transparent, secure, and licensed under the GNU General Public License v3. You are free to inspect the source code, modify it, or build upon it. The full source code is hosted publicly on GitHub.
+                </div>
+            </div>
+
+            <!-- Private & Clean -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="card-icon">🛡️</span>
+                    <span>No Ads, No Trackers</span>
+                </div>
+                <div class="card-content">
+                    Utility-first design with absolute privacy. There are no advertisements, no tracking pixels, and no analytics collection. User data remains completely private.
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <a href="https://patreon.com/saturnfpv" target="_blank" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 6px;"><path d="M0 .002h4.526v23.996H0V.002zm15.474 0c-4.708 0-8.526 3.818-8.526 8.526 0 4.707 3.818 8.525 8.526 8.525 4.707 0 8.526-3.818 8.526-8.525C24 3.82 20.181.002 15.474.002z"/></svg> Support on Patreon
+            </a>
+            <a href="https://github.com/saturn-fpv/fpv-tools" target="_blank" class="btn btn-secondary">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="vertical-align: middle; margin-right: 6px;"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg> GitHub Project
+            </a>
+            <a href="https://github.com/saturn-fpv/fpv-tools/issues" target="_blank" class="btn btn-secondary">
+                🐛 Report an Issue
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Listen for theme changes from parent wrapper
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'setTheme') {
+                if (event.data.theme === 'light') {
+                    document.body.classList.add('light-theme');
+                } else {
+                    document.body.classList.remove('light-theme');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -305,9 +305,128 @@
         @media (min-width: 1024px) {
             .input-results-grid { grid-template-columns: 420px 1fr; }
         }
+
+        body.light-theme {
+            background-color: #f3f4f6 !important;
+            color: #1f2937 !important;
+        }
+        body.light-theme .panel,
+        body.light-theme .viz-panel {
+            background-color: #ffffff !important;
+            border-color: #d1d5db !important;
+            color: #1f2937 !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        body.light-theme .panel h2,
+        body.light-theme .viz-panel h3 {
+            color: #111827 !important;
+        }
+        body.light-theme .preset-btn,
+        body.light-theme .counter-btn {
+            background: #f3f4f6 !important;
+            border-color: #d1d5db !important;
+            color: #1f2937 !important;
+        }
+        body.light-theme .preset-btn:hover,
+        body.light-theme .counter-btn:hover {
+            background: #e5e7eb !important;
+        }
+        body.light-theme .pilot-slot {
+            background: #f9fafb !important;
+            border-color: #d1d5db !important;
+            color: #1f2937 !important;
+        }
+        body.light-theme .vtx-slider-row {
+            border-bottom-color: #e5e7eb !important;
+        }
+        body.light-theme .vtx-group-header {
+            color: #4b5563 !important;
+            border-bottom-color: #e5e7eb !important;
+        }
+        body.light-theme .total-pilots {
+            color: #111827 !important;
+        }
+        body.light-theme .option-toggle {
+            color: #4b5563 !important;
+        }
+        body.light-theme .vtx-slider-label .vsl-detail {
+            color: #6b7280 !important;
+        }
+        body.light-theme .result-card,
+        body.light-theme .stats-card-premium,
+        body.light-theme .copy-box {
+            background: #f9fafb !important;
+            border-color: #d1d5db !important;
+            color: #1f2937 !important;
+        }
+        body.light-theme .rc-value {
+            color: #111827 !important;
+        }
+        body.light-theme .cg-cell {
+            background: #f9fafb !important;
+            border-color: #d1d5db !important;
+            color: #4b5563 !important;
+        }
+        body.light-theme .cg-cell.empty {
+            background: transparent !important;
+            border-color: transparent !important;
+        }
+        body.light-theme .cg-sep {
+            border-top-color: #e5e7eb !important;
+        }
+        body.light-theme .cg-header {
+            color: #6b7280 !important;
+        }
+        body.light-theme .imd-table th,
+        body.light-theme .ref-table th {
+            color: #6b7280 !important;
+            border-bottom-color: #d1d5db !important;
+        }
+        body.light-theme .imd-table td,
+        body.light-theme .ref-table td {
+            border-bottom-color: #e5e7eb !important;
+            color: #4b5563 !important;
+        }
+        body.light-theme .results-tabs {
+            background: #e5e7eb !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme .results-tab {
+            background: #e5e7eb !important;
+            color: #4b5563 !important;
+        }
+        body.light-theme .results-tab.active {
+            background: #ffffff !important;
+        }
+        body.light-theme .results-tab:hover {
+            color: #111827 !important;
+            background: rgba(0,0,0,0.02) !important;
+        }
+        body.light-theme .cg-cell.imd-hit {
+            background-color: rgba(239,68,68,0.12) !important;
+            color: #b91c1c !important;
+            border-color: rgba(239,68,68,0.3) !important;
+        }
+        body.light-theme .sep {
+            border-color: #e5e7eb !important;
+        }
+        body.light-theme .slot-freq {
+            color: #6b7280 !important;
+        }
     </style>
 </head>
 <body>
+    <script>
+        (function() {
+            var theme = localStorage.getItem('fpv-tools-theme');
+            if (!theme) {
+                theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            if (theme === 'light') {
+                document.body.classList.add('light-theme');
+            }
+        })();
+    </script>
 
 <div class="container">
     <h1>Race Frequency Organizer</h1>
@@ -1230,7 +1349,9 @@ function drawSpectrum(heatKey, pilots) {
     const W = rect.width, H = 200;
     canvas.width = W*dpr; canvas.height = H*dpr; canvas.style.height = H+'px';
     const ctx = canvas.getContext('2d'); ctx.scale(dpr,dpr);
-    ctx.fillStyle = '#111827'; ctx.fillRect(0,0,W,H);
+
+    const isLight = document.body.classList.contains('light-theme');
+    ctx.fillStyle = isLight ? '#ffffff' : '#111827'; ctx.fillRect(0,0,W,H);
 
     const pad = {t:18,r:12,b:28,l:36};
     const pw = W-pad.l-pad.r, ph = H-pad.t-pad.b;
@@ -1238,10 +1359,10 @@ function drawSpectrum(heatKey, pilots) {
     const x = f => pad.l + (f-minF)/(maxF-minF)*pw;
 
     // Grid
-    ctx.strokeStyle='rgba(55,65,81,0.3)'; ctx.lineWidth=0.5;
-    ctx.font='7px -apple-system,sans-serif'; ctx.fillStyle='#6b7280'; ctx.textAlign='center';
+    ctx.strokeStyle = isLight ? 'rgba(209, 213, 219, 0.6)' : 'rgba(55,65,81,0.3)'; ctx.lineWidth=0.5;
+    ctx.font='7px -apple-system,sans-serif'; ctx.fillStyle = isLight ? '#4b5563' : '#6b7280'; ctx.textAlign='center';
     for (let f=5650;f<=5950;f+=50) { ctx.beginPath(); ctx.moveTo(x(f),pad.t); ctx.lineTo(x(f),pad.t+ph); ctx.stroke(); ctx.fillText(f+'',x(f),H-pad.b+10); }
-    ctx.strokeStyle='#374151'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(pad.l,pad.t+ph); ctx.lineTo(pad.l+pw,pad.t+ph); ctx.stroke();
+    ctx.strokeStyle = isLight ? '#d1d5db' : '#374151'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(pad.l,pad.t+ph); ctx.lineTo(pad.l+pw,pad.t+ph); ctx.stroke();
 
     // O3 carrier zone
     const heatHasO3 = pilots.some(p=>vtxHasO3(p.vtx));
@@ -1308,7 +1429,7 @@ function drawSpectrum(heatKey, pilots) {
         ctx.shadowBlur=0;
         ctx.fillStyle=col; ctx.font='bold 8px -apple-system,sans-serif'; ctx.textAlign='center';
         ctx.fillText(a.id,px2,pad.t+20);
-        ctx.fillStyle='#d1d5db'; ctx.font='6px JetBrains Mono,monospace';
+        ctx.fillStyle = isLight ? '#1f2937' : '#d1d5db'; ctx.font='6px JetBrains Mono,monospace';
         ctx.fillText(a.ch,px2,pad.t+ph-3);
     });
 }
@@ -1393,6 +1514,26 @@ function setOrganizerTab(tab) {
 // ─── Init ───
 initSliders(); initPresets(); updateWarnings();
 let rt; window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>renderSpectrums(),100);});
+
+// Listen for theme change from parent wrapper
+window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'setTheme') {
+        if (event.data.theme === 'light') {
+            document.body.classList.add('light-theme');
+        } else {
+            document.body.classList.remove('light-theme');
+        }
+        renderSpectrums();
+    }
+});
+
+// Init theme on load
+(function() {
+    const t = localStorage.getItem('fpv-tools-theme') || 'dark';
+    if (t === 'light') {
+        document.body.classList.add('light-theme');
+    }
+})();
 </script>
 <script>
     if (window.parent && window.parent !== window) {

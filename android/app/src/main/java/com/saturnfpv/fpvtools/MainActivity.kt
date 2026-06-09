@@ -51,12 +51,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Set status bar and navigation bar color to dark, and force light (white) text/icons
-        window.statusBarColor = android.graphics.Color.parseColor("#111827")
-        window.navigationBarColor = android.graphics.Color.parseColor("#111827")
-        val windowInsetsController = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
-        windowInsetsController.isAppearanceLightStatusBars = false
-        windowInsetsController.isAppearanceLightNavigationBars = false
+        val isSystemDark = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+        setSystemBarsTheme(!isSystemDark)
 
         webView = WebView(this)
         
@@ -139,8 +135,29 @@ class MainActivity : ComponentActivity() {
         webView.loadUrl("file:///android_asset/index.html")
     }
 
+    private fun setSystemBarsTheme(isLight: Boolean) {
+        val barColor = if (isLight) {
+            android.graphics.Color.parseColor("#f3f4f6")
+        } else {
+            android.graphics.Color.parseColor("#111827")
+        }
+        window.statusBarColor = barColor
+        window.navigationBarColor = barColor
+
+        val windowInsetsController = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
+        windowInsetsController.isAppearanceLightStatusBars = isLight
+        windowInsetsController.isAppearanceLightNavigationBars = isLight
+    }
+
     // JS interface class to trigger native share sheet for Web KML/KMZ/GPX downloads
     class AndroidBridge(private val context: Context) {
+        @JavascriptInterface
+        fun updateTheme(theme: String) {
+            (context as? MainActivity)?.runOnUiThread {
+                context.setSystemBarsTheme(theme == "light")
+            }
+        }
+
         @JavascriptInterface
         fun shareFile(base64Data: String, filename: String) {
             try {

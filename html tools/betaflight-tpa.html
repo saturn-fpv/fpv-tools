@@ -269,6 +269,84 @@
                 order: 2;
             }
         }
+        body.light-theme {
+            background-color: #f3f4f6 !important;
+            color: #1f2937 !important;
+        }
+        body.light-theme .control-panel,
+        body.light-theme .chart-container {
+            background-color: #ffffff !important;
+            border-color: #d1d5db !important;
+            color: #1f2937 !important;
+        }
+        body.light-theme label,
+        body.light-theme .control-panel h3,
+        body.light-theme .control-panel h2,
+        body.light-theme .sg label,
+        body.light-theme .rl {
+            color: #4b5563 !important;
+        }
+        body.light-theme input[type="number"],
+        body.light-theme select {
+            background-color: #f9fafb !important;
+            color: #111827 !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme input[type="number"]:focus,
+        body.light-theme select:focus {
+            border-color: #3b82f6 !important;
+        }
+        body.light-theme input[type="range"] {
+            background-color: #e5e7eb !important;
+        }
+        body.light-theme h1,
+        body.light-theme h2,
+        body.light-theme .val {
+            color: #111827 !important;
+        }
+        body.light-theme .c0 h2, body.light-theme .c0 .val { color: #2563eb !important; }
+        body.light-theme .c1 h2, body.light-theme .c1 .val { color: #10b981 !important; }
+        body.light-theme .c0 .control-panel { border-color: rgba(37,99,235,.3) !important; }
+        body.light-theme .c1 .control-panel { border-color: rgba(16,185,129,.3) !important; }
+        body.light-theme .c0 input[type="range"]::-webkit-slider-thumb { background-color: #2563eb !important; }
+        body.light-theme .c0 input[type="range"]::-moz-range-thumb     { background-color: #2563eb !important; }
+        body.light-theme .c1 input[type="range"]::-webkit-slider-thumb { background-color: #10b981 !important; }
+        body.light-theme .c1 input[type="range"]::-moz-range-thumb     { background-color: #10b981 !important; }
+        body.light-theme .results-tabs {
+            background-color: #f3f4f6 !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme .results-tab {
+            background-color: #f3f4f6 !important;
+            color: #4b5563 !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme .results-tab.active {
+            background-color: #ffffff !important;
+            color: #1f2937 !important;
+        }
+        body.light-theme .results-tab:hover {
+            background-color: #e5e7eb !important;
+            color: #111827 !important;
+        }
+        body.light-theme .vbadge-tab {
+            background-color: #e5e7eb !important;
+            color: #4b5563 !important;
+        }
+        body.light-theme .cli-box {
+            background-color: #f3f4f6 !important;
+            border-color: #d1d5db !important;
+            color: #0f766e !important;
+        }
+        body.light-theme .cli-box:hover {
+            border-color: #94a3b8 !important;
+        }
+        body.light-theme .cli-box .copy-hint {
+            color: #64748b !important;
+        }
+        body.light-theme .cli-box.copied .copy-hint {
+            color: #10b981 !important;
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -276,6 +354,17 @@
     <link rel="icon" type="image/png" href="../logo/saturn_fpv_logo_white_small.jpg">
 </head>
 <body>
+    <script>
+        (function() {
+            var theme = localStorage.getItem('fpv-tools-theme');
+            if (!theme) {
+                theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            if (theme === 'light') {
+                document.body.classList.add('light-theme');
+            }
+        })();
+    </script>
 
     <div class="container">
         <h1>Betaflight TPA Comparison</h1>
@@ -584,6 +673,58 @@
 
         // Initial tab set
         setTpaTab(0);
+
+        function updateChartsTheme(theme) {
+            const isLight = (theme === 'light');
+            const labelColor = isLight ? '#4b5563' : '#9ca3af';
+            const gridColor = isLight ? '#e5e7eb' : '#374151';
+            const tooltipBg = isLight ? '#ffffff' : '#1f2937';
+            const tooltipBody = isLight ? '#111827' : '#fff';
+            const tooltipBorder = isLight ? '#e5e7eb' : '#374151';
+
+            if (chart) {
+                chart.options.plugins.legend.labels.color = labelColor;
+                if (chart.options.plugins.tooltip) {
+                    chart.options.plugins.tooltip.backgroundColor = tooltipBg;
+                    chart.options.plugins.tooltip.titleColor = labelColor;
+                    chart.options.plugins.tooltip.bodyColor = tooltipBody;
+                    chart.options.plugins.tooltip.borderColor = tooltipBorder;
+                }
+                if (chart.options.scales.x) {
+                    chart.options.scales.x.title.color = labelColor;
+                    chart.options.scales.x.ticks.color = labelColor;
+                    chart.options.scales.x.grid.color = gridColor;
+                }
+                if (chart.options.scales.y) {
+                    chart.options.scales.y.title.color = labelColor;
+                    chart.options.scales.y.ticks.color = labelColor;
+                    chart.options.scales.y.grid.color = gridColor;
+                }
+                chart.update();
+            }
+        }
+
+        // Listen for theme change from parent wrapper
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'setTheme') {
+                if (event.data.theme === 'light') {
+                    document.body.classList.add('light-theme');
+                    updateChartsTheme('light');
+                } else {
+                    document.body.classList.remove('light-theme');
+                    updateChartsTheme('dark');
+                }
+            }
+        });
+
+        // Init theme on load
+        (function() {
+            const t = localStorage.getItem('fpv-tools-theme') || 'dark';
+            if (t === 'light') {
+                document.body.classList.add('light-theme');
+                updateChartsTheme('light');
+            }
+        })();
     </script>
 <script>
     if (window.parent && window.parent !== window) {

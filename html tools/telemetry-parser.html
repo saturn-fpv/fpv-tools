@@ -351,6 +351,135 @@
             .header h1 { font-size: 1.375rem; }
             #map { height: 260px; }
         }
+
+        body.light-theme {
+            background-color: #f3f4f6 !important;
+            color: #1f2937 !important;
+        }
+        body.light-theme .panel {
+            background-color: #ffffff !important;
+            border-color: #d1d5db !important;
+            color: #1f2937 !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        body.light-theme .panel h2 {
+            color: #111827 !important;
+        }
+        body.light-theme label,
+        body.light-theme .form-row label,
+        body.light-theme .color-width-row label {
+            color: #4b5563 !important;
+        }
+        body.light-theme input[type="number"],
+        body.light-theme input[type="text"],
+        body.light-theme select {
+            background-color: #f9fafb !important;
+            color: #111827 !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme input[type="number"]:focus,
+        body.light-theme input[type="text"]:focus,
+        body.light-theme select:focus {
+            border-color: #3b82f6 !important;
+        }
+        body.light-theme select option {
+            background-color: #ffffff !important;
+            color: #111827 !important;
+        }
+        body.light-theme input[type="range"] {
+            background: #e5e7eb !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme .upload-area {
+            background-color: #f9fafb !important;
+            border-color: #d1d5db !important;
+            color: #4b5563 !important;
+        }
+        body.light-theme .upload-area:hover,
+        body.light-theme .upload-area.dragover {
+            background-color: #e5e7eb !important;
+            border-color: #3b82f6 !important;
+        }
+        body.light-theme .upload-area p {
+            color: #4b5563 !important;
+        }
+        body.light-theme .flight-card {
+            border-color: #d1d5db !important;
+            background: #f9fafb !important;
+            color: #1f2937 !important;
+        }
+        body.light-theme .flight-card:hover {
+            border-color: #9ca3af !important;
+            background: #e5e7eb !important;
+        }
+        body.light-theme .flight-card.selected {
+            border-color: #E8722A !important;
+            background: rgba(232, 114, 42, 0.08) !important;
+        }
+        body.light-theme .flight-card .flight-name {
+            color: #111827 !important;
+        }
+        body.light-theme .flight-card .flight-meta {
+            color: #6b7280 !important;
+        }
+        body.light-theme .stat-value {
+            color: #111827 !important;
+        }
+        body.light-theme .results-tabs {
+            background: #e5e7eb !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme .results-tab {
+            background: #e5e7eb !important;
+            color: #4b5563 !important;
+        }
+        body.light-theme .results-tab.active {
+            background: #ffffff !important;
+        }
+        body.light-theme .results-tab:hover {
+            color: #111827 !important;
+            background: rgba(0,0,0,0.02) !important;
+        }
+        body.light-theme .btn {
+            background: #e5e7eb !important;
+            color: #1f2937 !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme .btn:hover {
+            background: #d1d5db !important;
+        }
+        body.light-theme .btn-primary {
+            background: #E8722A !important;
+            color: white !important;
+            border-color: transparent !important;
+        }
+        body.light-theme .btn-primary:hover {
+            background: #cf5e1b !important;
+        }
+        body.light-theme .warn-banner {
+            background-color: rgba(245, 158, 11, 0.08) !important;
+            border-color: rgba(245, 158, 11, 0.3) !important;
+            color: #b45309 !important;
+        }
+        body.light-theme #map {
+            border-color: #d1d5db !important;
+        }
+        body.light-theme .leaflet-bar a {
+            background: #ffffff !important;
+            color: #1f2937 !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme .leaflet-bar a:hover {
+            background: #f3f4f6 !important;
+        }
+        body.light-theme .leaflet-control-layers {
+            background: #ffffff !important;
+            color: #1f2937 !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme .input-with-unit .unit {
+            color: #4b5563 !important;
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -358,6 +487,17 @@
     <link rel="icon" type="image/png" href="../logo/saturn_fpv_logo_white_small.jpg">
 </head>
 <body>
+    <script>
+        (function() {
+            var theme = localStorage.getItem('fpv-tools-theme');
+            if (!theme) {
+                theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            if (theme === 'light') {
+                document.body.classList.add('light-theme');
+            }
+        })();
+    </script>
 
 <div class="container">
     <!-- Header -->
@@ -1214,6 +1354,7 @@ L.gridLayer.gridPattern = function(opts) {
 
 let layersControl = null;
 let currentBaseLayers = {};
+let roadLayer = null;
 
 function initMap() {
     if (leafletMap) return;
@@ -1230,16 +1371,23 @@ function initMap() {
             maxZoom: 19,
             attribution: 'Esri Satellite'
         });
-        const darkRoad = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        
+        const activeTheme = document.body.classList.contains('light-theme') ? 'light' : 'dark';
+        const roadUrl = activeTheme === 'light' 
+            ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+            : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+        const roadAttr = activeTheme === 'light' ? 'CartoDB Light' : 'CartoDB Dark';
+
+        roadLayer = L.tileLayer(roadUrl, {
             maxZoom: 19,
-            attribution: 'CartoDB Dark'
+            attribution: roadAttr
         });
 
         // Set default to satellite when online, and add controls
         satellite.addTo(leafletMap);
         currentBaseLayers = {
             "Satellite": satellite,
-            "Dark Road Map": darkRoad,
+            "Road Map": roadLayer,
             "Tactical Grid (Offline)": offlineGrid
         };
         
@@ -1293,6 +1441,13 @@ function updateAltChart(points) {
 
     if (altChart) altChart.destroy();
 
+    const isLight = document.body.classList.contains('light-theme');
+    const labelColor = isLight ? '#4b5563' : '#9ca3af';
+    const gridColor = isLight ? '#e5e7eb' : 'rgba(55, 65, 81, 0.5)';
+    const tooltipBg = isLight ? '#ffffff' : '#1f2937';
+    const tooltipBody = isLight ? '#111827' : '#fff';
+    const tooltipBorder = isLight ? '#e5e7eb' : '#374151';
+
     altChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -1314,6 +1469,11 @@ function updateAltChart(points) {
             plugins: {
                 legend: { display: false },
                 tooltip: {
+                    backgroundColor: tooltipBg,
+                    titleColor: labelColor,
+                    bodyColor: tooltipBody,
+                    borderColor: tooltipBorder,
+                    borderWidth: 1,
                     callbacks: {
                         title: function(items) {
                             const d = distances[items[0].dataIndex];
@@ -1333,26 +1493,26 @@ function updateAltChart(points) {
                     title: {
                         display: true,
                         text: totalDist > 1000 ? 'Distance (km)' : 'Distance (m)',
-                        color: '#6b7280',
+                        color: labelColor,
                         font: { size: 11 }
                     },
                     ticks: {
-                        color: '#6b7280',
+                        color: labelColor,
                         font: { size: 10 },
                         maxTicksLimit: 8,
                     },
-                    grid: { color: 'rgba(55, 65, 81, 0.5)' }
+                    grid: { color: gridColor }
                 },
                 y: {
                     display: true,
                     title: {
                         display: true,
                         text: 'Altitude (m)',
-                        color: '#6b7280',
+                        color: labelColor,
                         font: { size: 11 }
                     },
-                    ticks: { color: '#6b7280', font: { size: 10 } },
-                    grid: { color: 'rgba(55, 65, 81, 0.5)' }
+                    ticks: { color: labelColor, font: { size: 10 } },
+                    grid: { color: gridColor }
                 }
             }
         }
@@ -1647,6 +1807,62 @@ function handleFile(file) {
 // Download
 document.getElementById('downloadBtn').addEventListener('click', downloadFile);
 document.getElementById('resetBtn').addEventListener('click', resetAll);
+
+// Listen for theme change from parent wrapper
+window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'setTheme') {
+        const theme = event.data.theme;
+        if (theme === 'light') {
+            document.body.classList.add('light-theme');
+        } else {
+            document.body.classList.remove('light-theme');
+        }
+        updateChartsTheme(theme);
+        if (roadLayer) {
+            if (theme === 'light') {
+                roadLayer.setUrl('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png');
+            } else {
+                roadLayer.setUrl('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png');
+            }
+        }
+    }
+});
+
+function updateChartsTheme(theme) {
+    const isLight = (theme === 'light');
+    const labelColor = isLight ? '#4b5563' : '#9ca3af';
+    const gridColor = isLight ? '#e5e7eb' : 'rgba(55, 65, 81, 0.5)';
+    const tooltipBg = isLight ? '#ffffff' : '#1f2937';
+    const tooltipBody = isLight ? '#111827' : '#fff';
+    const tooltipBorder = isLight ? '#e5e7eb' : '#374151';
+
+    if (altChart) {
+        altChart.options.scales.x.title.color = labelColor;
+        altChart.options.scales.x.ticks.color = labelColor;
+        altChart.options.scales.x.grid.color = gridColor;
+
+        altChart.options.scales.y.title.color = labelColor;
+        altChart.options.scales.y.ticks.color = labelColor;
+        altChart.options.scales.y.grid.color = gridColor;
+        
+        if (altChart.options.plugins.tooltip) {
+            altChart.options.plugins.tooltip.backgroundColor = tooltipBg;
+            altChart.options.plugins.tooltip.titleColor = labelColor;
+            altChart.options.plugins.tooltip.bodyColor = tooltipBody;
+            altChart.options.plugins.tooltip.borderColor = tooltipBorder;
+            altChart.options.plugins.tooltip.borderWidth = 1;
+        }
+        altChart.update();
+    }
+}
+
+// Init theme on load
+(function() {
+    const t = localStorage.getItem('fpv-tools-theme') || 'dark';
+    if (t === 'light') {
+        document.body.classList.add('light-theme');
+    }
+})();
 </script>
 <script>
     if (window.parent && window.parent !== window) {

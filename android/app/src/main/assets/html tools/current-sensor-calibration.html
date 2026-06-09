@@ -242,6 +242,77 @@
             }
             .input-results-grid { grid-template-columns: 1fr 1fr; }
         }
+        body.light-theme {
+            background-color: #f3f4f6 !important;
+            color: #1f2937 !important;
+        }
+        body.light-theme .panel {
+            background-color: #ffffff !important;
+            border-color: #d1d5db !important;
+            color: #1f2937 !important;
+        }
+        body.light-theme label,
+        body.light-theme .panel-title,
+        body.light-theme .sg label,
+        body.light-theme .sg .pn,
+        body.light-theme .subtitle,
+        body.light-theme .val {
+            color: #4b5563 !important;
+        }
+        body.light-theme input[type="number"],
+        body.light-theme select {
+            background-color: #f9fafb !important;
+            color: #111827 !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme input[type="number"]:focus,
+        body.light-theme select:focus {
+            border-color: #3b82f6 !important;
+        }
+        body.light-theme h1,
+        body.light-theme h2 {
+            color: #111827 !important;
+        }
+        body.light-theme .results-tabs {
+            background-color: #f3f4f6 !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme .results-tab {
+            background-color: #f3f4f6 !important;
+            color: #4b5563 !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme .results-tab.active {
+            background-color: #ffffff !important;
+            color: #1f2937 !important;
+        }
+        body.light-theme .results-tab:hover {
+            background-color: #e5e7eb !important;
+            color: #111827 !important;
+        }
+        body.light-theme .vbadge-tab {
+            background-color: #e5e7eb !important;
+            color: #4b5563 !important;
+        }
+        body.light-theme .cli-container {
+            background-color: #f3f4f6 !important;
+            border-color: #d1d5db !important;
+            color: #111827 !important;
+        }
+        body.light-theme .accuracy-badge {
+            background-color: #f3f4f6 !important;
+            color: #111827 !important;
+        }
+        body.light-theme .badge {
+            background-color: #e5e7eb !important;
+            color: #4b5563 !important;
+        }
+        .error-bar-track {
+            background-color: #374151;
+        }
+        body.light-theme .error-bar-track {
+            background-color: #cbd5e1 !important;
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -249,6 +320,17 @@
     <link rel="icon" type="image/png" href="../logo/saturn_fpv_logo_white_small.jpg">
 </head>
 <body>
+    <script>
+        (function() {
+            var theme = localStorage.getItem('fpv-tools-theme');
+            if (!theme) {
+                theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            if (theme === 'light') {
+                document.body.classList.add('light-theme');
+            }
+        })();
+    </script>
 
 <div class="container">
     <h1>Betaflight Sensor Calibration</h1>
@@ -322,7 +404,7 @@
                 <div class="panel-title">Reading Error</div>
                 <div style="display:flex; align-items:center; gap:1rem;">
                     <div style="flex:1;">
-                        <div style="background:#374151; border-radius:0.25rem; height:1.5rem; position:relative; overflow:hidden;">
+                        <div class="error-bar-track" style="border-radius:0.25rem; height:1.5rem; position:relative; overflow:hidden;">
                             <div id="error-bar" style="height:100%; border-radius:0.25rem; transition: width .3s; width:0%;"></div>
                         </div>
                     </div>
@@ -530,6 +612,25 @@ function copyCLI(el) {
         }
     });
 });
+
+// Listen for theme change from parent wrapper
+window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'setTheme') {
+        if (event.data.theme === 'light') {
+            document.body.classList.add('light-theme');
+        } else {
+            document.body.classList.remove('light-theme');
+        }
+    }
+});
+
+// Init theme on load
+(function() {
+    const t = localStorage.getItem('fpv-tools-theme') || 'dark';
+    if (t === 'light') {
+        document.body.classList.add('light-theme');
+    }
+})();
 </script>
 <script>
     if (window.parent && window.parent !== window) {

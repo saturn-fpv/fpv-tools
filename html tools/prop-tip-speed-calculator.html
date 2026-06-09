@@ -387,6 +387,137 @@
             .presets-grid { grid-template-columns: 1fr 1fr; }
             .result-row-big .rvalue { font-size: 1.125rem; }
         }
+
+        body.light-theme {
+            background-color: #f3f4f6 !important;
+            color: #1f2937 !important;
+        }
+        body.light-theme .panel {
+            background-color: #ffffff !important;
+            border-color: #d1d5db !important;
+            color: #1f2937 !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        body.light-theme .panel h2 {
+            color: #111827 !important;
+        }
+        body.light-theme label,
+        body.light-theme .panel-title,
+        body.light-theme .sg label,
+        body.light-theme .rl,
+        body.light-theme .help-text,
+        body.light-theme .form-row label {
+            color: #4b5563 !important;
+        }
+        body.light-theme input[type="number"],
+        body.light-theme select {
+            background-color: #f9fafb !important;
+            color: #111827 !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme input[type="number"]:focus,
+        body.light-theme select:focus {
+            border-color: #3b82f6 !important;
+        }
+        body.light-theme input[type="range"] {
+            background-color: #e5e7eb !important;
+        }
+        body.light-theme h1,
+        body.light-theme .val,
+        body.light-theme .number,
+        body.light-theme .result-row-big .rvalue,
+        body.light-theme .rvalue {
+            color: #111827 !important;
+        }
+        body.light-theme .preset-btn {
+            background-color: #f3f4f6 !important;
+            border-color: #d1d5db !important;
+            color: #1f2937 !important;
+        }
+        body.light-theme .preset-btn:hover {
+            background-color: #e5e7eb !important;
+        }
+        body.light-theme .info-card {
+            background-color: rgba(59, 123, 246, 0.05) !important;
+            border-color: rgba(59, 123, 246, 0.2) !important;
+            color: #1e3a8a !important;
+        }
+        body.light-theme .info-card h4 {
+            color: #1e3a8a !important;
+        }
+        body.light-theme select option {
+            background-color: #ffffff !important;
+            color: #111827 !important;
+        }
+        body.light-theme .results-col {
+            background: #f9fafb !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme .results-col.col-theo {
+            border-color: rgba(59, 130, 246, 0.4) !important;
+        }
+        body.light-theme .results-col.col-real {
+            border-color: rgba(16, 185, 129, 0.4) !important;
+        }
+        body.light-theme .speed-unit-selector {
+            background-color: #f3f4f6 !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme .speed-unit-selector .unit-btn {
+            border-color: #d1d5db !important;
+            color: #4b5563 !important;
+        }
+        body.light-theme .speed-unit-selector .unit-btn.active {
+            background-color: #E8722A !important;
+            color: white !important;
+            border-color: transparent !important;
+        }
+        body.light-theme .toggle-group {
+            border-color: #d1d5db !important;
+        }
+        body.light-theme .toggle-btn {
+            background: #f3f4f6 !important;
+            color: #4b5563 !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme .toggle-btn.active {
+            background: rgba(59, 130, 246, 0.1) !important;
+            color: #3b82f6 !important;
+        }
+        body.light-theme .info-tip {
+            background: #f9fafb !important;
+            border-color: #d1d5db !important;
+            color: #4b5563 !important;
+        }
+        body.light-theme .sep {
+            border-color: #e5e7eb !important;
+        }
+        body.light-theme .results-tabs {
+            background-color: #f3f4f6 !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme .results-tab {
+            background-color: #f3f4f6 !important;
+            color: #4b5563 !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme .results-tab.active {
+            background-color: #ffffff !important;
+            color: #3b82f6 !important;
+            border-bottom-color: #3b82f6 !important;
+        }
+        body.light-theme .results-tab.active.avg-active {
+            color: #10b981 !important;
+            border-bottom-color: #10b981 !important;
+        }
+        body.light-theme .results-tab:hover {
+            background-color: #e5e7eb !important;
+            color: #111827 !important;
+        }
+        body.light-theme .vbadge-tab {
+            background-color: #e5e7eb !important;
+            color: #4b5563 !important;
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -394,6 +525,17 @@
     <link rel="icon" type="image/png" href="../logo/saturn_fpv_logo_white_small.jpg">
 </head>
 <body>
+    <script>
+        (function() {
+            var theme = localStorage.getItem('fpv-tools-theme');
+            if (!theme) {
+                theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            if (theme === 'light') {
+                document.body.classList.add('light-theme');
+            }
+        })();
+    </script>
 
 <div class="container">
     <h1>Propeller Tip Speed Calculator</h1>
@@ -798,6 +940,25 @@
 
     // Initialize calculations directly
     syncPropFromInch();
+
+    // Listen for theme change from parent wrapper
+    window.addEventListener('message', function(event) {
+        if (event.data && event.data.type === 'setTheme') {
+            if (event.data.theme === 'light') {
+                document.body.classList.add('light-theme');
+            } else {
+                document.body.classList.remove('light-theme');
+            }
+        }
+    });
+
+    // Init theme on load
+    (function() {
+        const t = localStorage.getItem('fpv-tools-theme') || 'dark';
+        if (t === 'light') {
+            document.body.classList.add('light-theme');
+        }
+    })();
 </script>
 <script>
     if (window.parent && window.parent !== window) {

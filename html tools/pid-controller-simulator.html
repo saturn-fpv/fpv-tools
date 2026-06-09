@@ -30,10 +30,21 @@
 <link rel="icon" type="image/png" href="../logo/saturn_fpv_logo_white_small.jpg">
 </head>
 <body>
+<script>
+    (function() {
+        var theme = localStorage.getItem('fpv-tools-theme');
+        if (!theme) {
+            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        if (theme === 'light') {
+            document.body.classList.add('light-theme');
+        }
+    })();
+</script>
 <div id="root"></div>
 <script type="text/babel">
 const { useState, useEffect, useRef, useCallback } = React;
-const T = { bg:"#111827", panel:"#1f2937", border:"#374151", borderLt:"rgba(255,255,255,0.08)", canvas:"#0f1520", text:"#e5e7eb", textMut:"#9ca3af", textDim:"#6b7280", orange:"#E8722A", blue:"#3B7BF6", red:"#f43f5e", green:"#34d399", purple:"#a78bfa", pink:"#fb7185", gray:"#6b7280" };
+let T = { bg:"#111827", panel:"#1f2937", border:"#374151", borderLt:"rgba(255,255,255,0.08)", canvas:"#0f1520", text:"#e5e7eb", textMut:"#9ca3af", textDim:"#6b7280", orange:"#E8722A", blue:"#3B7BF6", red:"#f43f5e", green:"#34d399", purple:"#a78bfa", pink:"#fb7185", gray:"#6b7280", grid1:"rgba(255,255,255,0.03)", grid2:"rgba(255,255,255,0.06)", grid3:"rgba(255,255,255,0.12)" };
 const HISTORY_LENGTH = 600, HISTORY_BUFFER = 3600;
 
 /* Editable Value */
@@ -45,7 +56,7 @@ function EditableValue({ value, step, min, max, onChange, color, fontSize = 20 }
   useEffect(() => { if (editing && inputRef.current) inputRef.current.select(); }, [editing]);
   const dec = step < 1 ? (step < 0.01 ? 3 : 2) : 1;
   if (editing) return <input ref={inputRef} type="number" value={text} min={min} max={max} step={step}
-    style={{ fontFamily:"monospace",fontSize,fontWeight:600,color:"#fff",background:T.bg,border:`1px solid ${T.orange}`,borderRadius:3,padding:"1px 4px",width:60,textAlign:"center",outline:"none" }}
+    style={{ fontFamily:"monospace",fontSize,fontWeight:600,color:T.text,background:T.bg,border:`1px solid ${T.orange}`,borderRadius:3,padding:"1px 4px",width:60,textAlign:"center",outline:"none" }}
     onChange={e=>setText(e.target.value)} onBlur={commit} onKeyDown={e=>{if(e.key==="Enter")commit();if(e.key==="Escape")setEditing(false);}}/>;
   return <span onClick={()=>{setText(value.toFixed(dec));setEditing(true);}}
     style={{ fontFamily:"monospace",fontSize,fontWeight:600,color:T.text,background:T.bg,border:`1px solid ${color||T.border}33`,borderRadius:3,padding:"1px 5px",cursor:"text",userSelect:"none" }}
@@ -61,13 +72,13 @@ function Knob({ label, value, min, max, step, onChange, color, size=70, defaultV
   const onUp=()=>{dragging.current=false;};
   const onDblClick=()=>{if(defaultValue!==undefined)onChange(defaultValue);};
   const s=size,h=s/2,ticks=[];
-  for(let i=0;i<=10;i++){const a=(-135+i*27)*Math.PI/180;ticks.push(<line key={i} x1={h+(s*0.38)*Math.cos(a)} y1={h+(s*0.38)*Math.sin(a)} x2={h+(s*0.44)*Math.cos(a)} y2={h+(s*0.44)*Math.sin(a)} stroke="rgba(255,255,255,0.12)" strokeWidth="1"/>);}
+  for(let i=0;i<=10;i++){const a=(-135+i*27)*Math.PI/180;ticks.push(<line key={i} x1={h+(s*0.38)*Math.cos(a)} y1={h+(s*0.38)*Math.sin(a)} x2={h+(s*0.44)*Math.cos(a)} y2={h+(s*0.44)*Math.sin(a)} stroke={T.grid3} strokeWidth="1"/>);}
   return(
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,userSelect:"none"}} onDoubleClick={onDblClick}>
       <span style={{fontFamily:"monospace",fontSize:18,fontWeight:700,color,letterSpacing:1.5}}>{label}</span>
       <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} style={{cursor:"ns-resize",touchAction:"none"}} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp}>
         {ticks}
-        <path d={describeArc(h,h,s*0.34,-135,135)} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="3" strokeLinecap="round"/>
+        <path d={describeArc(h,h,s*0.34,-135,135)} fill="none" stroke={T.grid1} strokeWidth="3" strokeLinecap="round"/>
         <path d={describeArc(h,h,s*0.34,-135,angle)} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" style={{filter:`drop-shadow(0 0 3px ${color})`}}/>
         <circle cx={h} cy={h} r={s*0.24} fill={T.panel} stroke={T.border} strokeWidth="1"/>
         <line x1={h} y1={h} x2={h+s*0.18*Math.cos(angle*Math.PI/180)} y2={h+s*0.18*Math.sin(angle*Math.PI/180)} stroke={color} strokeWidth="2" strokeLinecap="round"/>
@@ -90,7 +101,7 @@ function VSlider({label,value,min,max,step,onChange,color,height=100,defaultValu
       <div ref={ref} style={{position:"relative",width:24,height,cursor:"ns-resize",touchAction:"none"}}
         onPointerDown={e=>{drag.current=true;e.target.setPointerCapture(e.pointerId);update(e);}}
         onPointerMove={e=>{if(drag.current)update(e);}} onPointerUp={()=>{drag.current=false;}}>
-        <div style={{position:"absolute",left:"50%",top:8,width:3,height:trackH,marginLeft:-1.5,background:"rgba(255,255,255,0.05)",borderRadius:2}}/>
+        <div style={{position:"absolute",left:"50%",top:8,width:3,height:trackH,marginLeft:-1.5,background:T.grid1,borderRadius:2}}/>
         <div style={{position:"absolute",left:"50%",top:thumbY+8,width:3,height:trackH-thumbY,marginLeft:-1.5,background:color,borderRadius:2,opacity:0.3}}/>
         <div style={{position:"absolute",left:"50%",top:thumbY+8,width:18,height:8,marginLeft:-9,marginTop:-4,borderRadius:2,background:T.panel,border:`1px solid ${color}`,boxShadow:`0 0 4px ${color}33`}}/>
       </div>
@@ -117,9 +128,9 @@ function Scope({history,width,height,paused,yScale,onYScaleChange,maximized}){
     const ctx=canvas.getContext("2d"),dpr=window.devicePixelRatio||1;
     canvas.width=width*dpr;canvas.height=height*dpr;ctx.scale(dpr,dpr);ctx.clearRect(0,0,width,height);ctx.save();
     const scMin=-yScale,scMax=yScale,data=history,viewLen=HISTORY_LENGTH;
-    ctx.strokeStyle="rgba(255,255,255,0.03)";ctx.lineWidth=1;for(let i=0;i<10;i++){const x=(i/10)*width;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,height);ctx.stroke();}
-    ctx.strokeStyle="rgba(255,255,255,0.12)";ctx.lineWidth=1;ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(width/2,0);ctx.lineTo(width/2,height);ctx.stroke();
-    ctx.strokeStyle="rgba(255,255,255,0.06)";ctx.beginPath();ctx.moveTo(0,height/2);ctx.lineTo(width,height/2);ctx.stroke();ctx.setLineDash([]);
+    ctx.strokeStyle=T.grid1;ctx.lineWidth=1;for(let i=0;i<10;i++){const x=(i/10)*width;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,height);ctx.stroke();}
+    ctx.strokeStyle=T.grid3;ctx.lineWidth=1;ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(width/2,0);ctx.lineTo(width/2,height);ctx.stroke();
+    ctx.strokeStyle=T.grid2;ctx.beginPath();ctx.moveTo(0,height/2);ctx.lineTo(width,height/2);ctx.stroke();ctx.setLineDash([]);
     if(data.length<2){ctx.restore();return;}
     const{panX,xZoom}=view,lw2=maximized?2:1,pps=(width*xZoom)/viewLen;
     let ai,asx;if(!paused){ai=data.length-1;asx=width;}else{ai=data.length-1-Math.min(viewLen,data.length)/2;asx=width/2;}
@@ -170,15 +181,15 @@ function StepResponse({kp,ki,kd,mass,friction,loopDelay,gyroNoise,disturbance,wi
       <div style={{display:"flex",gap:8,alignItems:"center"}}>{div&&<span style={{fontSize:16,color:T.red,fontWeight:700}}>{"\u26A0"} UNSTABLE</span>}<span style={{fontSize:16,color:T.textDim}}>0{"\u2192"}{SSTEP} {"\u00B7"} {SDUR}s</span></div>
     </div>
     <svg width={W} height={H} viewBox={"0 0 "+W+" "+H} style={{borderRadius:4,background:T.canvas,border:`1px solid ${T.border}`,display:"block",flex:1}}>
-      {[1,2,3,4,5,6,7,8,9].map(s=><line key={s} x1={tx(s)} y1={0} x2={tx(s)} y2={H} stroke="rgba(255,255,255,0.03)" strokeWidth="1"/>)}
-      <line x1={0} y1={ty(0)} x2={W} y2={ty(0)} stroke="rgba(255,255,255,0.06)" strokeWidth="1" strokeDasharray="3 3"/>
+      {[1,2,3,4,5,6,7,8,9].map(s=><line key={s} x1={tx(s)} y1={0} x2={tx(s)} y2={H} stroke={T.grid1} strokeWidth="1"/>)}
+      <line x1={0} y1={ty(0)} x2={W} y2={ty(0)} stroke={T.grid2} strokeWidth="1" strokeDasharray="3 3"/>
       <line x1={0} y1={ty(tgt)} x2={W} y2={ty(tgt)} stroke={`${T.orange}66`} strokeWidth="1" strokeDasharray="5 3"/>
       <rect x={0} y={ty(tgt+bnd)} width={W} height={Math.max(0,ty(tgt-bnd)-ty(tgt+bnd))} fill={`${T.blue}08`}/>
       {!isNaN(rT)&&rs>=0&&<rect x={tx(rs)} y={0} width={Math.max(0,tx(re)-tx(rs))} height={H} fill={`${T.green}0A`}/>}
       {stl<SDUR&&<line x1={tx(stl)} y1={0} x2={tx(stl)} y2={H} stroke={`${T.purple}4D`} strokeWidth="1" strokeDasharray="3 3"/>}
       <path d={pth} fill="none" stroke={div?T.red:T.blue} strokeWidth="1.5"/>
       {os>0.5&&<circle cx={tx(pkT)} cy={ty(pkV)} r={2.5} fill={T.red}/>}
-      {[0,2,4,6,8,10].map(s=><text key={s} x={tx(s)} y={H-3} textAnchor="middle" fill="rgba(255,255,255,0.12)" fontSize="16" fontFamily="monospace">{s}s</text>)}
+      {[0,2,4,6,8,10].map(s=><text key={s} x={tx(s)} y={H-3} textAnchor="middle" fill={T.grid3} fontSize="16" fontFamily="monospace">{s}s</text>)}
     </svg>
     <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:4,marginTop:6,textAlign:"center",fontFamily:"monospace"}}>
       {[["Rise",isNaN(rT)?"\u2014":(rT*1000).toFixed(0)+"ms"],["Overshoot",os>0.5?os.toFixed(1)+"%":"0%"],["Settle",stl>=SDUR?">"+SDUR+"s":stl.toFixed(2)+"s"],["SS Err",sse.toFixed(2)]].map(([l,v])=>(<div key={l}><span style={{fontSize:14,color:T.textDim,letterSpacing:1}}>{l}</span><br/><span style={{fontSize:22,fontWeight:700,color:T.text}}>{v}</span></div>))}
@@ -188,6 +199,34 @@ function StepResponse({kp,ki,kd,mass,friction,loopDelay,gyroNoise,disturbance,wi
 
 /* Main App */
 function PIDDemo(){
+  const [themeState, setThemeState] = useState(localStorage.getItem('fpv-tools-theme') || 'dark');
+  useEffect(() => {
+    const handler = (event) => {
+      if (event.data && event.data.type === 'setTheme') {
+        const isLight = event.data.theme === 'light';
+        if (isLight) {
+            document.body.classList.add('light-theme');
+            T.bg = "#f3f4f6"; T.panel = "#ffffff"; T.border = "#d1d5db"; T.borderLt = "rgba(0,0,0,0.08)"; T.canvas = "#ffffff"; T.text = "#111827"; T.textMut = "#4b5563"; T.textDim = "#9ca3af";
+            T.grid1 = "rgba(0,0,0,0.03)"; T.grid2 = "rgba(0,0,0,0.06)"; T.grid3 = "rgba(0,0,0,0.12)";
+        } else {
+            document.body.classList.remove('light-theme');
+            T.bg = "#111827"; T.panel = "#1f2937"; T.border = "#374151"; T.borderLt = "rgba(255,255,255,0.08)"; T.canvas = "#0f1520"; T.text = "#e5e7eb"; T.textMut = "#9ca3af"; T.textDim = "#6b7280";
+            T.grid1 = "rgba(255,255,255,0.03)"; T.grid2 = "rgba(255,255,255,0.06)"; T.grid3 = "rgba(255,255,255,0.12)";
+        }
+        setThemeState(event.data.theme);
+      }
+    };
+    window.addEventListener('message', handler);
+    // Initial sync
+    const initialTheme = localStorage.getItem('fpv-tools-theme') || 'dark';
+    if (initialTheme === 'light') {
+        document.body.classList.add('light-theme');
+        T.bg = "#f3f4f6"; T.panel = "#ffffff"; T.border = "#d1d5db"; T.borderLt = "rgba(0,0,0,0.08)"; T.canvas = "#ffffff"; T.text = "#111827"; T.textMut = "#4b5563"; T.textDim = "#9ca3af";
+        T.grid1 = "rgba(0,0,0,0.03)"; T.grid2 = "rgba(0,0,0,0.06)"; T.grid3 = "rgba(0,0,0,0.12)";
+    }
+    return () => window.removeEventListener('message', handler);
+  }, []);
+
   const [kp,setKp]=useState(7.9),[ki,setKi]=useState(1.75),[kd,setKd]=useState(3.8),[kff,setKff]=useState(1.0);
   const [targetPos,setTargetPos]=useState(0),[followerPos,setFollowerPos]=useState(0);
   const [mass,setMass]=useState(1.0),[drag,setDrag]=useState(0.10),[loopDelay,setLoopDelay]=useState(15);
@@ -275,7 +314,7 @@ function PIDDemo(){
 
       {/* Title */}
       <div style={{textAlign:"center",marginBottom:isMobile?2:0,width:contentW}}>
-        <h1 style={{fontSize:isMobile?18:22,fontWeight:700,color:"#fff",letterSpacing:1,margin:0}}>PID Controller Simulator</h1>
+        <h1 style={{fontSize:isMobile?18:22,fontWeight:700,color:T.text,letterSpacing:1,margin:0}}>PID Controller Simulator</h1>
         <div style={{fontSize:isMobile?11:13,color:T.textDim,marginTop:2}}>Visualize how P, I, D, and FF gains affect a simulated drone axis</div>
       </div>
 
@@ -295,7 +334,7 @@ function PIDDemo(){
           </div>
         </div>
         {/* Physics */}
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"space-between",background:`linear-gradient(180deg,#1f1a14,${T.panel})`,border:`1px solid ${T.orange}33`,borderRadius:8,padding:"4px 6px",flex:isMobile?"1 1 100%":undefined}}>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",justify:"space-between",background:themeState === 'light' ? 'linear-gradient(180deg,#fff7ed,#ffffff)' : `linear-gradient(180deg,#1f1a14,${T.panel})`,border:`1px solid ${T.orange}33`,borderRadius:8,padding:"4px 6px",flex:isMobile?"1 1 100%":undefined}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",width:"100%",marginBottom:2,paddingLeft:4,paddingRight:2}}>
             <span style={{fontFamily:"monospace",fontSize:Math.round(14*scale),fontWeight:700,color:T.orange,letterSpacing:2}}>PHYSICS</span>
             <button onClick={resetPhysics} style={btnStyle(T.orange,true)}>RESET</button>
@@ -326,10 +365,10 @@ function PIDDemo(){
         <div style={{flex:1,background:T.panel,border:`1px solid ${T.border}`,borderRadius:8,padding:"6px 10px"}}>
           <div ref={trackRef} style={{position:"relative",height:trackH,background:T.canvas,borderRadius:5,cursor:"pointer",touchAction:"none",overflow:"hidden"}}
             onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
-            <div style={{position:"absolute",left:"50%",top:0,bottom:0,width:1,background:"rgba(255,255,255,0.05)"}}/>
-            {Array.from({length:21},(_,i)=><div key={i} style={{position:"absolute",left:`${(i/20)*100}%`,bottom:0,width:1,height:i%5===0?10:5,background:`rgba(255,255,255,${i%5===0?0.08:0.03})`}}/>)}
+            <div style={{position:"absolute",left:"50%",top:0,bottom:0,width:1,background:T.grid1}}/>
+            {Array.from({length:21},(_,i)=><div key={i} style={{position:"absolute",left:`${(i/20)*100}%`,bottom:0,width:1,height:i%5===0?10:5,background:i%5===0?T.grid3:T.grid1}}/>)}
             <div style={{position:"absolute",left:`${followerPx}%`,top:0,bottom:0,width:3,marginLeft:-1.5,background:T.blue,borderRadius:1,boxShadow:`0 0 8px ${T.blue}66`}}/>
-            <div onDoubleClick={e=>{e.stopPropagation();targetRawRef.current=0;setTargetPos(0);}} style={{position:"absolute",left:`${targetPx}%`,top:"50%",transform:"translate(-50%,-50%)",width:22,height:22,borderRadius:"50%",background:`radial-gradient(circle at 40% 35%,${T.orange},#b45309)`,border:"2px solid rgba(255,255,255,0.15)",boxShadow:`0 0 10px ${T.orange}66`,cursor:"grab",zIndex:10}}/>
+            <div onDoubleClick={e=>{e.stopPropagation();targetRawRef.current=0;setTargetPos(0);}} style={{position:"absolute",left:`${targetPx}%`,top:"50%",transform:"translate(-50%,-50%)",width:22,height:22,borderRadius:"50%",background:`radial-gradient(circle at 40% 35%,${T.orange},#b45309)`,border:`2px solid ${T.grid3}`,boxShadow:`0 0 10px ${T.orange}66`,cursor:"grab",zIndex:10}}/>
           </div>
           <div style={{display:"flex",justifyContent:"space-between",marginTop:4,fontSize:isMobile?13:Math.round(18*scale),alignItems:"center",flexWrap:"wrap",gap:4}}>
             <span>Setpoint: <span style={{color:T.orange}}>{targetPos.toFixed(1)}</span></span>
@@ -356,8 +395,8 @@ function PIDDemo(){
           </div>
           <div style={{flex:1,minHeight:0}}><Scope history={history} width={scopeDims.w} height={scopeDims.h} paused={paused} yScale={scopeYScale} onYScaleChange={setScopeYScale} maximized={false}/></div>
         </div>
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:`linear-gradient(180deg,#1f1a14,#16130e)`,border:`1px solid ${heatColor}44`,borderRadius:8,padding:"4px 10px",width:motorHeatW,flexShrink:0,fontSize:Math.round(12*scale)}}>
-          <span style={{fontFamily:"monospace",fontSize:Math.round(12*scale),color:"#664433",letterSpacing:1,textAlign:"center",marginBottom:4}}>MOTOR<br/>HEAT</span>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:themeState === 'light' ? 'linear-gradient(180deg,#fff7ed,#fef3c7)' : `linear-gradient(180deg,#1f1a14,#16130e)`,border:`1px solid ${heatColor}44`,borderRadius:8,padding:"4px 10px",width:motorHeatW,flexShrink:0,fontSize:Math.round(12*scale)}}>
+          <span style={{fontFamily:"monospace",fontSize:Math.round(12*scale),color:themeState === 'light' ? '#9a3412' : '#9ca3af',letterSpacing:1,textAlign:"center",marginBottom:4}}>MOTOR<br/>HEAT</span>
           <div style={{position:"relative",width:14,flex:1,minHeight:20,background:T.canvas,borderRadius:4,border:`1px solid ${T.borderLt}`,overflow:"hidden"}}>
             <div style={{position:"absolute",bottom:0,left:0,right:0,height:`${heatNorm*100}%`,background:heatColor,borderRadius:3,boxShadow:heatNorm>0.6?`0 0 6px ${heatColor}88`:"none"}}/>
           </div>

@@ -20,8 +20,9 @@ android {
         applicationId = "com.saturnfpv.fpvtools"
         minSdk = 24
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.0.1"
+        versionCode = 3
+        versionName = "1.0.2"
+        manifestPlaceholders["appName"] = "FPV Tools"
     }
 
     signingConfigs {
@@ -42,6 +43,11 @@ android {
             if (secretsFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
             }
+            manifestPlaceholders["appName"] = "FPV Tools"
+        }
+        debug {
+            applicationIdSuffix = ".debug"
+            manifestPlaceholders["appName"] = "FPV Tools (Debug)"
         }
     }
     compileOptions {

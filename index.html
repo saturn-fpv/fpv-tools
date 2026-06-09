@@ -22,6 +22,29 @@
             --blue-glow: rgba(59, 123, 246, 0.2);
             --orange-glow: rgba(232, 114, 42, 0.2);
             --header-height: 50px;
+            --header-bg: rgba(10, 10, 11, 0.85);
+            --help-panel-bg: rgba(20, 20, 22, 0.95);
+            --drawer-bg: rgba(24, 24, 27, 0.95);
+            --hover-bg: rgba(255, 255, 255, 0.08);
+            --active-item-bg: rgba(232, 114, 42, 0.06);
+            --active-item-border: rgba(232, 114, 42, 0.15);
+        }
+
+        body.light-theme {
+            --black: #F4F4F5;
+            --dark: #E4E4E7;
+            --card: #FFFFFF;
+            --card-hover: #F4F4F5;
+            --border: #D4D4D8;
+            --text: #09090B;
+            --text-muted: #27272A;
+            --text-dim: #71717A;
+            --header-bg: rgba(244, 244, 245, 0.85);
+            --help-panel-bg: rgba(228, 228, 231, 0.95);
+            --drawer-bg: rgba(228, 228, 231, 0.95);
+            --hover-bg: rgba(9, 9, 11, 0.08);
+            --active-item-bg: rgba(232, 114, 42, 0.08);
+            --active-item-border: rgba(232, 114, 42, 0.3);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -43,7 +66,7 @@
             right: 0;
             height: calc(var(--header-height) + env(safe-area-inset-top, 0px));
             padding-top: env(safe-area-inset-top, 0px);
-            background: rgba(10, 10, 11, 0.85);
+            background: var(--header-bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border);
@@ -132,7 +155,7 @@
             border: 1px solid var(--border);
         }
         .btn-menu:hover {
-            background: rgba(255, 255, 255, 0.08);
+            background: var(--hover-bg);
             border-color: var(--text-muted);
             transform: scale(1.05);
         }
@@ -182,7 +205,7 @@
             left: 0;
             right: 0;
             max-height: 85vh;
-            background: rgba(20, 20, 22, 0.95);
+            background: var(--help-panel-bg);
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
             border-bottom: 1px solid var(--border);
@@ -239,7 +262,7 @@
         .help-close-btn:hover {
             color: var(--text);
             border-color: var(--text-muted);
-            background: rgba(255,255,255,0.03);
+            background: var(--hover-bg);
         }
 
         /* 2. Slide-in Tools Menu Drawer */
@@ -249,7 +272,7 @@
             right: -320px;
             width: 300px;
             height: 100%;
-            background: rgba(24, 24, 27, 0.95);
+            background: var(--drawer-bg);
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
             border-left: 1px solid var(--border);
@@ -291,6 +314,24 @@
         .drawer-close:hover {
             color: var(--text);
         }
+        .drawer-item-about {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            transition: all 0.2s;
+            color: var(--text-dim);
+            outline: none;
+        }
+        .drawer-item-about:hover, .drawer-item-about.active {
+            color: var(--orange) !important;
+        }
         .drawer-links {
             list-style: none;
             padding: 1rem 0;
@@ -315,11 +356,11 @@
         }
         .drawer-item a:hover, .drawer-item.active a {
             color: var(--text);
-            background: rgba(232, 114, 42, 0.06);
-            border-color: rgba(232, 114, 42, 0.15);
+            background: var(--active-item-bg);
+            border-color: var(--active-item-border);
         }
         .drawer-item.active a {
-            background: rgba(232, 114, 42, 0.1);
+            background: var(--active-item-bg);
             border-color: var(--orange);
             font-weight: 600;
         }
@@ -385,6 +426,72 @@
                 width: calc(100% - 300px) !important;
             }
         }
+
+        /* ── THEME TOGGLE CONTROLS ── */
+        .theme-switch-slider {
+            position: relative;
+            display: inline-block;
+            width: 42px;
+            height: 22px;
+        }
+        .theme-switch-slider input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background-color: var(--border);
+            transition: .25s ease;
+            border-radius: 22px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 4px;
+            bottom: 4px;
+            background-color: var(--text-dim);
+            transition: .25s ease;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: rgba(59, 123, 246, 0.15);
+            border: 1px solid rgba(59, 123, 246, 0.3);
+        }
+        input:checked + .slider:before {
+            transform: translateX(18px);
+            background-color: var(--blue);
+        }
+        .drawer-footer {
+            padding: 1rem 1.25rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--dark);
+        }
+        .theme-btn-a {
+            background: none;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            color: var(--text);
+        }
+        .theme-btn-a:hover {
+            border-color: var(--text-muted);
+            background: var(--hover-bg);
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
@@ -438,13 +545,19 @@
     <div class="drawer-menu" id="drawer-menu">
         <div class="drawer-header">
             <h2><span>FPV</span> Tools</h2>
-            <button class="drawer-close" onclick="toggleDrawer()">&times;</button>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button id="menu-about" class="drawer-item-about" onclick="selectDrawerTool('about.html', 'about')" title="About FPV Tools">
+                    <span style="font-size: 1.15rem; line-height: 1;">ℹ️</span>
+                </button>
+                <button class="drawer-close" onclick="toggleDrawer()">&times;</button>
+            </div>
         </div>
         <ul class="drawer-links">
             <li class="drawer-item active" id="menu-home" onclick="selectDrawerTool('menu.html', 'home')">
                 <a href="#"><span class="tool-icon">📊</span>Dashboard</a>
             </li>
-            <li style="border-top: 1px solid var(--border); margin: 0.75rem 1rem 0.5rem 1rem; padding-top: 0.75rem; font-size: 0.6875rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; list-style: none;">Tools</li>
+            <li style="border-bottom: 1px solid var(--border); margin: 0.5rem 1rem 0.75rem 1rem; list-style: none;"></li>
+            <li style="margin: 0.75rem 1rem 0.5rem 1rem; font-size: 0.6875rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; list-style: none;">Tools</li>
             <li class="drawer-item" id="menu-rate" onclick="selectDrawerTool('html tools/betaflight-rate-converter.html', 'rate')">
                 <a href="#"><span class="tool-icon">📈</span>Rate Converter</a>
             </li>
@@ -470,6 +583,13 @@
                 <a href="#"><span class="tool-icon">🗺️</span>Telemetry Parser</a>
             </li>
         </ul>
+        <div class="drawer-footer" style="padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; background: var(--dark); border-top: 1px solid var(--border);">
+            <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;">🌓 Dark Mode</span>
+            <label class="theme-switch-slider">
+                <input type="checkbox" id="theme-slider-input" checked onchange="onSliderThemeChange(this)">
+                <span class="slider"></span>
+            </label>
+        </div>
     </div>
 
     <!-- DYNAMIC HELP CONTENT STORAGE -->
@@ -681,7 +801,7 @@
 
         function updateActiveDrawer(key) {
             currentActiveTool = key;
-            document.querySelectorAll('.drawer-item').forEach(item => {
+            document.querySelectorAll('.drawer-item, .drawer-item-about').forEach(item => {
                 item.classList.remove('active');
             });
             const activeItem = document.getElementById('menu-' + key);
@@ -699,6 +819,56 @@
             if (event.data && event.data.type === 'pageChange') {
                 updateActiveDrawer(event.data.key);
             }
+        });
+
+        // ── THEME SWITCH SYSTEM ──
+        let currentTheme = localStorage.getItem('fpv-tools-theme');
+        if (!currentTheme) {
+            currentTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+
+        function applyTheme(theme) {
+            currentTheme = theme;
+            localStorage.setItem('fpv-tools-theme', theme);
+
+            // Update DOM class
+            if (theme === 'light') {
+                document.body.classList.add('light-theme');
+            } else {
+                document.body.classList.remove('light-theme');
+            }
+
+            // Sync Android native system bars if available
+            if (window.AndroidBridge && window.AndroidBridge.updateTheme) {
+                window.AndroidBridge.updateTheme(theme);
+            }
+
+            // Sync Option B Slider Toggle Checkbox
+            const slider = document.getElementById('theme-slider-input');
+            if (slider) {
+                slider.checked = (theme === 'dark');
+            }
+
+            // Propagate theme change to active iframe
+            const iframe = document.getElementById('app-iframe');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({ type: 'setTheme', theme: theme }, '*');
+            }
+        }
+
+        function onSliderThemeChange(checkbox) {
+            const nextTheme = checkbox.checked ? 'dark' : 'light';
+            applyTheme(nextTheme);
+        }
+
+        // On load event
+        document.addEventListener('DOMContentLoaded', function() {
+            applyTheme(currentTheme);
+        });
+
+        // Whenever the iframe finishes loading, push active theme configuration to it
+        document.getElementById('app-iframe').addEventListener('load', function() {
+            this.contentWindow.postMessage({ type: 'setTheme', theme: currentTheme }, '*');
         });
     </script>
 </body>
