@@ -297,6 +297,17 @@
         /* Hidden */
         .hidden { display: none !important; }
 
+        .warn-banner {
+            background-color: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 0.375rem;
+            padding: 0.6rem 0.75rem;
+            color: #fbbf24;
+            font-size: 0.75rem;
+            line-height: 1.4;
+            margin-bottom: 0.75rem;
+        }
+
         /* Togglable results tabs */
         .results-tabs {
             display: flex;
@@ -390,6 +401,9 @@
 
                 <!-- Tab Content: Track Map -->
                 <div class="panel" id="tab-telemetry-map" style="border-top-left-radius:0; border-top-right-radius:0;">
+                    <div id="sparseGpsWarning" class="warn-banner hidden">
+                        <strong>⚠️ Sparse GPS Telemetry Detected:</strong> Your GPS coordinates update slowly (density: <span id="warnDensity"></span>%), likely due to a low ExpressLRS Telemetry Ratio (like 1:64). Consider using <strong>1:8</strong> or <strong>1:4</strong> in your radio's ELRS LUA script for smooth tracking, and try enabling the <strong>Interpolate sparse GPS</strong> option.
+                    </div>
                     <div id="map"></div>
                     <div class="stats-row" id="statsRow">
                         <div class="stat-item">
@@ -447,6 +461,13 @@
                         <span>Auto-trim stationary points</span>
                         <label class="toggle">
                             <input type="checkbox" id="autoTrim" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-row">
+                        <span>Interpolate sparse GPS (smooth)</span>
+                        <label class="toggle">
+                            <input type="checkbox" id="smoothGps" checked>
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -744,9 +765,14 @@ function detectFlights(rows) {
             var t2 = parseTime(rows[i].date, rows[i].time);
             if (!isNaN(t1) && !isNaN(t2) && (t2 - t1) > 60000) split = true;
         }
-        // (b) CRSF-style arm event: altitude drop from > 50m to <= 5m (relative altitude resets)
+        // (b) CRSF-style arm event: altitude drop from > 50m to <= 5m (relative altitude resets) AND drone is stationary
         if (!split && rows[i - 1].alt > 50 && rows[i].alt <= 5) {
-            split = true;
+            var isStationary = (rows[i].speedKmh === undefined || isNaN(rows[i].speedKmh) || rows[i].speedKmh < 10);
+            var isThrLow = (rows[i].thr === undefined || rows[i].thr < -950) || 
+                           (rows[i].ch3 === undefined || rows[i].ch3 < 1020);
+            if (isStationary && isThrLow) {
+                split = true;
+            }
         }
         if (split) splits.push(i);
     }
@@ -808,6 +834,7 @@ function summarizeFlight(segRows) {
     }
     var maxSpeedCol = 0;
     var maxSpeedCalc = 0;
+    var lastChangeIdx = 0;
     var minAlt = Infinity, maxAlt = -Infinity;
     var maxDist = 0;
     var unique = {};
@@ -827,15 +854,19 @@ function summarizeFlight(segRows) {
 
         if (i > 0) {
             var prev = segRows[i - 1];
-            var step = haversine(prev.lat, prev.lon, r.lat, r.lon);
-            if (prev.date && r.date && prev.time && r.time) {
-                var t1 = parseTime(prev.date, prev.time);
-                var t2 = parseTime(r.date, r.time);
-                var dt = (t2 - t1) / 1000;
-                if (dt > 0 && dt < 60) {
-                    var kmh = (step / dt) * 3.6;
-                    if (kmh > maxSpeedCalc) maxSpeedCalc = kmh;
+            if (r.lat !== prev.lat || r.lon !== prev.lon) {
+                var lastChangeRow = segRows[lastChangeIdx];
+                var step = haversine(lastChangeRow.lat, lastChangeRow.lon, r.lat, r.lon);
+                if (lastChangeRow.date && r.date && lastChangeRow.time && r.time) {
+                    var t1 = parseTime(lastChangeRow.date, lastChangeRow.time);
+                    var t2 = parseTime(r.date, r.time);
+                    var dt = (t2 - t1) / 1000;
+                    if (dt > 0 && dt < 60) {
+                        var kmh = (step / dt) * 3.6;
+                        if (kmh > maxSpeedCalc) maxSpeedCalc = kmh;
+                    }
                 }
+                lastChangeIdx = i;
             }
         }
     }
@@ -863,11 +894,60 @@ function summarizeFlight(segRows) {
 // ================================================================
 //  POINT PROCESSING (altitude correction + trimming)
 // ================================================================
-function processFlightPoints(flight, altOffset, doTrim) {
+function interpolateGPSPoints(points) {
+    if (points.length < 3) return points;
+    let i = 0;
+    while (i < points.length) {
+        let startIdx = i;
+        let latVal = points[startIdx].lat;
+        let lonVal = points[startIdx].lon;
+        
+        let j = startIdx + 1;
+        while (j < points.length && points[j].lat === latVal && points[j].lon === lonVal) {
+            j++;
+        }
+        
+        let endIdx = j;
+        
+        if (endIdx < points.length && endIdx - startIdx > 1) {
+            let steps = endIdx - startIdx;
+            let startLat = points[startIdx].lat;
+            let startLon = points[startIdx].lon;
+            let startAlt = points[startIdx].altCorrected;
+            
+            let endLat = points[endIdx].lat;
+            let endLon = points[endIdx].lon;
+            let endAlt = points[endIdx].altCorrected;
+            
+            let totalDist = haversine(startLat, startLon, endLat, endLon);
+            let t1 = parseTime(points[startIdx].date, points[startIdx].time);
+            let t2 = parseTime(points[endIdx].date, points[endIdx].time);
+            let dt = (t2 - t1) / 1000;
+            let avgSpeedKmh = (dt > 0) ? (totalDist / dt) * 3.6 : 0;
+            
+            for (let k = startIdx + 1; k < endIdx; k++) {
+                let frac = (k - startIdx) / steps;
+                points[k].lat = startLat + (endLat - startLat) * frac;
+                points[k].lon = startLon + (endLon - startLon) * frac;
+                points[k].altCorrected = startAlt + (endAlt - startAlt) * frac;
+                points[k].speedKmh = avgSpeedKmh;
+            }
+            points[startIdx].speedKmh = avgSpeedKmh;
+        }
+        i = endIdx;
+    }
+    return points;
+}
+
+function processFlightPoints(flight, altOffset, doTrim, doSmooth) {
     let points = flight.rows.map(r => ({
         ...r,
         altCorrected: r.alt + altOffset
     }));
+
+    if (doSmooth && points.length > 2) {
+        points = interpolateGPSPoints(points);
+    }
 
     if (doTrim && points.length > 2) {
         // Trim leading stationary points
@@ -1301,16 +1381,23 @@ function updateStats(points) {
     // ELRS telemetry often holds stale GSpd values, so the calculated speed
     // is a more honest signal of how fast the model actually moved.
     var maxSpdCalc = 0;
+    var lastChangeIdx = 0;
     for (var i = 1; i < points.length; i++) {
         var prev = points[i - 1], curr = points[i];
-        if (!prev.date || !curr.date || !prev.time || !curr.time) continue;
-        var t1 = parseTime(prev.date, prev.time);
-        var t2 = parseTime(curr.date, curr.time);
-        var dt = (t2 - t1) / 1000;
-        if (!(dt > 0 && dt < 60)) continue;
-        var step = haversine(prev.lat, prev.lon, curr.lat, curr.lon);
-        var kmh = (step / dt) * 3.6;
-        if (kmh > maxSpdCalc) maxSpdCalc = kmh;
+        if (curr.lat !== prev.lat || curr.lon !== prev.lon) {
+            var lastChangePt = points[lastChangeIdx];
+            if (lastChangePt.date && curr.date && lastChangePt.time && curr.time) {
+                var t1 = parseTime(lastChangePt.date, lastChangePt.time);
+                var t2 = parseTime(curr.date, curr.time);
+                var dt = (t2 - t1) / 1000;
+                if (dt > 0 && dt < 60) {
+                    var step = haversine(lastChangePt.lat, lastChangePt.lon, curr.lat, curr.lon);
+                    var kmh = (step / dt) * 3.6;
+                    if (kmh > maxSpdCalc) maxSpdCalc = kmh;
+                }
+            }
+            lastChangeIdx = i;
+        }
     }
     document.getElementById('statMaxSpdCalc').textContent =
         maxSpdCalc > 0 ? maxSpdCalc.toFixed(1) + ' km/h' : '-';
@@ -1322,6 +1409,17 @@ function updateStats(points) {
     points.forEach(function(p) { unique[p.lat.toFixed(6) + ',' + p.lon.toFixed(6)] = 1; });
     var density = points.length > 0 ? Math.round((Object.keys(unique).length / points.length) * 100) : 0;
     document.getElementById('statDensity').textContent = density + '%';
+
+    // Show/hide sparse telemetry warning
+    const warnEl = document.getElementById('sparseGpsWarning');
+    if (warnEl) {
+        if (points.length > 30 && density < 25) {
+            document.getElementById('warnDensity').textContent = density;
+            warnEl.classList.remove('hidden');
+        } else {
+            warnEl.classList.add('hidden');
+        }
+    }
 
     // Duration
     if (points.length > 1 && points[0].date && points[0].time) {
@@ -1427,8 +1525,9 @@ function refreshPreview() {
     const flight = flights[selectedFlight];
     const altOffset = parseFloat(document.getElementById('altOffset').value) || 0;
     const doTrim = document.getElementById('autoTrim').checked;
+    const doSmooth = document.getElementById('smoothGps').checked;
 
-    activePoints = processFlightPoints(flight, altOffset, doTrim);
+    activePoints = processFlightPoints(flight, altOffset, doTrim, doSmooth);
 
     initMap();
     updateMap(activePoints);
@@ -1533,7 +1632,7 @@ function handleFile(file) {
 }
 
 // Settings changes trigger preview refresh
-['altOffset', 'autoTrim', 'trackColor', 'lineWidth', 'altMode', 'extrude'].forEach(function(id) {
+['altOffset', 'autoTrim', 'smoothGps', 'trackColor', 'lineWidth', 'altMode', 'extrude'].forEach(function(id) {
     var el = document.getElementById(id);
     if (!el) return;
     var evt = el.type === 'checkbox' ? 'change' : 'input';

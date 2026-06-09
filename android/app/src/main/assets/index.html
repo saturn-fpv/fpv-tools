@@ -618,7 +618,14 @@
                     <li>Go to the <strong>Special Functions</strong> tab on your radio (e.g. SF1).</li>
                     <li>Set the switch to your **ARM switch** (so it logs only when armed).</li>
                     <li>Set the action to <strong>SD Logs</strong>, set the interval to <strong>1.0s</strong> (every 1 second), and check the box to enable it.</li>
-                </ol>
+                </ol><br>
+                <p><strong>⚠️ Improving GPS Telemetry Smoothness:</strong></p>
+                <p>If your GPS tracking looks "choppy" or updates infrequently (e.g. once every 7-8 seconds), your ExpressLRS <strong>Telemetry Ratio</strong> is likely set too low (e.g. 1:64 or 1:128) in your radio's ELRS LUA script.</p>
+                <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <li>Open the <strong>ExpressLRS LUA script</strong> on your EdgeTX radio.</li>
+                    <li>Change the **Telem Ratio** to a higher frequency setting, such as <strong>1:8</strong> or <strong>1:4</strong>.</li>
+                    <li>This increases the telemetry packet rate, updating your GPS coordinates multiple times per second for smooth, high-fidelity logs.</li>
+                </ul>
             `
         };
 
