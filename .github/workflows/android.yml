@@ -1,0 +1,35 @@
+name: Android
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build APK
+    # Ubuntu 26.04 is in preview on GitHub Actions as of June 2026, so we use Ubuntu
+    # 24.04 for now.
+    # TODO: Update to ubuntu-26.04 once it is out of preview.
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Build debug APK
+        run: |
+          docker run --rm \
+            -v "$PWD:/workspace" \
+            -w /workspace/android \
+            cimg/android:2026.03 \
+            ./gradlew --no-daemon clean assembleDebug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: fpv-tools-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
