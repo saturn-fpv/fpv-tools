@@ -4,7 +4,7 @@
 [![Support on Patreon](https://img.shields.io/badge/Patreon-Sponsor-orange?logo=patreon&logoColor=white)](https://www.patreon.com/SaturnFPV)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL_v3-blue.svg)](LICENSE)
 
-FPV Tools is a comprehensive, premium utility suite designed specifically for FPV drone pilots, builders, and racers. It simplifies complex drone calculations, coordinates frequencies, models rate profiles, and parses telemetry log files into beautiful interactive charts and 3D maps.
+FPV Tools is a comprehensive utility suite designed specifically for FPV drone pilots, builders, and racers. It simplifies complex drone calculations, coordinates frequencies, models rate profiles, and parses telemetry log files into beautiful interactive charts and 3D maps.
 
 ![FPV Tools Showcase](media/9x9_sep.jpg)
 
@@ -28,7 +28,7 @@ FPV Tools is a comprehensive, premium utility suite designed specifically for FP
 * 🚫 **No Ads & No In-App Purchases**: Fully free, clean, and distraction-free workspace.
 * 🚫 **No Tracking / Privacy-First**: No data is tracked, stored, or sent to cloud servers. Your telemetry logs and settings remain strictly local.
 * 🌐 **Works 100% Offline**: All calculations, simulators, and telemetry parsing are performed in local memory. The only network request occurs to load map tiles in the telemetry preview (if online).
-* 📖 **Fully Open Source**: Clean, public source code designed to build trust in the FPV community.
+* 📖 **Fully Open Source**: Clean, public source code designed to build trust and collaborate on improvements.
 
 ---
 
