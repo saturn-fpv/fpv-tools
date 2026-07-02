@@ -31,9 +31,10 @@ This file outlines the rules of engagement, project architecture, and coding sta
 
 ### 6. Shared Architecture with Saturn FPV Website
 
-The Master Source Files under `/tools/`, `/js/`, and `/css/` are shared directly with the **Saturn FPV Website** repository. 
+The Master Source Files under `/tools/`, `/js/`, and `/css/` are shared directly with the **Saturn FPV Website** repository. Please note that while this FPV Tools app codebase is public, the website source code is kept private/local. 
 
 #### Critical Considerations for Shared Tools:
+* **Preserving Structure for Web Compatibility**: Because the private website repository relies directly on the structure of `/tools/`, `/js/`, and `/css/` to run its web-based tools, external contributors must preserve this directory layout. If you need to make changes to the folder structure, please open an issue or check with the project owner first to ensure the updates can be tested and verified against the website.
 * **App as the Source of Truth**: All edits, features, and fixes to tool logic, styles, or scripts **MUST** be performed in this repository first, verified locally via Android build compilation, and then synchronized to the website repository. Do not edit tool files inside the website repository directly.
 * **Relative Path Management**: All assets (scripts, stylesheets, local fonts) must be linked using relative paths (e.g. `../js/chart.umd.min.js`) rather than absolute paths (e.g. `/js/...`). Absolute paths will fail when loaded inside Android's local asset scheme (`file:///android_asset/tools/...`).
 * **Iframe & Standalone Chrome Detection**: The website standalone version injects its brand header and footer into the tools using `partials/partial_tools.js`. This script checks if the tool is loaded inside the app's iframe container:
