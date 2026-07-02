@@ -985,8 +985,11 @@
 
         // Catch messages from iframe when tool changes internally
         window.addEventListener('message', function(event) {
-            if (event.data && event.data.type === 'pageChange') {
-                updateActiveDrawer(event.data.key);
+            const iframe = document.getElementById('app-iframe');
+            if (iframe && event.source === iframe.contentWindow) {
+                if (event.data && event.data.type === 'pageChange') {
+                    updateActiveDrawer(event.data.key);
+                }
             }
         });
 

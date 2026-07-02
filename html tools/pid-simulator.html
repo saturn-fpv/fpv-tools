@@ -200,6 +200,7 @@ function PIDDemo(){
   const [themeState, setThemeState] = useState(localStorage.getItem('fpv-tools-theme') || 'dark');
   useEffect(() => {
     const handler = (event) => {
+      if (event.source !== window.parent) return;
       if (event.data && event.data.type === 'setTheme') {
         const isLight = event.data.theme === 'light';
         if (isLight) {
