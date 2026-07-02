@@ -88,7 +88,17 @@ class MainActivity : ComponentActivity() {
 
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                return false
+                val url = request?.url?.toString() ?: return false
+                if (url.startsWith("file://") || url.startsWith("data:")) {
+                    return false
+                }
+                try {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                    this@MainActivity.startActivity(intent)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return true
             }
         }
 
