@@ -5,6 +5,9 @@ build/
 **/build/
 *.apk
 *.aab
+.externalNativeBuild/
+.cxx/
+captures/
 
 # Local developer configurations (leaks paths)
 local.properties
