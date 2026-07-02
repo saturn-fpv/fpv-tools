@@ -28,3 +28,32 @@ This file outlines the rules of engagement, project architecture, and coding sta
   * WebView settings block CORS/AJAX from local file URLs and disable WebSQL.
   * The file-sharing bridge (`AndroidBridge.shareFile`) enforces a 50MB file size limit and restricts exports strictly to `.gpx`, `.kml`, `.kmz`, and `.txt` formats.
   * Parent-child iframe communication (`postMessage`) must validate `event.source` to prevent spoofing.
+
+### 6. Shared Architecture with Saturn FPV Website
+
+The Master Source Files under `/tools/`, `/js/`, and `/css/` are shared directly with the **Saturn FPV Website** repository. 
+
+#### Critical Considerations for Shared Tools:
+* **App as the Source of Truth**: All edits, features, and fixes to tool logic, styles, or scripts **MUST** be performed in this repository first, verified locally via Android build compilation, and then synchronized to the website repository. Do not edit tool files inside the website repository directly.
+* **Relative Path Management**: All assets (scripts, stylesheets, local fonts) must be linked using relative paths (e.g. `../js/chart.umd.min.js`) rather than absolute paths (e.g. `/js/...`). Absolute paths will fail when loaded inside Android's local asset scheme (`file:///android_asset/tools/...`).
+* **Iframe & Standalone Chrome Detection**: The website standalone version injects its brand header and footer into the tools using `partials/partial_tools.js`. This script checks if the tool is loaded inside the app's iframe container:
+  ```javascript
+  if (window.parent && window.parent !== window) return;
+  ```
+  If loaded inside the app's iframe, the script exits immediately, leaving navigation entirely to the native Kotlin drawer/shell.
+* **Dynamic Help Harvesting**: To eliminate duplicate text storage, tool files hold their help content inside a hidden container and dispatch it to the parent wrapper on load via `postMessage`. Make sure any new tools follow this template:
+  ```html
+  <div id="help-content-source" style="display:none;">
+      [HELP HTML CONTENT]
+  </div>
+  ```
+  ```javascript
+  if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'pageChange', key: '[tool_key]' }, '*');
+      window.parent.postMessage({
+          type: 'helpData',
+          key: '[tool_key]',
+          html: document.getElementById('help-content-source').innerHTML
+      }, '*');
+  }
+  ```
