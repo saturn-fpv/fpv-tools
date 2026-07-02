@@ -13,8 +13,8 @@ This file outlines the rules of engagement, project architecture, and coding sta
 * All cryptographic keys (*.jks, *.keystore) and local properties files (`secrets.properties`, `local.properties`) are strictly gitignored. Never stage, commit, or push them.
 
 ### 3. Build & Verification Protocol
-* After modifying any Kotlin files or web assets, always verify that the project compiles cleanly using the local Gradle wrapper:
-  `.\gradlew.bat installDebug`
+* After modifying any Kotlin files or web assets, always verify that the project builds and lint checks pass cleanly using the local Gradle wrapper:
+  `.\gradlew.bat lintDebug assembleDebug`
 * If a physical device or emulator is connected, launch the app to visually inspect and verify the UI changes.
 
 ### 4. Typography & Styling
