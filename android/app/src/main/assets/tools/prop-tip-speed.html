@@ -525,10 +525,7 @@
 <body>
     <script>
         (function() {
-            var theme = localStorage.getItem('fpv-tools-theme');
-            if (!theme) {
-                theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            }
+            var theme = localStorage.getItem('fpv-tools-theme') || 'dark';
             if (theme === 'light') {
                 document.body.classList.add('light-theme');
             }
@@ -959,9 +956,30 @@
         }
     })();
 </script>
+<div id="help-content-source" style="display:none;">
+    <p><strong>Prop Tip Speed Help</strong></p><br>
+    <p>Calculate the absolute physical speed at which your propeller tips cut through the air, and monitor transonic aerodynamic limits.</p><br>
+    <p><strong>Understanding Transonic Limits:</strong></p>
+    <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+        <li>As the tips of a propeller approach the speed of sound (Mach 1.0), the airflow detaches, forming micro shock waves. This leads to heavy turbulence, a massive drop in efficiency, and extremely loud prop wash.</li>
+        <li><strong>Mach Zones:</strong>
+            <br>• Below 0.62: Super efficient and highly quiet.
+            <br>• 0.62 to 0.88: Moderate, excellent balance of thrust and sound.
+            <br>• 0.88 to 0.92: Max thrust zone. Transonic limits are reached.
+            <br>• Above 0.92: Severely inefficient. Heavy power is wasted as acoustic heat.
+        </li>
+        <li>Air temperature alters the speed of sound. Adjust the environment slider to see how hot/cold climates alter your prop's aerodynamic limits.</li>
+    </ul>
+</div>
+<script src="../partials/partial_tools.js"></script>
 <script>
     if (window.parent && window.parent !== window) {
         window.parent.postMessage({ type: 'pageChange', key: 'speed' }, '*');
+        window.parent.postMessage({
+            type: 'helpData',
+            key: 'speed',
+            html: document.getElementById('help-content-source').innerHTML
+        }, '*');
     }
 </script>
 </body>

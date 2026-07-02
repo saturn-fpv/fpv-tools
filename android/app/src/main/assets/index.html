@@ -687,28 +687,28 @@
             </li>
             <li style="border-bottom: 1px solid var(--border); margin: 0.5rem 1rem 0.75rem 1rem; list-style: none;"></li>
             <li style="margin: 0.75rem 1rem 0.5rem 1rem; font-size: 0.6875rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; list-style: none;">Tools</li>
-            <li class="drawer-item" id="menu-rate" onclick="selectDrawerTool('html tools/rate-converter.html', 'rate')">
+            <li class="drawer-item" id="menu-rate" onclick="selectDrawerTool('tools/rate-converter.html', 'rate')">
                 <a href="#"><span class="tool-icon">📈</span>Rate Converter</a>
             </li>
-            <li class="drawer-item" id="menu-tpa" onclick="selectDrawerTool('html tools/tpa-comparison.html', 'tpa')">
+            <li class="drawer-item" id="menu-tpa" onclick="selectDrawerTool('tools/tpa-comparison.html', 'tpa')">
                 <a href="#"><span class="tool-icon">📉</span>TPA Comparison</a>
             </li>
-            <li class="drawer-item" id="menu-current" onclick="selectDrawerTool('html tools/sensor-calibration.html', 'current')">
+            <li class="drawer-item" id="menu-current" onclick="selectDrawerTool('tools/sensor-calibration.html', 'current')">
                 <a href="#"><span class="tool-icon">⚡</span>Sensor Calibration</a>
             </li>
-            <li class="drawer-item" id="menu-stator" onclick="selectDrawerTool('html tools/stator-volume.html', 'stator')">
+            <li class="drawer-item" id="menu-stator" onclick="selectDrawerTool('tools/stator-volume.html', 'stator')">
                 <a href="#"><span class="tool-icon">⚙️</span>Stator Volume</a>
             </li>
-            <li class="drawer-item" id="menu-pid" onclick="selectDrawerTool('html tools/pid-simulator.html', 'pid')">
+            <li class="drawer-item" id="menu-pid" onclick="selectDrawerTool('tools/pid-simulator.html', 'pid')">
                 <a href="#"><span class="tool-icon">🎮</span>PID Simulator</a>
             </li>
-            <li class="drawer-item" id="menu-speed" onclick="selectDrawerTool('html tools/prop-tip-speed.html', 'speed')">
+            <li class="drawer-item" id="menu-speed" onclick="selectDrawerTool('tools/prop-tip-speed.html', 'speed')">
                 <a href="#"><span class="tool-icon">🌀</span>Prop Tip Speed</a>
             </li>
-            <li class="drawer-item" id="menu-freq" onclick="selectDrawerTool('html tools/frequency-planner.html', 'freq')">
+            <li class="drawer-item" id="menu-freq" onclick="selectDrawerTool('tools/frequency-planner.html', 'freq')">
                 <a href="#"><span class="tool-icon">📡</span>Frequency Planner</a>
             </li>
-            <li class="drawer-item" id="menu-telemetry" onclick="selectDrawerTool('html tools/telemetry-parser.html', 'telemetry')">
+            <li class="drawer-item" id="menu-telemetry" onclick="selectDrawerTool('tools/telemetry-parser.html', 'telemetry')">
                 <a href="#"><span class="tool-icon">🗺️</span>Telemetry Parser</a>
             </li>
         </ul>
@@ -778,143 +778,6 @@
                         </a>
                     </div>
                 </div>
-            `,
-            rate: `
-                <p><strong>Rate Converter Help</strong></p><br>
-                <p>Compare and convert rate curves across Actual, Betaflight, Quick, KISS, and RaceFlight rate models. This allows you to recreate the exact stick feel when moving between different flight controllers or firmware versions.</p><br>
-                <p><strong>How to use:</strong></p>
-                <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                    <li>Set your rates in the target curve using the sliders or numerical inputs.</li>
-                    <li>To convert one curve model to another, choose your preferred target model in the "To:" select box at the bottom of the panel, and click <strong>Convert</strong>.</li>
-                    <li>A hybrid coarse/fine grid search algorithm will run in the background to automatically find the mathematically closest rates under that model, matching the source curve's center sensitivity and maximum rates.</li>
-                </ul>
-            `,
-            tpa: `
-                <p><strong>TPA Comparison Help</strong></p><br>
-                <p>TPA (Throttle PID Attenuation) reduces PID gains at high throttle ranges to prevent mid-to-high throttle oscillations (often heard as high-frequency warbling or flutter at full punch-outs).</p><br>
-                <p><strong>Understanding the inputs:</strong></p>
-                <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                    <li><strong>TPA Rate:</strong> The percentage by which the P and D gains are reduced at 100% throttle. E.g., a rate of 0.65 reduces your gains by 65% (PIDs retain 35% strength).</li>
-                    <li><strong>Breakpoint:</strong> The throttle value (in microseconds, from 1000 to 2000) where the attenuation starts. Below this breakpoint, PIDs retain 100% strength.</li>
-                    <li>Use the dual control panels to overlay two different TPA profiles and compare how rapidly and aggressively they attenuate your gains.</li>
-                </ul>
-            `,
-            current: `
-                <p><strong>Sensor Calibration Help</strong></p><br>
-                <p>This utility helps you calibrate your flight controller's internal current sensor and voltage dividers to guarantee accurate battery status telemetry and reliable mAh consumption readings.</p><br>
-                <p><strong>Current Sensor Steps:</strong></p>
-                <ol style="padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                    <li>Fly a pack and record the **mAh consumed** reported by your OSD/Configurator.</li>
-                    <li>Put the battery on a charger and record the **mAh replaced** (charged).</li>
-                    <li>Record your current **Betaflight Current Scale** (default is usually 400).</li>
-                    <li>Click Calculate and paste the resulting ` + "`set current_meter_scale`" + ` CLI command into the Betaflight console.</li>
-                </ol><br>
-                <p><strong>Voltage Sensor Steps:</strong></p>
-                <ol style="padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                    <li>Measure active battery voltage with a multimeter while connected to the quad.</li>
-                    <li>Record the voltage shown by the Configurator and the current **Voltage Scale** (default 110).</li>
-                    <li>Click Calculate and apply the ` + "`set vbat_scale`" + ` CLI command in Betaflight.</li>
-                </ol>
-            `,
-            stator: `
-                <p><strong>Stator Volume Help</strong></p><br>
-                <p>Multirotor motors are designated by standard dimensions (e.g. 2207, 2306) representing their stator diameter and stator height in millimeters. Stator volume serves as a direct proxy for active magnetic material and copper volume, indicating motor torque capacity.</p><br>
-                <p><strong>Key Insights:</strong></p>
-                <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                    <li><strong>The Stator Formula:</strong> Stator volume is calculated as: V = &pi; &times; (D/2)&sup2; &times; H. Because diameter is squared, small diameter increments yield larger volume shifts than height changes. However, height contributes heavily to cooling and stator aspect ratios.</li>
-                    <li><strong>Volume & Weight:</strong> Estimated motor weights are derived from statistical averages: W &asymp; 2.0g + 0.0098 &times; V.</li>
-                    <li>Use the comparison charts and live cross-sections to scale, compare, and identify optimal KV ranges and propeller configurations for any motor size.</li>
-                </ul>
-            `,
-            pid: `
-                <p><strong>PID Simulator Help</strong></p><br>
-                <p>Based on Joshua Bardwell's PID Tuning Masterclass, this tool simulates a single drone axis to help you build an intuitive feel for how each gain and physics parameter affects flight dynamics.</p><br>
-                
-                <p><strong>Core Concepts (PID & FF):</strong></p>
-                <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                    <li><strong>P (Proportional):</strong> Reacts to the present. Drives the follower toward the setpoint. Excess P causes ringing, overshoot, and rapid oscillations.</li>
-                    <li><strong>I (Integral):</strong> Reacts to the past. Corrects persistent offsets (like unbalanced CG or side winds) by accumulating force over time.</li>
-                    <li><strong>D (Derivative):</strong> Reacts to the future. Dampens acceleration and decelerates the follower as it approaches the setpoint. Excess D causes high-frequency noise amplification, heating up motors.</li>
-                    <li><strong>FF (Feedforward):</strong> Reacts to stick velocity. Instantly adds force during stick movement to eliminate gyro latency, dropping to zero when stick stops.</li>
-                    <li><strong>The Scope (Blackbox Log):</strong> The real-time Scope simulates a flight controller's Blackbox log. It records and plots Setpoint (stick input), Follower (gyro rotation), Error, and individual PID/FF trace lines so you can diagnose controller behaviors exactly like analyzing real flight logs.</li>
-                </ul><br>
-
-                <p><strong>Tuning Approach (How to Use):</strong></p>
-                <ol style="padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                    <li><strong>Zero Out Gains:</strong> Turn P, I, D, and FF all the way to 0 to observe the "broken" system (the follower won't move).</li>
-                    <li><strong>Find P Limit:</strong> Raise P until the follower matches the setpoint. Note how P-only causes endless overshoot and oscillations (undamped ringing).</li>
-                    <li><strong>Add D to Damp:</strong> Raise D to act as a brake. It counteracts P's momentum, damping the overshoot and stabilizing the line.</li>
-                    <li><strong>Set I for Bias:</strong> Turn up CG (disturbance) to simulate wind or an off-center battery. Note how the follower drifts. Turn up I to correct this steady-state error.</li>
-                    <li><strong>Snappiness with FF:</strong> Notice the delay between moving the target and the follower responding (due to physics/loop delay). Raise FF to inject a kick based on stick speed, making the response snappy and eliminating latency.</li>
-                </ol><br>
-
-                <p><strong>Physics Parameters:</strong></p>
-                <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                    <li><strong>Mass:</strong> Weight of the craft. Higher mass slows down response and demands higher P/D gains.</li>
-                    <li><strong>Drag:</strong> Air resistance. Higher drag acts as natural damping (like D) but requires more continuous thrust to maintain rates.</li>
-                    <li><strong>Delay:</strong> Latency in the loop (control calculations & ESC latency). <em>Critical: Higher delay makes the system highly unstable and prone to oscillation, limiting your maximum gains!</em></li>
-                    <li><strong>Noise:</strong> Gyro electrical/mechanical vibration. Amplified by high D-term gains, leading to excess "Motor Heat".</li>
-                    <li><strong>CG (Disturbance):</strong> Unbalanced mass/constant force. Requires I-term to prevent steady-state drift.</li>
-                </ul><br>
-
-                <p><strong>Interpreting Step Response:</strong></p>
-                <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                    <li><strong>Rise Time:</strong> Snappiness. Time taken to climb from 10% to 90% of setpoint.</li>
-                    <li><strong>Overshoot:</strong> Bounce. Percentage by which the follower exceeds the setpoint. Try to keep this minimal (&lt; 5%).</li>
-                    <li><strong>Settle Time:</strong> Lock-in. Time required for oscillations to decay within 2% of setpoint.</li>
-                    <li><strong>SS Error:</strong> Drift. The steady-state gap left when control inputs stop. Corrected by I.</li>
-                </ul>
-            `,
-            speed: `
-                <p><strong>Prop Tip Speed Help</strong></p><br>
-                <p>Calculate the absolute physical speed at which your propeller tips cut through the air, and monitor transonic aerodynamic limits.</p><br>
-                <p><strong>Understanding Transonic Limits:</strong></p>
-                <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                    <li>As the tips of a propeller approach the speed of sound (Mach 1.0), the airflow detaches, forming micro shock waves. This leads to heavy turbulence, a massive drop in efficiency, and extremely loud prop wash.</li>
-                    <li><strong>Mach Zones:</strong>
-                        <br>• Below 0.62: Super efficient and highly quiet.
-                        <br>• 0.62 to 0.88: Moderate, excellent balance of thrust and sound.
-                        <br>• 0.88 to 0.92: Max thrust zone. Transonic limits are reached.
-                        <br>• Above 0.92: Severely inefficient. Heavy power is wasted as acoustic heat.
-                    </li>
-                    <li>Air temperature alters the speed of sound. Adjust the environment slider to see how hot/cold climates alter your prop's aerodynamic limits.</li>
-                </ul>
-            `,
-            freq: `
-                <p><strong>Frequency Planner Help</strong></p><br>
-                <p>Organize clear, intermodulation distortion (IMD) free frequency grids for analog and digital FPV systems running multi-pilot events.</p><br>
-                <p><strong>Key Features:</strong></p>
-                <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                    <li><strong>The Challenge:</strong> When multiple video transmitters broadcast simultaneously, they generate phantom harmonics in local receivers (IMD). Standard equal-spacing schemes amplify these conflicts.</li>
-                    <li><strong>DJI O3/O4 Carrier:</strong> DJI O3/O4 systems utilize a wide carrier wave that floods the 5720-5850 MHz spectrum. This tool automatically forces analog/HDZero channels outside this zone when digital systems are active in the lineup.</li>
-                    <li>Set the pilot sliders and click <strong>Auto-Assign Frequencies</strong>. The engine will search, plan, and automatically split pilots into separate heats (A, B, C...) if they cannot all safely fly in a single heat.</li>
-                </ul>
-            `,
-            telemetry: `
-                <p><strong>Telemetry Parser Help</strong></p><br>
-                <p>Convert telemetry ".csv" logs generated by EdgeTX radios (running CRSF or ELRS power profiles) into Google Earth and GIS compatible KML/KMZ or GPX tracking files.</p><br>
-                <p><strong>How to use:</strong></p>
-                <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                    <li>Browse or drag-and-drop your EdgeTX ".csv" log file.</li>
-                    <li>Select a flight segment from the auto-detected list (the parser isolates separate flights based on arm events and battery reconnects, and automatically filters ground tests).</li>
-                    <li>Configure altitude offset and track width/color.</li>
-                    <li>Inspect the GPS track path on the interactive map preview and review the speed and altitude profile graphs.</li>
-                    <li>Click <strong>Download</strong> to save your KML/KMZ/GPX file for interactive 3D fly-overs in Google Earth.</li>
-                </ul><br>
-                <p><strong>How to set up EdgeTX Logging:</strong></p>
-                <ol style="list-style: decimal; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                    <li>Power on your drone and radio. On the radio, go to the <strong>Telemetry</strong> screen and select <strong>Discover new sensors</strong>. Ensure GPS coordinates show up.</li>
-                    <li>Go to the <strong>Special Functions</strong> tab on your radio (e.g. SF1).</li>
-                    <li>Set the switch to your **ARM switch** (so it logs only when armed).</li>
-                    <li>Set the action to <strong>SD Logs</strong>, set the interval to <strong>1.0s</strong> (every 1 second), and check the box to enable it.</li>
-                </ol><br>
-                <p><strong>⚠️ Improving GPS Telemetry Smoothness:</strong></p>
-                <p>If your GPS tracking looks "choppy" or updates infrequently (e.g. once every 7-8 seconds), your ExpressLRS <strong>Telemetry Ratio</strong> is likely set too low (e.g. 1:64 or 1:128) in your radio's ELRS LUA script.</p>
-                <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                    <li>Open the <strong>ExpressLRS LUA script</strong> on your EdgeTX radio.</li>
-                    <li>Change the **Telem Ratio** to a higher frequency setting, such as <strong>1:8</strong> or <strong>1:4</strong>.</li>
-                    <li>This increases the telemetry packet rate, updating your GPS coordinates multiple times per second for smooth, high-fidelity logs.</li>
-                </ul>
             `
         };
 
@@ -987,17 +850,18 @@
         window.addEventListener('message', function(event) {
             const iframe = document.getElementById('app-iframe');
             if (iframe && event.source === iframe.contentWindow) {
-                if (event.data && event.data.type === 'pageChange') {
-                    updateActiveDrawer(event.data.key);
+                if (event.data) {
+                    if (event.data.type === 'pageChange') {
+                        updateActiveDrawer(event.data.key);
+                    } else if (event.data.type === 'helpData') {
+                        helpData[event.data.key] = event.data.html;
+                    }
                 }
             }
         });
 
         // ── THEME SWITCH SYSTEM ──
-        let currentTheme = localStorage.getItem('fpv-tools-theme');
-        if (!currentTheme) {
-            currentTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        }
+        let currentTheme = localStorage.getItem('fpv-tools-theme') || 'dark';
 
         function applyTheme(theme) {
             currentTheme = theme;
