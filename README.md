@@ -7,7 +7,9 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPL_v3-blue.svg)](LICENSE)
 [![Support on Patreon](https://img.shields.io/badge/Patreon-Sponsor-orange?logo=patreon&logoColor=white)](https://www.patreon.com/SaturnFPV)
 
-FPV Tools is a comprehensive utility suite designed specifically for FPV drone pilots, builders, and racers. It simplifies complex drone calculations, coordinates frequencies, models rate profiles, and parses telemetry log files into beautiful interactive charts and 3D maps.
+FPV Tools is an open-source utility and visualization suite designed for FPV drone pilots, builders, and racers. It provides offline tools to model motor sizes, compare rate curves, plan frequencies, visualize flight telemetry, and simulate PID controllers.
+
+Designed with a high-contrast dark theme optimized for outdoor readability, FPV Tools works completely offline, contains no ads, and respects your privacy.
 
 ![FPV Tools Showcase](media/9x9_sep.jpg)
 
@@ -15,23 +17,24 @@ FPV Tools is a comprehensive utility suite designed specifically for FPV drone p
 
 ## Key Features
 
-* **Rate Converter / Comparison / Visualization**: Overlay and compare different rate profiles. Translate dynamically between Betaflight and Actual rate systems, tweak curves, and zoom in on center sticks for precision adjustments. Renders copy-and-paste CLI commands.
-* **TPA Comparison / Visualization**: Compare Throttle PID Attenuation (TPA) curves side-by-side to visualize exactly how and where your PIDs attenuate to tune out high-throttle oscillations.
-* **Current & Voltage Sensor Calibration**: Effortlessly calibrate OSD scale coefficients based on real battery pack recharge logs from your charger.
-* **Motor Stator Volume Calculator**: Model and compare motor stator dimensions (e.g., 2306 vs. 2207) with visual cylinder comparisons and comparative graphs.
-* **PID Controller Simulator**: Interactive visual simulator to model overshoot, settling time, and tracking errors to help you understand PID fundamentals. *(Based on the original simulator by Joshua Bardwell, with additional improvements)*
-* **Prop Tip Speed Calculator**: Ensure your props stay subsonic. Calculates prop tip velocity (Mach speed) based on KV, battery cell counts, voltage, and prop dimensions, with metric/imperial outputs.
-* **Race Frequency Planner**: Coordinate analog and digital video systems (HDZero, DJI V1/WS, DJI O3/O4). Features automatic Intermodulation (IMD) conflict scans and visual spectrum charts.
-* **Telemetry Parser**: Convert raw EdgeTX/OpenTX/FreedomTX telemetry logs (`.csv`) into 3D flight paths (`.kml`/`.kmz`) for terrain-accurate flyovers in Google Earth.
+* **Visual Motor Stator Comparator**: Model and compare stator dimensions (such as 2306 vs. 2207, or 1303 vs. 1204) with visual cylinder models. Instantly compare volume distributions and calculate physical volume to help choose the right motor size for your build.
+* **Interactive Rate Curve Graphing**: Overlay and compare rate curves dynamically across multiple tabs. Supports Actual, Betaflight, KISS, QuickRates, and RaceFlight rate models. Adjust rates and expo via sliders, inspect stick sensitivity, and generate configuration CLI commands.
+* **3D Telemetry Flight Visualizer**: Convert raw EdgeTX, OpenTX, or FreedomTX telemetry log files (`.csv`) containing TBS Crossfire or ExpressLRS (CRSF) GPS data into KML/KMZ tracks. Applies altitude calibration for terrain-following, enabling 3D flyovers of your flights in Google Earth.
+* **Race Spectrum & Frequency Organizer**: Coordinate channels for Analog and Digital video transmitters (HDZero, Walksnail, DJI O3/O4). Checks for Intermodulation Distortion (IMD) conflicts, organizes pilots into heats, and suggests optimal channel assignments.
+* **PID Step-Response Simulator**: Model overshoot, settling time, and tracking errors on an animated step-response graph to help visualize how P, I, and D parameters affect flight dynamics. *(Based on the original simulator by Joshua Bardwell, with additional improvements)*
+* **Throttle PID Attenuation (TPA) Overlays**: Compare multiple TPA curves side-by-side to see how PIDs attenuate across the throttle range to prevent high-throttle oscillations.
+* **Prop Tip Speed Calculator**: Input KV, cell count/voltage, and propeller diameter to calculate prop tip speed (Mach velocity) relative to the speed of sound.
+* **Current & Voltage Sensor Calibration**: Calibrate OSD current and voltage scale coefficients for your flight controller based on battery recharge logs from your charger.
 
 ---
 
-## App Philosophy
+## App Philosophy / Why Pilots Trust FPV Tools
 
-* 🚫 **No Ads & No In-App Purchases**: Fully free, clean, and distraction-free workspace.
-* 🚫 **No Tracking / Privacy-First**: No data is tracked, stored, or sent to cloud servers. Your telemetry logs and settings remain strictly local.
-* 🌐 **Works 100% Offline**: All calculations, simulators, and telemetry parsing are performed in local memory. The only network request occurs to load map tiles in the telemetry preview (if online).
-* 📖 **Fully Open Source**: Clean, public source code designed to build trust and collaborate on improvements.
+* 🚫 **100% Offline-First**: Performs all calculations and charts locally on your device. Works at remote launch sites or race parks with no internet or cellular connection. (An internet connection can add a map layer to the telemetry parser tool but is not required.)
+* 🔒 **Privacy by Design**: No ads, no in-app purchases, and no tracking. FPV Tools does not collect, store, or upload any of your data—everything remains private on your phone.
+* 📖 **Fully Open Source**: The source code is published under the GPL v3, inviting anyone to inspect, verify, and contribute.
+* ☀️ **Designed for the Field**: A high-contrast, battery-saving dark interface designed for readability under direct sunlight.
+* 📱 **Modern Display Layouts**: Safe-area padded layouts designed for modern bezel-less mobile screens.
 
 ---
 
