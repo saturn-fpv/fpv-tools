@@ -556,25 +556,25 @@
             </li>
             <li style="border-bottom: 1px solid var(--border); margin: 0.5rem 1rem 0.75rem 1rem; list-style: none;"></li>
             <li style="margin: 0.75rem 1rem 0.5rem 1rem; font-size: 0.6875rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; list-style: none;">Tools</li>
-            <li class="drawer-item" id="menu-rate" onclick="selectDrawerTool('html tools/betaflight-rate-converter.html', 'rate')">
+            <li class="drawer-item" id="menu-rate" onclick="selectDrawerTool('html tools/rate-converter.html', 'rate')">
                 <a href="#"><span class="tool-icon">📈</span>Rate Converter</a>
             </li>
-            <li class="drawer-item" id="menu-tpa" onclick="selectDrawerTool('html tools/betaflight-tpa.html', 'tpa')">
+            <li class="drawer-item" id="menu-tpa" onclick="selectDrawerTool('html tools/tpa-comparison.html', 'tpa')">
                 <a href="#"><span class="tool-icon">📉</span>TPA Comparison</a>
             </li>
-            <li class="drawer-item" id="menu-current" onclick="selectDrawerTool('html tools/current-sensor-calibration.html', 'current')">
-                <a href="#"><span class="tool-icon">⚡</span>Current Calibration</a>
+            <li class="drawer-item" id="menu-current" onclick="selectDrawerTool('html tools/sensor-calibration.html', 'current')">
+                <a href="#"><span class="tool-icon">⚡</span>Sensor Calibration</a>
             </li>
-            <li class="drawer-item" id="menu-stator" onclick="selectDrawerTool('html tools/motor-stator-volume-calculator.html', 'stator')">
+            <li class="drawer-item" id="menu-stator" onclick="selectDrawerTool('html tools/stator-volume.html', 'stator')">
                 <a href="#"><span class="tool-icon">⚙️</span>Stator Volume</a>
             </li>
-            <li class="drawer-item" id="menu-pid" onclick="selectDrawerTool('html tools/pid-controller-simulator.html', 'pid')">
+            <li class="drawer-item" id="menu-pid" onclick="selectDrawerTool('html tools/pid-simulator.html', 'pid')">
                 <a href="#"><span class="tool-icon">🎮</span>PID Simulator</a>
             </li>
-            <li class="drawer-item" id="menu-speed" onclick="selectDrawerTool('html tools/prop-tip-speed-calculator.html', 'speed')">
+            <li class="drawer-item" id="menu-speed" onclick="selectDrawerTool('html tools/prop-tip-speed.html', 'speed')">
                 <a href="#"><span class="tool-icon">🌀</span>Prop Tip Speed</a>
             </li>
-            <li class="drawer-item" id="menu-freq" onclick="selectDrawerTool('html tools/race-frequency-organizer.html', 'freq')">
+            <li class="drawer-item" id="menu-freq" onclick="selectDrawerTool('html tools/frequency-planner.html', 'freq')">
                 <a href="#"><span class="tool-icon">📡</span>Frequency Planner</a>
             </li>
             <li class="drawer-item" id="menu-telemetry" onclick="selectDrawerTool('html tools/telemetry-parser.html', 'telemetry')">
@@ -600,7 +600,7 @@
                 <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
                     <li><strong>Rate Converter:</strong> Compare rate curves across Actual, Betaflight, KISS, Quick, and RaceFlight, and best-fit curves automatically.</li>
                     <li><strong>TPA Comparison:</strong> Visualize throttle PID attenuation and breakpoint configurations to tame high-throttle vibrations.</li>
-                    <li><strong>Current Calibration:</strong> Calibrate your FC's amperage and VBAT scale based on real flight log vs. charger values.</li>
+                    <li><strong>Sensor Calibration:</strong> Calibrate your FC's amperage and VBAT scale based on real flight log vs. charger values.</li>
                     <li><strong>Stator Volume:</strong> Compare torque capacities and weights across standard motor dimensions.</li>
                     <li><strong>PID Simulator:</strong> Interactive math-model axis simulator with real-time blackbox scope and motor heat metrics.</li>
                     <li><strong>Prop Tip Speed:</strong> Calculate tip speeds, transonic Mach number efficiency zones, and no-load RPM.</li>
@@ -609,7 +609,7 @@
                 </ul>
             `,
             rate: `
-                <p><strong>Betaflight Rate Converter Help</strong></p><br>
+                <p><strong>Rate Converter Help</strong></p><br>
                 <p>Compare and convert rate curves across Actual, Betaflight, Quick, KISS, and RaceFlight rate models. This allows you to recreate the exact stick feel when moving between different flight controllers or firmware versions.</p><br>
                 <p><strong>How to use:</strong></p>
                 <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
@@ -619,7 +619,7 @@
                 </ul>
             `,
             tpa: `
-                <p><strong>Betaflight TPA Comparison Help</strong></p><br>
+                <p><strong>TPA Comparison Help</strong></p><br>
                 <p>TPA (Throttle PID Attenuation) reduces PID gains at high throttle ranges to prevent mid-to-high throttle oscillations (often heard as high-frequency warbling or flutter at full punch-outs).</p><br>
                 <p><strong>Understanding the inputs:</strong></p>
                 <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
@@ -629,7 +629,7 @@
                 </ul>
             `,
             current: `
-                <p><strong>Current & Voltage Calibration Help</strong></p><br>
+                <p><strong>Sensor Calibration Help</strong></p><br>
                 <p>This utility helps you calibrate your flight controller's internal current sensor and voltage dividers to guarantee accurate battery status telemetry and reliable mAh consumption readings.</p><br>
                 <p><strong>Current Sensor Steps:</strong></p>
                 <ol style="padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
@@ -646,7 +646,7 @@
                 </ol>
             `,
             stator: `
-                <p><strong>Motor Stator Volume Calculator Help</strong></p><br>
+                <p><strong>Stator Volume Help</strong></p><br>
                 <p>Multirotor motors are designated by standard dimensions (e.g. 2207, 2306) representing their stator diameter and stator height in millimeters. Stator volume serves as a direct proxy for active magnetic material and copper volume, indicating motor torque capacity.</p><br>
                 <p><strong>Key Insights:</strong></p>
                 <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
@@ -656,7 +656,7 @@
                 </ul>
             `,
             pid: `
-                <p><strong>PID Controller Simulator Help</strong></p><br>
+                <p><strong>PID Simulator Help</strong></p><br>
                 <p>Based on Joshua Bardwell's PID Tuning Masterclass, this tool simulates a single drone axis to help you build an intuitive feel for how each gain and physics parameter affects flight dynamics.</p><br>
                 
                 <p><strong>Core Concepts (PID & FF):</strong></p>
@@ -695,7 +695,7 @@
                 </ul>
             `,
             speed: `
-                <p><strong>Propeller Tip Speed Calculator Help</strong></p><br>
+                <p><strong>Prop Tip Speed Help</strong></p><br>
                 <p>Calculate the absolute physical speed at which your propeller tips cut through the air, and monitor transonic aerodynamic limits.</p><br>
                 <p><strong>Understanding Transonic Limits:</strong></p>
                 <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
@@ -710,7 +710,7 @@
                 </ul>
             `,
             freq: `
-                <p><strong>Race Frequency Organizer Help</strong></p><br>
+                <p><strong>Frequency Planner Help</strong></p><br>
                 <p>Organize clear, intermodulation distortion (IMD) free frequency grids for analog and digital FPV systems running multi-pilot events.</p><br>
                 <p><strong>Key Features:</strong></p>
                 <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
@@ -720,7 +720,7 @@
                 </ul>
             `,
             telemetry: `
-                <p><strong>EdgeTX Telemetry Parser Help</strong></p><br>
+                <p><strong>Telemetry Parser Help</strong></p><br>
                 <p>Convert telemetry ".csv" logs generated by EdgeTX radios (running CRSF or ELRS power profiles) into Google Earth and GIS compatible KML/KMZ or GPX tracking files.</p><br>
                 <p><strong>How to use:</strong></p>
                 <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
