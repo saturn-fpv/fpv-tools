@@ -704,6 +704,7 @@
 
         // Listen for theme change from parent wrapper
         window.addEventListener('message', function(event) {
+            if (event.source !== window.parent) return;
             if (event.data && event.data.type === 'setTheme') {
                 if (event.data.theme === 'light') {
                     document.body.classList.add('light-theme');

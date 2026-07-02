@@ -1612,6 +1612,20 @@ function onFileLoaded(text, fileName) {
     }
 }
 
+function escapeHTML(str) {
+    if (typeof str !== 'string') return str;
+    return str.replace(/[&<>"']/g, function(match) {
+        switch(match) {
+            case '&': return '&amp;';
+            case '<': return '&lt;';
+            case '>': return '&gt;';
+            case '"': return '&quot;';
+            case "'": return '&#39;';
+            default: return match;
+        }
+    });
+}
+
 function renderFlightList() {
     const container = document.getElementById('flightList');
     container.innerHTML = '';
@@ -1629,10 +1643,11 @@ function renderFlightList() {
         var summary = f.summary || {};
         var metaParts = [];
         var dateStr = (pts[0].date || '') + ' ' + (pts[0].time ? pts[0].time.split('.')[0] : '');
-        if (dateStr.trim()) metaParts.push(dateStr.trim());
-        metaParts.push('Duration: ' + dur);
-        if (f.preArmAlt) metaParts.push('MSL: ' + f.preArmAlt + 'm');
-        if (typeof summary.gpsDensityPct === 'number') metaParts.push('GPS ' + summary.gpsDensityPct + '%');
+        dateStr = escapeHTML(dateStr.trim());
+        if (dateStr) metaParts.push(dateStr);
+        metaParts.push('Duration: ' + escapeHTML(dur));
+        if (f.preArmAlt) metaParts.push('MSL: ' + escapeHTML(String(f.preArmAlt)) + 'm');
+        if (typeof summary.gpsDensityPct === 'number') metaParts.push('GPS ' + escapeHTML(String(summary.gpsDensityPct)) + '%');
         var metaLine = metaParts.join(' - ');
 
         var groundTestTag = '';
@@ -1808,6 +1823,7 @@ document.getElementById('resetBtn').addEventListener('click', resetAll);
 
 // Listen for theme change from parent wrapper
 window.addEventListener('message', function(event) {
+    if (event.source !== window.parent) return;
     if (event.data && event.data.type === 'setTheme') {
         const theme = event.data.theme;
         if (theme === 'light') {

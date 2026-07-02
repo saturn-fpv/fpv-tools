@@ -20,3 +20,11 @@ This file outlines the rules of engagement, project architecture, and coding sta
 ### 4. Typography & Styling
 * **Typography**: Clean, premium fonts (e.g. Google Font *Outfit*).
 * Accent highlight elements should match the brand orange color token: `#E8722A`.
+
+### 5. WebView & Container Constraints (CRITICAL)
+* **Offline-First Assets**: The app must remain 100% offline. All libraries, fonts, and assets must be hosted locally. External CDNs and network-bound API calls are prohibited.
+* **WebView Lifecycle**: Maintain state save/restore (`saveState`/`restoreState`) in `MainActivity.kt` to preserve tool state across activity lifecycle events.
+* **Security & Bridge Limitations**:
+  * WebView settings block CORS/AJAX from local file URLs and disable WebSQL.
+  * The file-sharing bridge (`AndroidBridge.shareFile`) enforces a 50MB file size limit and restricts exports strictly to `.gpx`, `.kml`, `.kmz`, and `.txt` formats.
+  * Parent-child iframe communication (`postMessage`) must validate `event.source` to prevent spoofing.

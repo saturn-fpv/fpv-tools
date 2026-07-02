@@ -21,6 +21,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.lang.ref.WeakReference
@@ -59,10 +63,10 @@ class MainActivity : ComponentActivity() {
             javaScriptEnabled = true
             domStorageEnabled = true
             allowFileAccess = true
-            allowFileAccessFromFileURLs = true
-            allowUniversalAccessFromFileURLs = true
-            databaseEnabled = true
-            mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+            allowFileAccessFromFileURLs = false
+            allowUniversalAccessFromFileURLs = false
+            databaseEnabled = false
+            mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
         }
 
         // Add Java-to-JS bridge interface
@@ -90,14 +94,18 @@ class MainActivity : ComponentActivity() {
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 val url = request?.url?.toString() ?: return false
-                if (url.startsWith("file://") || url.startsWith("data:")) {
+                // Restrict webview navigation strictly to local assets
+                if (url.startsWith("file:///android_asset/")) {
                     return false
                 }
-                try {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                    this@MainActivity.startActivity(intent)
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                // Open external http/https links in the user's browser
+                if (url.startsWith("http://") || url.startsWith("https://")) {
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        this@MainActivity.startActivity(intent)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
                 return true
             }
@@ -220,30 +228,69 @@ class MainActivity : ComponentActivity() {
         @JavascriptInterface
         fun shareFile(base64Data: String, filename: String) {
             val context = contextRef.get() ?: return
-            try {
-                val fileBytes = Base64.decode(base64Data, Base64.DEFAULT)
-                val cacheDir = context.cacheDir
-                val file = File(cacheDir, filename)
-                FileOutputStream(file).use { fos ->
-                    fos.write(fileBytes)
+            val mainActivity = context as? MainActivity ?: return
+            
+            // 1. Sanitize the filename to prevent directory traversal
+            val safeFilename = filename.split('/', '\\').lastOrNull()?.takeIf { it.isNotBlank() } ?: "export.txt"
+            
+            // 2. Validate file extension (.gpx, .kml, .kmz, .txt only)
+            val allowedExtensions = listOf("gpx", "kml", "kmz", "txt")
+            val extension = safeFilename.substringAfterLast('.', "").lowercase()
+            if (extension !in allowedExtensions) {
+                mainActivity.runOnUiThread {
+                    Toast.makeText(context, "Invalid export format: .$extension", Toast.LENGTH_LONG).show()
                 }
-                
-                val uri = FileProvider.getUriForFile(
-                    context,
-                    "${context.packageName}.fileprovider",
-                    file
-                )
-                
-                val intent = Intent(Intent.ACTION_SEND).apply {
-                    type = "*/*"
-                    putExtra(Intent.EXTRA_STREAM, uri)
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                return
+            }
+
+            // 3. Limit maximum file size (50MB base64 encoded check)
+            val maxBase64Length = 50 * 1024 * 1024 * 4 / 3 
+            if (base64Data.length > maxBase64Length) {
+                mainActivity.runOnUiThread {
+                    Toast.makeText(context, "File size exceeds limit", Toast.LENGTH_LONG).show()
                 }
-                context.startActivity(Intent.createChooser(intent, "Export Telemetry Track"))
-            } catch (e: Exception) {
-                e.printStackTrace()
-                (context as? MainActivity)?.runOnUiThread {
-                    Toast.makeText(context, "Export failed: ${e.message}", Toast.LENGTH_LONG).show()
+                return
+            }
+
+            // Run I/O operations asynchronously on a background dispatcher
+            mainActivity.lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    val fileBytes = Base64.decode(base64Data, Base64.DEFAULT)
+                    
+                    // Isolate temporary exports in a dedicated "shared_files" subfolder
+                    val sharedDir = File(context.cacheDir, "shared_files")
+                    if (!sharedDir.exists()) {
+                        sharedDir.mkdirs()
+                    }
+                    
+                    // Clean up older shared files to prevent local cache accumulation
+                    sharedDir.listFiles()?.forEach { it.delete() }
+                    
+                    val file = File(sharedDir, safeFilename)
+                    FileOutputStream(file).use { fos ->
+                        fos.write(fileBytes)
+                    }
+                    
+                    val uri = FileProvider.getUriForFile(
+                        context,
+                        "${context.packageName}.fileprovider",
+                        file
+                    )
+                    
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = "*/*"
+                        putExtra(Intent.EXTRA_STREAM, uri)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    
+                    withContext(Dispatchers.Main) {
+                        context.startActivity(Intent.createChooser(intent, "Export Telemetry Track"))
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Export failed: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
                 }
             }
         }
