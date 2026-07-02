@@ -53,7 +53,7 @@ If you find this application useful for your builds or race events, please consi
 
 ## Credits & Attributions
 
-* **PID Controller Simulator**: The core PID simulator logic and concept are based on Joshua Bardwell's original development. He graciously granted permission to adapt his code (originally demonstrated on his YouTube channel). Since then, we have built on top of that foundation, implementing additional improvements. 
+**PID Controller Simulator**: The core PID simulator logic and concept are based on Joshua Bardwell's original development. He graciously granted permission to adapt his code (originally demonstrated on his YouTube channel). Since then, we have built on top of that foundation, implementing additional improvements. 
   
   To learn more, check out:
   * [Joshua Bardwell's Original PID Simulator Video](https://www.youtube.com/watch?v=q5VtSrJ3oVQ)
