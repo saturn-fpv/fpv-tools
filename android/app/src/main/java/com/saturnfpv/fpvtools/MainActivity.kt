@@ -23,6 +23,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import java.io.File
 import java.io.FileOutputStream
+import java.lang.ref.WeakReference
 
 class MainActivity : ComponentActivity() {
 
@@ -146,8 +147,40 @@ class MainActivity : ComponentActivity() {
             setSystemBarsTheme(!isSystemDark)
         }
 
-        // Load the index.html from Android Assets folder
-        webView.loadUrl("file:///android_asset/index.html")
+        if (savedInstanceState != null) {
+            webView.restoreState(savedInstanceState)
+        } else {
+            // Load the index.html from Android Assets folder
+            webView.loadUrl("file:///android_asset/index.html")
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        webView.saveState(outState)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        webView.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        webView.onResume()
+    }
+
+    override fun onDestroy() {
+        filePathCallback?.onReceiveValue(null)
+        filePathCallback = null
+        webView.removeJavascriptInterface("AndroidBridge")
+        webView.stopLoading()
+        webView.loadUrl("about:blank")
+        if (::container.isInitialized) {
+            container.removeView(webView)
+        }
+        webView.destroy()
+        super.onDestroy()
     }
 
     private fun setSystemBarsTheme(isLight: Boolean) {
@@ -173,9 +206,12 @@ class MainActivity : ComponentActivity() {
     }
 
     // JS interface class to trigger native share sheet for Web KML/KMZ/GPX downloads
-    class AndroidBridge(private val context: Context) {
+    class AndroidBridge(context: Context) {
+        private val contextRef = WeakReference(context)
+
         @JavascriptInterface
         fun updateTheme(theme: String) {
+            val context = contextRef.get() ?: return
             (context as? MainActivity)?.runOnUiThread {
                 context.setSystemBarsTheme(theme == "light")
             }
@@ -183,6 +219,7 @@ class MainActivity : ComponentActivity() {
 
         @JavascriptInterface
         fun shareFile(base64Data: String, filename: String) {
+            val context = contextRef.get() ?: return
             try {
                 val fileBytes = Base64.decode(base64Data, Base64.DEFAULT)
                 val cacheDir = context.cacheDir
