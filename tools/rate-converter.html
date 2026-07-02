@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rate Converter - Saturn FPV</title>
+    <title>Betaflight Rate Converter - Saturn FPV</title>
     <script src="../js/chart.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -12,7 +12,8 @@
             background-color: #111827; color: white; padding: 1.5rem; min-height: 100vh;
         }
         .container { max-width: 900px; margin: 0 auto; }
-        h1 { font-size: 1.875rem; font-weight: bold; margin-bottom: 1.5rem; text-align: center; }
+        h1 { font-size: 1.875rem; font-weight: bold; margin-bottom: 0.5rem; text-align: center; }
+        .subtitle { text-align: center; color: #9ca3af; font-size: 0.875rem; margin-bottom: 1.5rem; }
 
         .charts-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
         @media (min-width: 1024px) {
@@ -329,7 +330,8 @@
     </script>
 
 <div class="container">
-    <h1>Rate Converter</h1>
+    <h1>Betaflight Rate Converter</h1>
+    <p class="subtitle">Compare and convert rate curves across Actual, Betaflight, KISS and other models with center view.</p>
     
     <div class="input-results-grid">
         <!-- Curve Controls (Inputs) -->
