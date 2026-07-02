@@ -625,6 +625,8 @@
             transform: scale(1.05);
         }
     </style>
+    <script src="js/tools-list.js"></script>
+    <script src="js/sidebar.js"></script>
 </head>
 <body>
 
@@ -644,7 +646,7 @@
                 </svg>
             </button>
             <!-- 3 Stripe Burger Menu Button -->
-            <button class="action-btn btn-menu" onclick="toggleDrawer()" title="Select Tool">
+            <button class="action-btn btn-menu" onclick="window.sfpvSidebar.toggle()" title="Select Tool">
                 <svg viewBox="0 0 24 24">
                     <line x1="4" y1="6" x2="20" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -673,53 +675,7 @@
         </div>
     </div>
 
-    <!-- BURGER MENU DRAWER (from right) -->
-    <div class="drawer-menu" id="drawer-menu">
-        <div class="drawer-header">
-            <h2><span>FPV</span> Tools</h2>
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="drawer-close" onclick="toggleDrawer()">&times;</button>
-            </div>
-        </div>
-        <ul class="drawer-links">
-            <li class="drawer-item active" id="menu-home" onclick="selectDrawerTool('menu.html', 'home')">
-                <a href="#"><span class="tool-icon">📊</span>Dashboard</a>
-            </li>
-            <li style="border-bottom: 1px solid var(--border); margin: 0.5rem 1rem 0.75rem 1rem; list-style: none;"></li>
-            <li style="margin: 0.75rem 1rem 0.5rem 1rem; font-size: 0.6875rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; list-style: none;">Tools</li>
-            <li class="drawer-item" id="menu-rate" onclick="selectDrawerTool('tools/rate-converter.html', 'rate')">
-                <a href="#"><span class="tool-icon">📈</span>Rate Converter</a>
-            </li>
-            <li class="drawer-item" id="menu-tpa" onclick="selectDrawerTool('tools/tpa-comparison.html', 'tpa')">
-                <a href="#"><span class="tool-icon">📉</span>TPA Comparison</a>
-            </li>
-            <li class="drawer-item" id="menu-current" onclick="selectDrawerTool('tools/sensor-calibration.html', 'current')">
-                <a href="#"><span class="tool-icon">⚡</span>Sensor Calibration</a>
-            </li>
-            <li class="drawer-item" id="menu-stator" onclick="selectDrawerTool('tools/stator-volume.html', 'stator')">
-                <a href="#"><span class="tool-icon">⚙️</span>Stator Volume</a>
-            </li>
-            <li class="drawer-item" id="menu-pid" onclick="selectDrawerTool('tools/pid-simulator.html', 'pid')">
-                <a href="#"><span class="tool-icon">🎮</span>PID Simulator</a>
-            </li>
-            <li class="drawer-item" id="menu-speed" onclick="selectDrawerTool('tools/prop-tip-speed.html', 'speed')">
-                <a href="#"><span class="tool-icon">🌀</span>Prop Tip Speed</a>
-            </li>
-            <li class="drawer-item" id="menu-freq" onclick="selectDrawerTool('tools/frequency-planner.html', 'freq')">
-                <a href="#"><span class="tool-icon">📡</span>Frequency Planner</a>
-            </li>
-            <li class="drawer-item" id="menu-telemetry" onclick="selectDrawerTool('tools/telemetry-parser.html', 'telemetry')">
-                <a href="#"><span class="tool-icon">🗺️</span>Telemetry Parser</a>
-            </li>
-        </ul>
-        <div class="drawer-footer" style="padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; background: var(--dark); border-top: 1px solid var(--border);">
-            <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;">🌓 Dark Mode</span>
-            <label class="theme-switch-slider">
-                <input type="checkbox" id="theme-slider-input" checked onchange="onSliderThemeChange(this)">
-                <span class="slider"></span>
-            </label>
-        </div>
-    </div>
+
 
     <!-- DYNAMIC HELP CONTENT STORAGE -->
     <script>
@@ -805,39 +761,31 @@
                 panel.classList.add('open');
                 overlay.classList.add('visible');
                 // Close drawer if open
-                document.getElementById('drawer-menu').classList.remove('open');
+                if (window.sfpvSidebar && window.sfpvSidebar.close) {
+                    window.sfpvSidebar.close();
+                }
             }
         }
 
         function toggleDrawer() {
-            const drawer = document.getElementById('drawer-menu');
-            const overlay = document.getElementById('app-overlay');
-            const isOpen = drawer.classList.contains('open');
-
-            if (isOpen) {
-                drawer.classList.remove('open');
-                overlay.classList.remove('visible');
-            } else {
-                drawer.classList.add('open');
-                overlay.classList.add('visible');
-                // Close help if open
-                document.getElementById('help-panel').classList.remove('open');
+            if (window.sfpvSidebar && window.sfpvSidebar.toggle) {
+                window.sfpvSidebar.toggle();
             }
         }
 
         function closeAllOverlays() {
             document.getElementById('help-panel').classList.remove('open');
-            document.getElementById('drawer-menu').classList.remove('open');
+            if (window.sfpvSidebar && window.sfpvSidebar.close) {
+                window.sfpvSidebar.close();
+            }
             document.getElementById('app-overlay').classList.remove('visible');
         }
 
         function updateActiveDrawer(key) {
             currentActiveTool = key;
-            document.querySelectorAll('.drawer-item, .drawer-item-about').forEach(item => {
-                item.classList.remove('active');
-            });
-            const activeItem = document.getElementById('menu-' + key);
-            if (activeItem) activeItem.classList.add('active');
+            if (window.sfpvSidebar && window.sfpvSidebar.updateActiveItem) {
+                window.sfpvSidebar.updateActiveItem(key);
+            }
         }
 
         function selectDrawerTool(src, key) {
@@ -879,8 +827,8 @@
                 window.AndroidBridge.updateTheme(theme);
             }
 
-            // Sync Option B Slider Toggle Checkbox
-            const slider = document.getElementById('theme-slider-input');
+            // Sync dynamic sidebar checkbox
+            const slider = document.getElementById('sfpv-theme-slider');
             if (slider) {
                 slider.checked = (theme === 'dark');
             }
