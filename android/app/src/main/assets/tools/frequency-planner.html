@@ -416,10 +416,7 @@
 <body>
     <script>
         (function() {
-            var theme = localStorage.getItem('fpv-tools-theme');
-            if (!theme) {
-                theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            }
+            var theme = localStorage.getItem('fpv-tools-theme') || 'dark';
             if (theme === 'light') {
                 document.body.classList.add('light-theme');
             }
@@ -1534,9 +1531,25 @@ window.addEventListener('message', function(event) {
     }
 })();
 </script>
+<div id="help-content-source" style="display:none;">
+    <p><strong>Frequency Planner Help</strong></p><br>
+    <p>Organize clear, intermodulation distortion (IMD) free frequency grids for analog and digital FPV systems running multi-pilot events.</p><br>
+    <p><strong>Key Features:</strong></p>
+    <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+        <li><strong>The Challenge:</strong> When multiple video transmitters broadcast simultaneously, they generate phantom harmonics in local receivers (IMD). Standard equal-spacing schemes amplify these conflicts.</li>
+        <li><strong>DJI O3/O4 Carrier:</strong> DJI O3/O4 systems utilize a wide carrier wave that floods the 5720-5850 MHz spectrum. This tool automatically forces analog/HDZero channels outside this zone when digital systems are active in the lineup.</li>
+        <li>Set the pilot sliders and click <strong>Auto-Assign Frequencies</strong>. The engine will search, plan, and automatically split pilots into separate heats (A, B, C...) if they cannot all safely fly in a single heat.</li>
+    </ul>
+</div>
+<script src="../partials/partial_tools.js"></script>
 <script>
     if (window.parent && window.parent !== window) {
         window.parent.postMessage({ type: 'pageChange', key: 'freq' }, '*');
+        window.parent.postMessage({
+            type: 'helpData',
+            key: 'freq',
+            html: document.getElementById('help-content-source').innerHTML
+        }, '*');
     }
 </script>
 </body>

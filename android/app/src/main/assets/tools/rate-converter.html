@@ -321,10 +321,7 @@
 <body>
     <script>
         (function() {
-            var theme = localStorage.getItem('fpv-tools-theme');
-            if (!theme) {
-                theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            }
+            var theme = localStorage.getItem('fpv-tools-theme') || 'dark';
             if (theme === 'light') {
                 document.body.classList.add('light-theme');
             }
@@ -1036,18 +1033,33 @@ window.addEventListener('message', function(event) {
     }
 });
 
-// Init theme on load
-(function() {
-    const t = localStorage.getItem('fpv-tools-theme') || 'dark';
-    if (t === 'light') {
-        document.body.classList.add('light-theme');
-        updateChartsTheme('light');
-    }
-})();
+        (function() {
+            const t = localStorage.getItem('fpv-tools-theme') || 'dark';
+            if (t === 'light') {
+                document.body.classList.add('light-theme');
+                updateChartsTheme('light');
+            }
+        })();
 </script>
+<div id="help-content-source" style="display:none;">
+    <p><strong>Rate Converter Help</strong></p><br>
+    <p>Compare and convert rate curves across Actual, Betaflight, Quick, KISS, and RaceFlight rate models. This allows you to recreate the exact stick feel when moving between different flight controllers or firmware versions.</p><br>
+    <p><strong>How to use:</strong></p>
+    <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+        <li>Set your rates in the target curve using the sliders or numerical inputs.</li>
+        <li>To convert one curve model to another, choose your preferred target model in the "To:" select box at the bottom of the panel, and click <strong>Convert</strong>.</li>
+        <li>A hybrid coarse/fine grid search algorithm will run in the background to automatically find the mathematically closest rates under that model, matching the source curve's center sensitivity and maximum rates.</li>
+    </ul>
+</div>
+<script src="../partials/partial_tools.js"></script>
 <script>
     if (window.parent && window.parent !== window) {
         window.parent.postMessage({ type: 'pageChange', key: 'rate' }, '*');
+        window.parent.postMessage({
+            type: 'helpData',
+            key: 'rate',
+            html: document.getElementById('help-content-source').innerHTML
+        }, '*');
     }
 </script>
 </body>

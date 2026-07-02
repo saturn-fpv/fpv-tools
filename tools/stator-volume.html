@@ -539,10 +539,7 @@
 <body>
     <script>
         (function() {
-            var theme = localStorage.getItem('fpv-tools-theme');
-            if (!theme) {
-                theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            }
+            var theme = localStorage.getItem('fpv-tools-theme') || 'dark';
             if (theme === 'light') {
                 document.body.classList.add('light-theme');
             }
@@ -1628,10 +1625,25 @@ window.addEventListener('message', function(event) {
     }
 })();
 </script>
-
+<div id="help-content-source" style="display:none;">
+    <p><strong>Stator Volume Help</strong></p><br>
+    <p>Multirotor motors are designated by standard dimensions (e.g. 2207, 2306) representing their stator diameter and stator height in millimeters. Stator volume serves as a direct proxy for active magnetic material and copper volume, indicating motor torque capacity.</p><br>
+    <p><strong>Key Insights:</strong></p>
+    <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+        <li><strong>The Stator Formula:</strong> Stator volume is calculated as: V = &pi; &times; (D/2)&sup2; &times; H. Because diameter is squared, small diameter increments yield larger volume shifts than height changes. However, height contributes heavily to cooling and stator aspect ratios.</li>
+        <li><strong>Volume & Weight:</strong> Estimated motor weights are derived from statistical averages: W &asymp; 2.0g + 0.0098 &times; V.</li>
+        <li>Use the comparison charts and live cross-sections to scale, compare, and identify optimal KV ranges and propeller configurations for any motor size.</li>
+    </ul>
+</div>
+<script src="../partials/partial_tools.js"></script>
 <script>
     if (window.parent && window.parent !== window) {
         window.parent.postMessage({ type: 'pageChange', key: 'stator' }, '*');
+        window.parent.postMessage({
+            type: 'helpData',
+            key: 'stator',
+            html: document.getElementById('help-content-source').innerHTML
+        }, '*');
     }
 </script>
 </body>

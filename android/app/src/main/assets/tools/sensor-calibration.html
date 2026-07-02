@@ -320,10 +320,7 @@
 <body>
     <script>
         (function() {
-            var theme = localStorage.getItem('fpv-tools-theme');
-            if (!theme) {
-                theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            }
+            var theme = localStorage.getItem('fpv-tools-theme') || 'dark';
             if (theme === 'light') {
                 document.body.classList.add('light-theme');
             }
@@ -631,9 +628,32 @@ window.addEventListener('message', function(event) {
     }
 })();
 </script>
+<div id="help-content-source" style="display:none;">
+    <p><strong>Sensor Calibration Help</strong></p><br>
+    <p>This utility helps you calibrate your flight controller's internal current sensor and voltage dividers to guarantee accurate battery status telemetry and reliable mAh consumption readings.</p><br>
+    <p><strong>Current Sensor Steps:</strong></p>
+    <ol style="padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+        <li>Fly a pack and record the **mAh consumed** reported by your OSD/Configurator.</li>
+        <li>Put the battery on a charger and record the **mAh replaced** (charged).</li>
+        <li>Record your current **Betaflight Current Scale** (default is usually 400).</li>
+        <li>Click Calculate and paste the resulting `set current_meter_scale` CLI command into the Betaflight console.</li>
+    </ol><br>
+    <p><strong>Voltage Sensor Steps:</strong></p>
+    <ol style="padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+        <li>Measure active battery voltage with a multimeter while connected to the quad.</li>
+        <li>Record the voltage shown by the Configurator and the current **Voltage Scale** (default 110).</li>
+        <li>Click Calculate and apply the `set vbat_scale` CLI command in Betaflight.</li>
+    </ol>
+</div>
+<script src="../partials/partial_tools.js"></script>
 <script>
     if (window.parent && window.parent !== window) {
         window.parent.postMessage({ type: 'pageChange', key: 'current' }, '*');
+        window.parent.postMessage({
+            type: 'helpData',
+            key: 'current',
+            html: document.getElementById('help-content-source').innerHTML
+        }, '*');
     }
 </script>
 </body>

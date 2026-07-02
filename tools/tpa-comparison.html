@@ -354,10 +354,7 @@
 <body>
     <script>
         (function() {
-            var theme = localStorage.getItem('fpv-tools-theme');
-            if (!theme) {
-                theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            }
+            var theme = localStorage.getItem('fpv-tools-theme') || 'dark';
             if (theme === 'light') {
                 document.body.classList.add('light-theme');
             }
@@ -724,10 +721,26 @@
                 updateChartsTheme('light');
             }
         })();
-    </script>
+</script>
+    <div id="help-content-source" style="display:none;">
+    <p><strong>TPA Comparison Help</strong></p><br>
+    <p>TPA (Throttle PID Attenuation) reduces PID gains at high throttle ranges to prevent mid-to-high throttle oscillations (often heard as high-frequency warbling or flutter at full punch-outs).</p><br>
+    <p><strong>Understanding the inputs:</strong></p>
+    <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+        <li><strong>TPA Rate:</strong> The percentage by which the P and D gains are reduced at 100% throttle. E.g., a rate of 0.65 reduces your gains by 65% (PIDs retain 35% strength).</li>
+        <li><strong>Breakpoint:</strong> The throttle value (in microseconds, from 1000 to 2000) where the attenuation starts. Below this breakpoint, PIDs retain 100% strength.</li>
+        <li>Use the dual control panels to overlay two different TPA profiles and compare how rapidly and aggressively they attenuate your gains.</li>
+    </ul>
+</div>
+<script src="../partials/partial_tools.js"></script>
 <script>
     if (window.parent && window.parent !== window) {
         window.parent.postMessage({ type: 'pageChange', key: 'tpa' }, '*');
+        window.parent.postMessage({
+            type: 'helpData',
+            key: 'tpa',
+            html: document.getElementById('help-content-source').innerHTML
+        }, '*');
     }
 </script>
 </body>
