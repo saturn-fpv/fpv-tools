@@ -252,6 +252,14 @@
             font-family: 'JetBrains Mono', 'Fira Code', monospace;
             transition: all 0.2s;
         }
+        .vbadge-blue {
+            color: #3b82f6 !important;
+            background: rgba(59, 130, 246, 0.12) !important;
+        }
+        .vbadge-green {
+            color: #10b981 !important;
+            background: rgba(16, 185, 129, 0.12) !important;
+        }
         .tpa-tab-content {
             width: 100%;
         }
@@ -332,6 +340,14 @@
             background-color: #ffffff !important;
             color: #1f2937 !important;
         }
+        body.light-theme .results-tab.active.tpa1-active {
+            color: #2563eb !important;
+            border-bottom-color: #2563eb !important;
+        }
+        body.light-theme .results-tab.active.tpa2-active {
+            color: #059669 !important;
+            border-bottom-color: #059669 !important;
+        }
         body.light-theme .results-tab:hover {
             background-color: #e5e7eb !important;
             color: #111827 !important;
@@ -339,6 +355,14 @@
         body.light-theme .vbadge-tab {
             background-color: #e5e7eb !important;
             color: #4b5563 !important;
+        }
+        body.light-theme .vbadge-blue {
+            color: #2563eb !important;
+            background-color: rgba(37, 99, 235, 0.1) !important;
+        }
+        body.light-theme .vbadge-green {
+            color: #059669 !important;
+            background-color: rgba(5, 150, 105, 0.1) !important;
         }
         body.light-theme .cli-box {
             background-color: #f3f4f6 !important;
@@ -378,10 +402,10 @@
                 <!-- Tabbed Controls -->
                 <div class="results-tabs" style="margin-bottom: 0;">
                     <button class="results-tab active" id="tab-btn-tpa-0" onclick="setTpaTab(0)">
-                        TPA 1 Profile <span class="vbadge-tab" style="color: #3b82f6; background: rgba(59,130,246,0.12);">Blue</span>
+                        TPA 1 Profile <span class="vbadge-tab vbadge-blue" id="badge-tpa-0">Blue</span>
                     </button>
                     <button class="results-tab" id="tab-btn-tpa-1" onclick="setTpaTab(1)">
-                        TPA 2 Profile <span class="vbadge-tab" style="color: #10b981; background: rgba(16,185,129,0.12);">Green</span>
+                        TPA 2 Profile <span class="vbadge-tab vbadge-green" id="badge-tpa-1">Green</span>
                     </button>
                 </div>
 
