@@ -23,6 +23,17 @@ android {
         manifestPlaceholders["appName"] = "FPV Tools"
     }
 
+    flavorDimensions.add("distribution")
+    productFlavors {
+        create("play") {
+            dimension = "distribution"
+        }
+        create("fdroid") {
+            dimension = "distribution"
+        }
+    }
+
+
     signingConfigs {
         create("release") {
             if (secretsFile.exists()) {

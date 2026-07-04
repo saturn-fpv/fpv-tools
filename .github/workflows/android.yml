@@ -25,11 +25,11 @@ jobs:
             -v "$PWD:/workspace" \
             -w /workspace/android \
             cimg/android:2026.03 \
-            ./gradlew --no-daemon clean lintDebug assembleDebug
+            ./gradlew --no-daemon clean lint assembleDebug
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v7
         with:
           name: fpv-tools-debug-apk
-          path: android/app/build/outputs/apk/debug/*.apk
+          path: android/app/build/outputs/apk/*/debug/*.apk
           if-no-files-found: error

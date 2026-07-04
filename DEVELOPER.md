@@ -13,8 +13,9 @@ This file outlines the rules of engagement, project architecture, and coding sta
 * All cryptographic keys (*.jks, *.keystore) and local properties files (`secrets.properties`, `local.properties`) are strictly gitignored. Never stage, commit, or push them.
 
 ### 3. Build & Verification Protocol
-* After modifying any Kotlin files or web assets, always verify that the project builds and lint checks pass cleanly using the local Gradle wrapper:
-  `.\gradlew.bat lintDebug assembleDebug`
+* After modifying any Kotlin files or web assets, always verify that the project builds and lint checks pass cleanly using the local Gradle wrapper for the target distribution flavor:
+  * Play Store Build: `.\gradlew.bat lintPlayDebug assemblePlayDebug`
+  * F-Droid Build: `.\gradlew.bat lintFdroidDebug assembleFdroidDebug`
 * If a physical device or emulator is connected, launch the app to visually inspect and verify the UI changes.
 
 ### 4. Typography & Styling
@@ -64,3 +65,16 @@ The Master Source Files under `/tools/`, `/js/`, and `/css/` are shared directly
       }, '*');
   }
   ```
+
+### 7. F-Droid & Google Play Distribution (Flavors)
+To comply with F-Droid's strict open-source policy while retaining optimized file loading on Google Play and the Saturn FPV Website, the Android app is split into two product flavors under the `distribution` dimension:
+* **`play` (Google Play Build):**
+  * Packages assets directly from `src/main/assets/` (which inherits minified JS libraries from the root `js/` folder).
+  * Compiled using: `.\gradlew.bat assemblePlayRelease` / `bundlePlayRelease`
+* **`fdroid` (F-Droid Build):**
+  * Packages unminified development versions of third-party JS libraries (React, React DOM, Babel standalone, Leaflet, JSZip) stored in `android/app/src/fdroid/assets/js/`.
+  * **Naming Override Strategy:** To prevent modifying any HTML files or script tags, the unminified JS libraries inside the `src/fdroid/` directory are named identically to the minified libraries (e.g. the unminified React development build is saved as `react.production.min.js`). Gradle automatically overrides the minified version in `main` with this unminified version during compilation of the F-Droid flavor.
+  * Compiled automatically by F-Droid's build servers from your release tags using: `.\gradlew.bat assembleFdroidRelease`
+* **Saturn FPV Website Compatibility:**
+  * The website build copies files directly from the root folders (`js/`, `css/`, etc.). Because the unminified F-Droid files reside isolated inside `android/app/src/fdroid/`, the website continues to use the root minified assets with zero changes.
+
