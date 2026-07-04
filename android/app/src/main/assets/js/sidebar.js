@@ -45,8 +45,17 @@
         text-transform: uppercase;
         margin: 0;
     }
-    .drawer-header h2 span {
+    .drawer-header h2 span:first-child {
         color: var(--orange, #E8722A);
+    }
+    .sidebar-version {
+        font-size: 0.75rem;
+        font-weight: 400;
+        font-style: italic;
+        text-transform: none;
+        color: var(--text-muted, #A1A1AA);
+        letter-spacing: normal;
+        margin-left: 0.4rem;
     }
     .drawer-close {
         background: none;
@@ -248,7 +257,7 @@
       <div class="drawer-overlay" id="sfpv-drawer-overlay" onclick="window.sfpvSidebar.close()"></div>
       <div class="drawer-menu" id="sfpv-drawer-menu">
           <div class="drawer-header">
-              <h2><span>FPV</span> Tools</h2>
+              <h2><span>FPV</span> Tools <span class="sidebar-version">v1.1.2</span></h2>
               <button class="drawer-close" onclick="window.sfpvSidebar.close()">&times;</button>
           </div>
           <ul class="drawer-links">
