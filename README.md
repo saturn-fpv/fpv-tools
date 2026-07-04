@@ -11,20 +11,36 @@ FPV Tools is an open-source utility and visualization suite designed for FPV dro
 
 Designed with a high-contrast dark theme optimized for outdoor readability, FPV Tools works completely offline, contains no ads, and respects your privacy.
 
-![FPV Tools Showcase](media/9x9_sep.jpg)
+<table width="100%">
+  <tr>
+    <td width="33%"><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.jpg" alt="Motor Stator Comparator"></td>
+    <td width="33%"><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.jpg" alt="Rate Curve Graphing"></td>
+    <td width="33%"><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.jpg" alt="Telemetry Flight Visualizer"></td>
+  </tr>
+  <tr>
+    <td width="33%"><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.jpg" alt="Race Spectrum Organizer"></td>
+    <td width="33%"><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5.jpg" alt="PID Step-Response Simulator"></td>
+    <td width="33%"><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/6.jpg" alt="Throttle PID Attenuation"></td>
+  </tr>
+  <tr>
+    <td width="33%"><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/7.jpg" alt="Prop Tip Speed Calculator"></td>
+    <td width="33%"><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/8.jpg" alt="Sensor Calibration"></td>
+    <td width="33%"><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/9.jpg" alt="Settings & Theme Toggle"></td>
+  </tr>
+</table>
 
 ---
 
 ## Key Features
 
-* **Visual Motor Stator Comparator**: Model and compare stator dimensions (such as 2306 vs. 2207, or 1303 vs. 1204) with visual cylinder models. Instantly compare volume distributions and calculate physical volume to help choose the right motor size for your build.
-* **Interactive Rate Curve Graphing**: Overlay and compare rate curves dynamically across multiple tabs. Supports Actual, Betaflight, KISS, QuickRates, and RaceFlight rate models. Adjust rates and expo via sliders, inspect stick sensitivity, and generate configuration CLI commands.
-* **3D Telemetry Flight Visualizer**: Convert raw EdgeTX, OpenTX, or FreedomTX telemetry log files (`.csv`) containing TBS Crossfire or ExpressLRS (CRSF) GPS data into KML/KMZ tracks. Applies altitude calibration for terrain-following, enabling 3D flyovers of your flights in Google Earth.
-* **Race Spectrum & Frequency Organizer**: Coordinate channels for Analog and Digital video transmitters (HDZero, Walksnail, DJI O3/O4). Checks for Intermodulation Distortion (IMD) conflicts, organizes pilots into heats, and suggests optimal channel assignments.
-* **PID Step-Response Simulator**: Model overshoot, settling time, and tracking errors on an animated step-response graph to help visualize how P, I, and D parameters affect flight dynamics. *(Based on the original simulator by Joshua Bardwell, with additional improvements)*
-* **Throttle PID Attenuation (TPA) Overlays**: Compare multiple TPA curves side-by-side to see how PIDs attenuate across the throttle range to prevent high-throttle oscillations.
-* **Prop Tip Speed Calculator**: Input KV, cell count/voltage, and propeller diameter to calculate prop tip speed (Mach velocity) relative to the speed of sound.
-* **Current & Voltage Sensor Calibration**: Calibrate OSD current and voltage scale coefficients for your flight controller based on battery recharge logs from your charger.
+* 📈 **Betaflight Rate Converter**: Overlay and compare rate curves dynamically across multiple tabs. Supports Actual, Betaflight, KISS, QuickRates, and RaceFlight rate models. Adjust rates and expo via sliders, inspect stick sensitivity, and generate configuration CLI commands.
+* 📉 **Betaflight TPA Comparison**: Compare multiple TPA curves side-by-side to see how PIDs attenuate across the throttle range to prevent high-throttle oscillations.
+* ⚡ **Betaflight Sensor Calibration**: Calibrate OSD current and voltage scale coefficients for your flight controller based on battery recharge logs from your charger.
+* ⚙️ **Motor Stator Comparator**: Model and compare stator dimensions (such as 2306 vs. 2207, or 1303 vs. 1204) with visual cylinder models. Instantly compare volume distributions and calculate physical volume to help choose the right motor size for your build.
+* 🌀 **Propeller Tip Speed Calculator**: Input KV, cell count/voltage, and propeller diameter to calculate prop tip speed (Mach velocity) relative to the speed of sound.
+* 🎮 **PID Controller Simulator**: Model overshoot, settling time, and tracking errors on an animated step-response graph to help visualize how P, I, and D parameters affect flight dynamics. *(Based on the original simulator by Joshua Bardwell, with additional improvements)*
+* 📡 **VTX Frequency Planner**: Coordinate channels for Analog and Digital video transmitters (HDZero, Walksnail, DJI O3/O4). Checks for Intermodulation Distortion (IMD) conflicts, organizes pilots into heats, and suggests optimal channel assignments.
+* 🗺️ **EdgeTX Telemetry Log Parser**: Convert raw EdgeTX, OpenTX, or FreedomTX telemetry log files (`.csv`) containing TBS Crossfire or ExpressLRS (CRSF) GPS data into KML/KMZ tracks. Applies altitude calibration for terrain-following, enabling 3D flyovers of your flights in Google Earth.
 
 ---
 
