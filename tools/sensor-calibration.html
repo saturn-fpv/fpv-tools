@@ -436,7 +436,7 @@
             </div>
 
             <div class="info" style="margin-bottom: 1.5rem;">
-                <strong>Formula:</strong> New Scale = Old Scale × (Charger mAh ÷ Betaflight mAh)<br><br>
+                <strong>Formula:</strong> New Scale = Old Scale × (Betaflight mAh ÷ Charger mAh)<br><br>
                 <strong>Why calibrate?</strong> Current sensors vary significantly between flight controllers and ESCs. Factory defaults are often inaccurate. An uncalibrated sensor can show 850 mAh when you've actually used 1050 mAh — meaning you're over-discharging batteries without knowing it.<br><br>
                 <strong>Pro tip:</strong> After applying the new scale, fly another pack and repeat. Each iteration narrows the error. After 2–3 rounds, you'll typically be within 2–3% accuracy.
             </div>
@@ -531,7 +531,7 @@ function calculate() {
         return;
     }
 
-    var newScale = Math.round(oldScale * (chargerMah / bfMah));
+    var newScale = Math.round(oldScale * (bfMah / chargerMah));
     var errorPct = Math.abs((bfMah - chargerMah) / chargerMah * 100);
     var direction = bfMah < chargerMah ? 'under-reading' : 'over-reading';
 
