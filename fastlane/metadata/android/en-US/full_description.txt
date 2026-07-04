@@ -1,0 +1,7 @@
+A comprehensive suite of offline-first tools designed specifically for FPV drone pilots.
+
+Includes:
+* PID Simulator and tuning calculators.
+* GPS, GPX, and KML map track visualizers.
+* Unit converters and lipo battery calculators.
+* 100% offline-first operation (no internet required).
