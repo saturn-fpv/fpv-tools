@@ -1,7 +1,13 @@
-A comprehensive suite of offline-first tools designed specifically for FPV drone pilots.
+FPV Tools is an open-source utility and visualization suite designed for FPV drone pilots and custom drone builders. It provides offline tools to model motor sizes, compare rate curves, plan frequencies, visualize flight telemetry, and simulate PID controllers.
 
-Includes:
-* PID Simulator and tuning calculators.
-* GPS, GPX, and KML map track visualizers.
-* Unit converters and lipo battery calculators.
-* 100% offline-first operation (no internet required).
+No internet connection required - access the complete set of calculators, simulators, and analysis tools directly in the field.
+
+Features:
+* **Interactive PID Simulator:** Model axis control feedback loops, step responses, and motor heat in real-time.
+* **Rate Converter:** Compare and convert rate curves across Actual, Betaflight, KISS, and other models with graphical side-by-side previews.
+* **Telemetry & GPS Parser:** Parse EdgeTX radio telemetry logs to visualize 3D flight paths and export GPX, KML, and KMZ tracks.
+* **TPA Comparison:** Visualize and compare throttle PID attenuation limits, breakpoints, and curves across different profiles.
+* **Prop Tip Speed Calculator:** Determine propeller tip velocity, Mach numbers, and transonic aerodynamic efficiency zones under load.
+* **Frequency Planner:** Calculate safe, intermodulation-free frequency layouts and channel assignments for multi-pilot race events.
+* **Sensor Calibration:** Calibrate flight controller current scale, offset values, and VBAT voltage sensors for accurate OSD readings.
+* **Motor Stator Volume:** Calculate and compare motor stator volumes and sizing metrics from tiny whoops to heavy long-range builds.
