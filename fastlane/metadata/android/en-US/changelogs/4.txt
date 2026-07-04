@@ -1,0 +1,5 @@
+Initial F-Droid release:
+- Added interactive PID Simulator and tuning calculators.
+- Added telemetry parser for EdgeTX radio logs to export GPX/KML paths.
+- Added rate curve converter, stator volume, and prop tip speed tools.
+- Full offline support with zero external network dependencies.
