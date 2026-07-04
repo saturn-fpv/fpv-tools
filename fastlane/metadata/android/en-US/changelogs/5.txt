@@ -1,0 +1,4 @@
+Version 1.1.2 release:
+- Fixed current scale sensor calibration logic.
+- Standardized tool order across sidebar and README.
+- Cleaned up navigation sidebar styling and mobile layout constraints.
