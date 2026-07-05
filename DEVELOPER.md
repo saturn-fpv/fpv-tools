@@ -75,6 +75,7 @@ To comply with F-Droid's strict open-source policy while retaining optimized fil
   * Packages unminified development versions of third-party JS libraries (React, React DOM, Babel standalone, Leaflet, JSZip) stored in `android/app/src/fdroid/assets/js/`.
   * **Naming Override Strategy:** To prevent modifying any HTML files or script tags, the unminified JS libraries inside the `src/fdroid/` directory are named identically to the minified libraries (e.g. the unminified React development build is saved as `react.production.min.js`). Gradle automatically overrides the minified version in `main` with this unminified version during compilation of the F-Droid flavor.
   * Compiled automatically by F-Droid's build servers from your release tags using: `.\gradlew.bat assembleFdroidRelease`
+  * **Build Server Constraints (Important):** F-Droid requires fully offline, secure, and reproducible builds. Dynamic JDK toolchain resolution plugins (such as `org.gradle.toolchains.foojay-resolver-convention` in `settings.gradle.kts`) are strictly blocked by the F-Droid source scanner and will fail compilation. Ensure all JDK requirements are resolved locally.
 * **Saturn FPV Website Compatibility:**
   * The website build copies files directly from the root folders (`js/`, `css/`, etc.). Because the unminified F-Droid files reside isolated inside `android/app/src/fdroid/`, the website continues to use the root minified assets with zero changes.
 
