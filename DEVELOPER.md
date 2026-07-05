@@ -1,6 +1,6 @@
 # FPV Tools - Developer Guidance
 
-This file outlines the rules of engagement, project architecture, and coding standards for developers and AI coding assistants working on this repository.
+This file outlines the project architecture, versioning protocol, and coding standards for developers working on this repository.
 
 ### 1. Project Architecture & Synchronization (CRITICAL)
 * This is a hybrid Android app consisting of a simple Kotlin Android wrapper loading offline web views (Note: Compose UI and compose-navigation layers have been removed to keep the application lightweight and WebView-focused):
@@ -9,8 +9,7 @@ This file outlines the rules of engagement, project architecture, and coding sta
 * **Rule**: Whenever you edit any HTML, JS, CSS, or icon files in the root folder, you **MUST** synchronize/copy those updated files to their corresponding paths inside `android/app/src/main/assets/` so the Android app builds with the newest code.
 
 ### 2. Git & Secrets Security
-* Never push to GitHub without an explicit instruction from the user.
-* All cryptographic keys (*.jks, *.keystore) and local properties files (`secrets.properties`, `local.properties`) are strictly gitignored. Never stage, commit, or push them.
+* All cryptographic keys (`*.jks`, `*.keystore`) and local properties files (`secrets.properties`, `local.properties`) are strictly gitignored.
 
 ### 3. Build & Verification Protocol
 * After modifying any Kotlin files or web assets, always verify that the project builds and lint checks pass cleanly using the local Gradle wrapper for the target distribution flavor:
@@ -78,4 +77,19 @@ To comply with F-Droid's strict open-source policy while retaining optimized fil
   * **Build Server Constraints (Important):** F-Droid requires fully offline, secure, and reproducible builds. Dynamic JDK toolchain resolution plugins (such as `org.gradle.toolchains.foojay-resolver-convention` in `settings.gradle.kts`) are strictly blocked by the F-Droid source scanner and will fail compilation. Ensure all JDK requirements are resolved locally.
 * **Saturn FPV Website Compatibility:**
   * The website build copies files directly from the root folders (`js/`, `css/`, etc.). Because the unminified F-Droid files reside isolated inside `android/app/src/fdroid/`, the website continues to use the root minified assets with zero changes.
+
+### 8. Version Management & Release Protocol
+Whenever you bump the app version for a new release, you **MUST** update the version parameters in all of the following locations:
+1. **Gradle Build Config:** Update `versionCode` (integer) and `versionName` (string) in [build.gradle.kts](android/app/build.gradle.kts).
+2. **Sidebar UI Version:** Update the version string (e.g. `v1.1.3`) in the drawer header template in [js/sidebar.js](js/sidebar.js).
+3. **About Menu UI Version:** Update the version text in the about card header in [menu.html](menu.html).
+4. **Active Assets Sync:** Copy the updated `js/sidebar.js` and `menu.html` files to their active assets counterparts under `android/app/src/main/assets/` to ensure they are packaged in the Android APK.
+5. **Changelog Creation:** Create a new release changelog text file named after the target `versionCode` (e.g. `6.txt` for version code `6`) in `fastlane/metadata/android/en-US/changelogs/`.
+6. **Git Tagging:** Push the merged release commits to `main`, then create and push a tag named `v<versionName>` (e.g. `v1.1.3`) to GitHub to trigger F-Droid's autoupdate check.
+
+### 9. Guidance for AI Coding Assistants (Antigravity/Others)
+This section outlines automated workflow rules for AI agents:
+* **Pushes:** Never push commits, tags, or branches to GitHub/GitLab without an explicit, direct instruction from the user.
+* **Secrets & Keys:** Never stage, commit, or push cryptographic keys (`*.jks`, `*.keystore`) or local properties/secret files (`secrets.properties`, `local.properties`). Even if they are modified locally, ensure they remain unstaged.
+* **Code Integrity:** Always adhere strictly to the project architecture, file synchronization requirements, and relative directory constraints specified in this file.
 

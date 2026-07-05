@@ -257,7 +257,7 @@
       <div class="drawer-overlay" id="sfpv-drawer-overlay" onclick="window.sfpvSidebar.close()"></div>
       <div class="drawer-menu" id="sfpv-drawer-menu">
           <div class="drawer-header">
-              <h2><span>FPV</span> Tools <span class="sidebar-version">v1.1.2</span></h2>
+              <h2><span>FPV</span> Tools <span class="sidebar-version">v1.1.3</span></h2>
               <button class="drawer-close" onclick="window.sfpvSidebar.close()">&times;</button>
           </div>
           <ul class="drawer-links">
