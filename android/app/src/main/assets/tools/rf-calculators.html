@@ -20,6 +20,7 @@
             --green: #10b981;
             --amber: #f59e0b;
             --red: #ef4444;
+            --orange: #e8722a;
             --mono: 'JetBrains Mono', 'Fira Code', monospace;
         }
         body {
@@ -111,6 +112,54 @@
         }
         .panel h2 .icon { font-size: 1.1rem; color: var(--blue); }
 
+        /* Sub-Tabs Box Layout System (modeled after TPA Comparison results-tabs) */
+        .sub-tabs {
+            display: flex;
+            background: #111827;
+            border: 1px solid var(--border);
+            border-radius: 0.75rem 0.75rem 0 0;
+            overflow: hidden;
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .sub-tab {
+            flex: 1;
+            background: #111827;
+            border: none;
+            color: var(--muted);
+            padding: 0.85rem 1rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            border-bottom: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-family: inherit;
+        }
+        .sub-tab:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .sub-tab.active.sub-blue {
+            color: var(--blue);
+            background: var(--panel);
+            border-bottom: 2px solid var(--blue);
+        }
+        .sub-tab.active.sub-green {
+            color: var(--green);
+            background: var(--panel);
+            border-bottom: 2px solid var(--green);
+        }
+        .sub-tab-panel {
+            border-top: none;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+
         /* Form elements */
         .form-row {
             display: flex;
@@ -159,41 +208,39 @@
             min-width: 35px;
         }
 
-        /* Sliders */
+        /* Solid Grey Sliders (Rate Converter style) */
         input[type="range"] {
             -webkit-appearance: none;
             appearance: none;
             width: 100%;
-            height: 6px;
-            background: var(--bg);
-            border-radius: 3px;
+            height: 0.3rem;
+            background-color: #374151; /* Dark-grey track */
+            border-radius: 0.5rem;
             outline: none;
-            border: 1px solid var(--border);
-            margin: 0.4rem 0;
+            cursor: pointer;
+            margin: 8px 0;
+            border: none;
         }
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 16px;
-            height: 16px;
+            width: 0.8rem;
+            height: 0.8rem;
             border-radius: 50%;
-            background: var(--blue);
+            background-color: var(--blue);
             cursor: pointer;
-            transition: transform 0.1s;
-        }
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
+            transition: transform 0.1s ease;
         }
         input[type="range"]::-moz-range-thumb {
-            width: 16px;
-            height: 16px;
-            border: none;
+            width: 0.8rem;
+            height: 0.8rem;
             border-radius: 50%;
-            background: var(--blue);
+            background-color: var(--blue);
             cursor: pointer;
+            border: none;
         }
 
-        /* Presets */
+        /* Presets Grid without active outlines */
         .presets-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -212,7 +259,6 @@
             transition: all 0.2s;
         }
         .preset-btn:hover { border-color: var(--blue); background: #1e293b; }
-        .preset-btn.active { border-color: var(--blue); background: rgba(59, 123, 246, 0.1); }
         .preset-btn .ptitle { font-weight: 600; font-size: 0.8125rem; margin-bottom: 0.15rem; }
         .preset-btn .pdetail { color: var(--dim); font-size: 0.6875rem; }
 
@@ -224,35 +270,6 @@
         }
         @media (min-width: 1024px) {
             .input-results-grid { grid-template-columns: 420px 1fr; }
-        }
-
-        /* Results Columns */
-        .results-columns {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1rem;
-            margin-bottom: 1.25rem;
-        }
-        @media (min-width: 640px) {
-            .results-columns { grid-template-columns: 1fr 1fr; }
-        }
-        .results-col {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 0.625rem;
-            padding: 1rem;
-        }
-        .results-col.col-accent { border-color: rgba(59, 123, 246, 0.3); }
-        .results-col.col-accent .col-header { color: var(--blue); }
-        .col-header {
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.75rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border);
-            color: var(--muted);
         }
         
         .result-row {
@@ -283,7 +300,6 @@
             margin-top: 1rem;
         }
 
-        .sep { border-top: 1px solid var(--border); margin: 1rem 0; }
         .info-tip {
             font-size: 0.75rem;
             color: var(--muted);
@@ -313,16 +329,8 @@
         }
 
         /* Antenna Designer visualization */
-        .antenna-visuals {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        @media (min-width: 640px) {
-            .antenna-visuals { grid-template-columns: 1fr 1fr; }
-        }
         .antenna-card {
+            width: 100%;
             background: var(--bg);
             border: 1px solid var(--border);
             border-radius: 0.5rem;
@@ -413,8 +421,13 @@
             border-color: var(--blue) !important;
         }
         body.light-theme input[type="range"] {
-            background-color: #e5e7eb !important;
-            border-color: #d1d5db !important;
+            background-color: #d1d5db !important;
+        }
+        body.light-theme input[type="range"]::-webkit-slider-thumb {
+            background-color: #2563eb !important;
+        }
+        body.light-theme input[type="range"]::-moz-range-thumb {
+            background-color: #2563eb !important;
         }
         body.light-theme h1,
         body.light-theme .result-row .rvalue {
@@ -446,9 +459,6 @@
             background: #f9fafb !important;
             border-color: #d1d5db !important;
         }
-        body.light-theme .results-col.col-accent {
-            border-color: rgba(59, 123, 246, 0.4) !important;
-        }
         body.light-theme .chart-container,
         body.light-theme .circles-visual,
         body.light-theme .antenna-card,
@@ -463,6 +473,31 @@
             background: #f9fafb !important;
             border-color: #d1d5db !important;
             color: #4b5563 !important;
+        }
+
+        /* Light Theme sub-tabs overrides */
+        body.light-theme .sub-tabs {
+            background-color: #e5e7eb !important;
+            border-color: #d1d5db !important;
+        }
+        body.light-theme .sub-tab {
+            background-color: #e5e7eb !important;
+            color: #4b5563 !important;
+        }
+        body.light-theme .sub-tab:hover {
+            background-color: #f3f4f6 !important;
+            color: #111827 !important;
+        }
+        body.light-theme .sub-tab.active {
+            background-color: #ffffff !important;
+        }
+        body.light-theme .sub-tab.active.sub-blue {
+            color: #2563eb !important;
+            border-bottom-color: #2563eb !important;
+        }
+        body.light-theme .sub-tab.active.sub-green {
+            color: #059669 !important;
+            border-bottom-color: #059669 !important;
         }
     </style>
 </head>
@@ -496,25 +531,21 @@
         <div class="panel tab-panel-body">
             <h2><span class="icon">&#9881;</span> Link Presets</h2>
             <div class="presets-grid">
-                <button class="preset-btn active" id="lp-58g" onclick="loadLinkPreset('58g')">
+                <button class="preset-btn" onclick="loadLinkPreset('58g')">
                     <div class="ptitle">5.8GHz Video</div>
-                    <div class="pdetail">600mW • Omni ➔ Patch</div>
+                    <div class="pdetail">800mW • Omni ➔ Patch</div>
                 </button>
-                <button class="preset-btn" id="lp-24elrs" onclick="loadLinkPreset('24elrs')">
+                <button class="preset-btn" onclick="loadLinkPreset('24elrs')">
                     <div class="ptitle">2.4GHz ELRS</div>
-                    <div class="pdetail">100mW • 250Hz LoRa</div>
+                    <div class="pdetail">250mW • 250Hz LoRa</div>
                 </button>
-                <button class="preset-btn" id="lp-915crsf" onclick="loadLinkPreset('915crsf')">
+                <button class="preset-btn" onclick="loadLinkPreset('915crsf')">
                     <div class="ptitle">915MHz Crossfire</div>
                     <div class="pdetail">250mW • Standard</div>
                 </button>
-                <button class="preset-btn" id="lp-12g" onclick="loadLinkPreset('12g')">
-                    <div class="ptitle">1.2GHz Video</div>
-                    <div class="pdetail">800mW • High Gain</div>
-                </button>
-                <button class="preset-btn" id="lp-dji" onclick="loadLinkPreset('dji')">
-                    <div class="ptitle">DJI O3 HD</div>
-                    <div class="pdetail">FCC Mode • Omni ➔ Goggles</div>
+                <button class="preset-btn" onclick="loadLinkPreset('dji')">
+                    <div class="ptitle">DJI O4 Pro</div>
+                    <div class="pdetail">1.2W • Omni ➔ Goggles</div>
                 </button>
             </div>
         </div>
@@ -530,14 +561,10 @@
                         <input type="range" id="link-freq" min="100" max="6000" value="5800" step="50" oninput="updateLink()">
                     </div>
 
-                    <div class="sep"></div>
-
                     <div class="form-row">
-                        <label for="link-power">TX Power <span class="val-display" id="link-power-val">28 dBm (631 mW)</span></label>
-                        <input type="range" id="link-power" min="0" max="36" value="28" step="0.5" oninput="updateLink()">
+                        <label for="link-power">TX Power <span class="val-display" id="link-power-val">29 dBm (800 mW)</span></label>
+                        <input type="range" id="link-power" min="0" max="36" value="29" step="0.5" oninput="updateLink()">
                     </div>
-
-                    <div class="sep"></div>
 
                     <div class="form-row">
                         <label for="link-tx-gain">TX Antenna Gain <span class="val-display" id="link-tx-gain-val">2.0 dBi</span></label>
@@ -548,8 +575,6 @@
                         <label for="link-rx-gain">RX Antenna Gain <span class="val-display" id="link-rx-gain-val">8.0 dBi</span></label>
                         <input type="range" id="link-rx-gain" min="-5" max="25" value="8" step="0.5" oninput="updateLink()">
                     </div>
-
-                    <div class="sep"></div>
 
                     <div class="form-row">
                         <label for="link-sens">RX Sensitivity <span class="val-display" id="link-sens-val">-90 dBm</span></label>
@@ -563,28 +588,52 @@
                 </div>
             </div>
 
-            <!-- Results -->
+            <!-- Results Merged to Tab Box -->
             <div>
-                <div class="results-columns">
-                    <div class="results-col col-accent">
-                        <div class="col-header">Theoretical Max Range</div>
-                        <div class="result-row result-row-big"><span class="rlabel">Distance</span><span><span class="rvalue" id="range-km">--</span><span class="runit">km</span></span></div>
+                <div class="sub-tabs">
+                    <button class="sub-tab active sub-blue" id="sub-btn-link-range" onclick="setSubTab('link', 'range', 'blue')">Theoretical Max Range</button>
+                    <button class="sub-tab" id="sub-btn-link-stats" onclick="setSubTab('link', 'stats', 'green')">Link Statistics</button>
+                </div>
+                <div class="panel sub-tab-panel">
+                    <!-- Tab 1: Theoretical Max Range -->
+                    <div id="sub-panel-link-range" class="sub-panel-content">
+                        <div class="result-row result-row-big">
+                            <span class="rlabel">Distance</span>
+                            <span><span class="rvalue" id="range-km">--</span><span class="runit">km</span></span>
+                        </div>
                         <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">Miles</span><span><span class="rvalue" id="range-miles">--</span><span class="runit">mi</span></span></div>
+                        <div class="result-row">
+                            <span class="rlabel">Miles</span>
+                            <span><span class="rvalue" id="range-miles">--</span><span class="runit">mi</span></span>
+                        </div>
                         <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">Meters</span><span><span class="rvalue" id="range-meters">--</span><span class="runit">m</span></span></div>
-                        <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">Real-world (~60%)</span><span><span class="rvalue" id="range-real" style="color:var(--amber)">--</span><span class="runit">km</span></span></div>
+                        <div class="result-row">
+                            <span class="rlabel">Real-world (~60%)</span>
+                            <span><span class="rvalue" id="range-real" style="color: var(--orange) !important;">--</span><span class="runit" style="color: var(--orange)">km</span></span>
+                        </div>
                     </div>
-                    <div class="results-col">
-                        <div class="col-header">Link Statistics</div>
-                        <div class="result-row"><span class="rlabel">Max Path Loss</span><span><span class="rvalue" id="max-path-loss">--</span><span class="runit">dB</span></span></div>
+                    
+                    <!-- Tab 2: Link Statistics -->
+                    <div id="sub-panel-link-stats" class="sub-panel-content" style="display:none;">
+                        <div class="result-row">
+                            <span class="rlabel">Max Path Loss</span>
+                            <span><span class="rvalue" id="max-path-loss">--</span><span class="runit">dB</span></span>
+                        </div>
                         <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">EIRP</span><span><span class="rvalue" id="eirp-dbm">--</span><span class="runit">dBm</span></span></div>
+                        <div class="result-row">
+                            <span class="rlabel">EIRP</span>
+                            <span><span class="rvalue" id="eirp-dbm">--</span><span class="runit">dBm</span></span>
+                        </div>
                         <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">EIRP (Watts)</span><span><span class="rvalue" id="eirp-watts">--</span><span class="runit">W</span></span></div>
+                        <div class="result-row">
+                            <span class="rlabel">EIRP (Watts)</span>
+                            <span><span class="rvalue" id="eirp-watts">--</span><span class="runit">W</span></span>
+                        </div>
                         <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">System Gain</span><span><span class="rvalue" id="sys-gain">--</span><span class="runit">dB</span></span></div>
+                        <div class="result-row">
+                            <span class="rlabel">System Gain</span>
+                            <span><span class="rvalue" id="sys-gain">--</span><span class="runit">dB</span></span>
+                        </div>
                     </div>
                 </div>
 
@@ -603,7 +652,7 @@
         <div class="panel tab-panel-body">
             <h2><span class="icon">&#9881;</span> Power Presets</h2>
             <div class="presets-grid" id="power-presets">
-                <!-- Preset buttons populated via JS -->
+                <!-- Preset buttons populated via JS (4 buttons only) -->
             </div>
         </div>
 
@@ -659,7 +708,7 @@
                     <div class="ptitle">+3 dB</div>
                     <div class="pdetail">Double Power</div>
                 </button>
-                <button class="preset-btn active" id="further-6" onclick="setFurther(6)">
+                <button class="preset-btn" onclick="setFurther(6)">
                     <div class="ptitle">+6 dB</div>
                     <div class="pdetail">Omni ➔ Patch Gain</div>
                 </button>
@@ -670,10 +719,6 @@
                 <button class="preset-btn" onclick="setFurther(-6)">
                     <div class="ptitle">-6 dB</div>
                     <div class="pdetail">Obstructed Path</div>
-                </button>
-                <button class="preset-btn" onclick="setFurther(-3)">
-                    <div class="ptitle">-3 dB</div>
-                    <div class="pdetail">Cable / Connector Loss</div>
                 </button>
             </div>
         </div>
@@ -695,18 +740,36 @@
             </div>
 
             <div>
-                <div class="results-columns">
-                    <div class="results-col col-accent">
-                        <div class="col-header">Range Multiplier</div>
-                        <div class="result-row result-row-big"><span class="rlabel">New Range</span><span><span class="rvalue" id="tf-range-mult">--</span><span class="runit">x</span></span></div>
+                <!-- Merged Range Multiplier and Coverage Area to Tab Box -->
+                <div class="sub-tabs">
+                    <button class="sub-tab active sub-blue" id="sub-btn-tf-range" onclick="setSubTab('tf', 'range', 'blue')">Range Multiplier</button>
+                    <button class="sub-tab" id="sub-btn-tf-area" onclick="setSubTab('tf', 'area', 'green')">Coverage Area</button>
+                </div>
+                <div class="panel sub-tab-panel">
+                    <!-- Tab 1: Range Multiplier -->
+                    <div id="sub-panel-tf-range" class="sub-panel-content">
+                        <div class="result-row result-row-big">
+                            <span class="rlabel">New Range</span>
+                            <span><span class="rvalue" id="tf-range-mult">--</span><span class="runit">x</span></span>
+                        </div>
                         <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">Change</span><span><span class="rvalue" id="tf-range-pct">--</span></span></div>
+                        <div class="result-row">
+                            <span class="rlabel">Change</span>
+                            <span><span class="rvalue" id="tf-range-pct">--</span></span>
+                        </div>
                     </div>
-                    <div class="results-col col-blue" style="border-color: rgba(59, 130, 246, 0.3);">
-                        <div class="col-header" style="color: var(--blue);">Coverage Area</div>
-                        <div class="result-row result-row-big"><span class="rlabel">New Area</span><span style="color: var(--blue);"><span class="rvalue" id="tf-area-mult" style="color: var(--blue);">--</span><span class="runit">x</span></span></div>
+                    
+                    <!-- Tab 2: Coverage Area -->
+                    <div id="sub-panel-tf-area" class="sub-panel-content" style="display:none;">
+                        <div class="result-row result-row-big">
+                            <span class="rlabel" style="color: var(--green) !important;">New Area</span>
+                            <span><span class="rvalue" id="tf-area-mult" style="color: var(--green) !important;">--</span><span class="runit" style="color: var(--green)">x</span></span>
+                        </div>
                         <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">Change</span><span><span class="rvalue" id="tf-area-pct">--</span></span></div>
+                        <div class="result-row">
+                            <span class="rlabel" style="color: var(--green) !important;">Change</span>
+                            <span><span class="rvalue" id="tf-area-pct" style="color: var(--green) !important;">--</span></span>
+                        </div>
                     </div>
                 </div>
 
@@ -719,13 +782,13 @@
                             <line x1="150" y1="0" x2="150" y2="200" stroke="#27272a" stroke-dasharray="3 3" />
                             
                             <!-- Circles -->
-                            <circle cx="150" cy="100" r="80" id="vc-new" fill="rgba(59, 123, 246, 0.08)" stroke="#3b82f6" stroke-width="2" stroke-dasharray="4 4" style="transition: r 0.2s;" />
+                            <circle cx="150" cy="100" r="80" id="vc-new" fill="rgba(232, 114, 42, 0.04)" stroke="#e8722a" stroke-width="2" stroke-dasharray="4 4" style="transition: r 0.2s;" />
                             <circle cx="150" cy="100" r="40" id="vc-orig" fill="rgba(59, 123, 246, 0.18)" stroke="#3b82f6" stroke-width="2" style="transition: r 0.2s;" />
                             <circle cx="150" cy="100" r="4" fill="#ffffff" />
                             
                             <!-- Labels -->
                             <text x="155" y="93" fill="#3b82f6" font-size="8" font-family="Outfit" font-weight="600">Base Range (1.0x)</text>
-                            <text x="155" y="60" fill="#3b82f6" font-size="8" font-family="Outfit" font-weight="600" id="vc-new-label">New Range (2.0x)</text>
+                            <text x="155" y="60" fill="#e8722a" font-size="8" font-family="Outfit" font-weight="600" id="vc-new-label">New Range (2.0x)</text>
                         </svg>
                     </div>
                 </div>
@@ -738,19 +801,19 @@
         <div class="panel tab-panel-body">
             <h2><span class="icon">&#9881;</span> Antenna Presets</h2>
             <div class="presets-grid">
-                <button class="preset-btn active" id="ap-58" onclick="loadAntPreset(5800)">
+                <button class="preset-btn" onclick="loadAntPreset(5800)">
                     <div class="ptitle">5.8 GHz Band</div>
                     <div class="pdetail">Video VTx/VRx</div>
                 </button>
-                <button class="preset-btn" id="ap-24" onclick="loadAntPreset(2440)">
+                <button class="preset-btn" onclick="loadAntPreset(2440)">
                     <div class="ptitle">2.4 GHz Band</div>
                     <div class="pdetail">ELRS / Control</div>
                 </button>
-                <button class="preset-btn" id="ap-915" onclick="loadAntPreset(915)">
+                <button class="preset-btn" onclick="loadAntPreset(915)">
                     <div class="ptitle">915 MHz Band</div>
                     <div class="pdetail">US CRSF / ELRS</div>
                 </button>
-                <button class="preset-btn" id="ap-868" onclick="loadAntPreset(868)">
+                <button class="preset-btn" onclick="loadAntPreset(868)">
                     <div class="ptitle">868 MHz Band</div>
                     <div class="pdetail">EU CRSF / ELRS</div>
                 </button>
@@ -762,7 +825,7 @@
                 <h2><span class="icon">&#9881;</span> Antenna Parameters</h2>
                 <div class="form-row">
                     <label for="ant-freq">Target Frequency <span class="val-display" id="ant-freq-val">5800 MHz</span></label>
-                    <input type="range" id="ant-freq" min="100" max="6000" value="5800" step="50" oninput="updateAntenna()">
+                    <input type="range" id="ant-freq" min="900" max="6000" value="5800" step="50" oninput="updateAntenna()">
                 </div>
                 <div class="form-row">
                     <label for="ant-vf">Velocity Factor (Vf)</label>
@@ -775,67 +838,88 @@
                 </div>
             </div>
 
+            <!-- Merged Monopole & Dipole to Tab Box -->
             <div>
-                <div class="results-columns">
-                    <div class="results-col col-accent">
-                        <div class="col-header">1/4 Wave Monopole</div>
-                        <div class="result-row result-row-big"><span class="rlabel">Element Length</span><span><span class="rvalue" id="ant-mono-mm">--</span><span class="runit">mm</span></span></div>
-                        <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">Inches</span><span><span class="rvalue" id="ant-mono-in">--</span><span class="runit">in</span></span></div>
-                        <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">Full Wavelength (λ)</span><span><span class="rvalue" id="ant-wl-mm">--</span><span class="runit">mm</span></span></div>
-                    </div>
-                    <div class="results-col">
-                        <div class="col-header">1/2 Wave Dipole</div>
-                        <div class="result-row result-row-big"><span class="rlabel">Total Length</span><span><span class="rvalue" id="ant-dipole-mm">--</span><span class="runit">mm</span></span></div>
-                        <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">Active Element</span><span><span class="rvalue" id="ant-dipole-half-mm">--</span><span class="runit">mm</span></span></div>
-                        <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">5/8 Wave Element</span><span><span class="rvalue" id="ant-58-mm">--</span><span class="runit">mm</span></span></div>
-                    </div>
+                <div class="sub-tabs">
+                    <button class="sub-tab active sub-blue" id="sub-btn-ant-mono" onclick="setSubTab('ant', 'mono', 'blue')">Monopole</button>
+                    <button class="sub-tab" id="sub-btn-ant-dipole" onclick="setSubTab('ant', 'dipole', 'green')">Dipole</button>
                 </div>
-
-                <div class="antenna-visuals">
-                    <div class="antenna-card">
-                        <h3>Monopole (Whip) Design</h3>
-                        <div class="antenna-svg-container">
-                            <svg width="100%" height="100%" viewBox="0 0 120 160">
-                                <line x1="20" y1="120" x2="100" y2="120" stroke="#4b5563" stroke-width="3" />
-                                <line x1="30" y1="120" x2="10" y2="135" stroke="#4b5563" stroke-width="2" />
-                                <line x1="90" y1="120" x2="110" y2="135" stroke="#4b5563" stroke-width="2" />
-                                <rect x="56" y="120" width="8" height="35" fill="#374151" rx="1" />
-                                <rect x="58" y="120" width="4" height="35" fill="#9ca3af" />
-                                <circle cx="60" cy="120" r="3" fill="#f59e0b" />
-                                <line x1="60" y1="120" x2="60" y2="30" stroke="#3b82f6" stroke-width="4" stroke-linecap="round" />
-                                <line x1="75" y1="30" x2="75" y2="120" stroke="#6b7280" stroke-width="1" />
-                                <line x1="71" y1="30" x2="79" y2="30" stroke="#6b7280" stroke-width="1" />
-                                <line x1="71" y1="120" x2="79" y2="120" stroke="#6b7280" stroke-width="1" />
-                                <text x="82" y="78" fill="#3b82f6" font-size="9" font-family="Outfit" font-weight="600" id="mono-svg-label">-- mm</text>
-                                <text x="25" y="20" fill="#9ca3af" font-size="8" font-family="Outfit" font-weight="500">1/4 Wave active</text>
-                            </svg>
+                <div class="panel sub-tab-panel">
+                    <!-- Tab 1: Monopole -->
+                    <div id="sub-panel-ant-mono" class="sub-panel-content">
+                        <div class="result-row result-row-big">
+                            <span class="rlabel">Element Length</span>
+                            <span><span class="rvalue" id="ant-mono-mm">--</span><span class="runit">mm</span></span>
+                        </div>
+                        <div class="result-sep"></div>
+                        <div class="result-row">
+                            <span class="rlabel">Inches</span>
+                            <span><span class="rvalue" id="ant-mono-in">--</span><span class="runit">in</span></span>
+                        </div>
+                        <div class="result-sep"></div>
+                        <div class="result-row">
+                            <span class="rlabel">Full Wavelength (λ)</span>
+                            <span><span class="rvalue" id="ant-wl-mm">--</span><span class="runit">mm</span></span>
+                        </div>
+                        <div class="antenna-card" style="margin-top: 1.25rem;">
+                            <h3>Monopole (Whip) Design</h3>
+                            <div class="antenna-svg-container">
+                                <svg width="100%" height="100%" viewBox="0 0 120 160">
+                                    <line x1="20" y1="120" x2="100" y2="120" stroke="#4b5563" stroke-width="3" />
+                                    <line x1="30" y1="120" x2="10" y2="135" stroke="#4b5563" stroke-width="2" />
+                                    <line x1="90" y1="120" x2="110" y2="135" stroke="#4b5563" stroke-width="2" />
+                                    <rect x="56" y="120" width="8" height="35" fill="#374151" rx="1" />
+                                    <rect x="58" y="120" width="4" height="35" fill="#9ca3af" />
+                                    <circle cx="60" cy="120" r="3" fill="#f59e0b" />
+                                    <line x1="60" y1="120" x2="60" y2="30" stroke="#3b82f6" stroke-width="4" stroke-linecap="round" />
+                                    <line x1="75" y1="30" x2="75" y2="120" stroke="#6b7280" stroke-width="1" />
+                                    <line x1="71" y1="30" x2="79" y2="30" stroke="#6b7280" stroke-width="1" />
+                                    <line x1="71" y1="120" x2="79" y2="120" stroke="#6b7280" stroke-width="1" />
+                                    <text x="82" y="78" fill="#3b82f6" font-size="9" font-family="Outfit" font-weight="600" id="mono-svg-label">-- mm</text>
+                                    <text x="25" y="20" fill="#9ca3af" font-size="8" font-family="Outfit" font-weight="500">1/4 Wave active</text>
+                                </svg>
+                            </div>
                         </div>
                     </div>
-                    <div class="antenna-card">
-                        <h3>Half-Wave Dipole Design</h3>
-                        <div class="antenna-svg-container">
-                            <svg width="100%" height="100%" viewBox="0 0 120 160">
-                                <rect x="56" y="77" width="8" height="75" fill="#374151" rx="1" />
-                                <rect x="58" y="77" width="4" height="75" fill="#9ca3af" />
-                                <circle cx="60" cy="77" r="4" fill="#ef4444" />
-                                <line x1="60" y1="77" x2="60" y2="15" stroke="#3b82f6" stroke-width="4" stroke-linecap="round" />
-                                <line x1="60" y1="77" x2="60" y2="140" stroke="#3b82f6" stroke-width="4" stroke-linecap="round" opacity="0.6" />
-                                <line x1="45" y1="15" x2="45" y2="77" stroke="#6b7280" stroke-width="1" />
-                                <line x1="41" y1="15" x2="49" y2="15" stroke="#6b7280" stroke-width="1" />
-                                <line x1="41" y1="77" x2="49" y2="77" stroke="#6b7280" stroke-width="1" />
-                                <text x="12" y="50" fill="#3b82f6" font-size="8" font-family="Outfit" font-weight="600" id="dipole-upper-svg-label">-- mm</text>
-                                <line x1="45" y1="77" x2="45" y2="140" stroke="#6b7280" stroke-width="1" />
-                                <line x1="41" y1="140" x2="49" y2="140" stroke="#6b7280" stroke-width="1" />
-                                <text x="12" y="113" fill="#3b82f6" font-size="8" font-family="Outfit" font-weight="600" opacity="0.6" id="dipole-lower-svg-label">-- mm</text>
-                                <line x1="75" y1="15" x2="75" y2="140" stroke="#6b7280" stroke-width="1" stroke-dasharray="2 2" />
-                                <line x1="71" y1="15" x2="79" y2="15" stroke="#6b7280" stroke-width="1" />
-                                <line x1="71" y1="140" x2="79" y2="140" stroke="#6b7280" stroke-width="1" />
-                                <text x="82" y="81" fill="#e5e7eb" font-size="9" font-family="Outfit" font-weight="600" id="dipole-total-svg-label">-- mm</text>
-                            </svg>
+
+                    <!-- Tab 2: Dipole -->
+                    <div id="sub-panel-ant-dipole" class="sub-panel-content" style="display:none;">
+                        <div class="result-row result-row-big">
+                            <span class="rlabel" style="color: var(--green) !important;">Total Length</span>
+                            <span><span class="rvalue" id="ant-dipole-mm" style="color: var(--green) !important;">--</span><span class="runit" style="color: var(--green)">mm</span></span>
+                        </div>
+                        <div class="result-sep"></div>
+                        <div class="result-row">
+                            <span class="rlabel">Active Element (1/4 λ)</span>
+                            <span><span class="rvalue" id="ant-dipole-half-mm">--</span><span class="runit">mm</span></span>
+                        </div>
+                        <div class="result-sep"></div>
+                        <div class="result-row">
+                            <span class="rlabel">5/8 Wave Element</span>
+                            <span><span class="rvalue" id="ant-58-mm">--</span><span class="runit">mm</span></span>
+                        </div>
+                        <div class="antenna-card" style="margin-top: 1.25rem;">
+                            <h3>Half-Wave Dipole Design</h3>
+                            <div class="antenna-svg-container">
+                                <svg width="100%" height="100%" viewBox="0 0 120 160">
+                                    <rect x="56" y="77" width="8" height="75" fill="#374151" rx="1" />
+                                    <rect x="58" y="77" width="4" height="75" fill="#9ca3af" />
+                                    <circle cx="60" cy="77" r="4" fill="#ef4444" />
+                                    <line x1="60" y1="77" x2="60" y2="15" stroke="#10b981" stroke-width="4" stroke-linecap="round" />
+                                    <line x1="60" y1="77" x2="60" y2="140" stroke="#10b981" stroke-width="4" stroke-linecap="round" opacity="0.6" />
+                                    <line x1="45" y1="15" x2="45" y2="77" stroke="#6b7280" stroke-width="1" />
+                                    <line x1="41" y1="15" x2="49" y2="15" stroke="#6b7280" stroke-width="1" />
+                                    <line x1="41" y1="77" x2="49" y2="77" stroke="#6b7280" stroke-width="1" />
+                                    <text x="12" y="50" fill="#10b981" font-size="8" font-family="Outfit" font-weight="600" id="dipole-upper-svg-label">-- mm</text>
+                                    <line x1="45" y1="77" x2="45" y2="140" stroke="#6b7280" stroke-width="1" />
+                                    <line x1="41" y1="140" x2="49" y2="140" stroke="#6b7280" stroke-width="1" />
+                                    <text x="12" y="113" fill="#10b981" font-size="8" font-family="Outfit" font-weight="600" opacity="0.6" id="dipole-lower-svg-label">-- mm</text>
+                                    <line x1="75" y1="15" x2="75" y2="140" stroke="#6b7280" stroke-width="1" stroke-dasharray="2 2" />
+                                    <line x1="71" y1="15" x2="79" y2="15" stroke="#6b7280" stroke-width="1" />
+                                    <line x1="71" y1="140" x2="79" y2="140" stroke="#6b7280" stroke-width="1" />
+                                    <text x="82" y="81" fill="#e5e7eb" font-size="9" font-family="Outfit" font-weight="600" id="dipole-total-svg-label">-- mm</text>
+                                </svg>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -848,10 +932,10 @@
         <div class="panel tab-panel-body">
             <h2><span class="icon">&#9881;</span> Frequency Presets</h2>
             <div class="presets-grid">
-                <button class="preset-btn active" id="fp-58" onclick="loadFresnelPreset(5800)"><div class="ptitle">5.8 GHz</div><div class="pdetail">Video link</div></button>
-                <button class="preset-btn" id="fp-24" onclick="loadFresnelPreset(2440)"><div class="ptitle">2.4 GHz</div><div class="pdetail">ELRS link</div></button>
-                <button class="preset-btn" id="fp-12" onclick="loadFresnelPreset(1280)"><div class="ptitle">1.2 GHz</div><div class="pdetail">Long Range Video</div></button>
-                <button class="preset-btn" id="fp-915" onclick="loadFresnelPreset(915)"><div class="ptitle">915 MHz</div><div class="pdetail">Crossfire link</div></button>
+                <button class="preset-btn" onclick="loadFresnelPreset(5800)"><div class="ptitle">5.8 GHz</div><div class="pdetail">Video link</div></button>
+                <button class="preset-btn" onclick="loadFresnelPreset(2440)"><div class="ptitle">2.4 GHz</div><div class="pdetail">ELRS link</div></button>
+                <button class="preset-btn" onclick="loadFresnelPreset(1280)"><div class="ptitle">1.2 GHz</div><div class="pdetail">Long Range Video</div></button>
+                <button class="preset-btn" onclick="loadFresnelPreset(915)"><div class="ptitle">915 MHz</div><div class="pdetail">Crossfire link</div></button>
             </div>
         </div>
 
@@ -860,14 +944,12 @@
                 <h2><span class="icon">&#9881;</span> Path Parameters</h2>
                 <div class="form-row">
                     <label for="fr-freq">Frequency <span class="val-display" id="fr-freq-val">5800 MHz</span></label>
-                    <input type="range" id="fr-freq" min="100" max="6000" value="5800" step="50" oninput="updateFresnel()">
+                    <input type="range" id="fr-freq" min="900" max="6000" value="5800" step="50" oninput="updateFresnel()">
                 </div>
-                <div class="sep"></div>
                 <div class="form-row">
                     <label for="fr-dist">Link Distance <span class="val-display" id="fr-dist-val">2.0 km</span></label>
                     <input type="range" id="fr-dist" min="0.1" max="30" value="2" step="0.1" oninput="updateFresnel()">
                 </div>
-                <div class="sep"></div>
                 <div class="form-row">
                     <label for="fr-pos">Obstacle Position <span class="val-display" id="fr-pos-val">Midpoint (50%)</span></label>
                     <input type="range" id="fr-pos" min="5" max="95" value="50" step="1" oninput="updateFresnel()">
@@ -877,23 +959,47 @@
                 </div>
             </div>
 
+            <!-- Merged Fresnel Radius & Earth Curvature to Tab Box -->
             <div>
-                <div class="results-columns">
-                    <div class="results-col col-accent">
-                        <div class="col-header">1st Fresnel Zone Radius</div>
-                        <div class="result-row result-row-big"><span class="rlabel">At Obstacle</span><span><span class="rvalue" id="fr-radius">--</span><span class="runit">m</span></span></div>
+                <div class="sub-tabs">
+                    <button class="sub-tab active sub-blue" id="sub-btn-fre-zone" onclick="setSubTab('fre', 'zone', 'blue')">Fresnel Zone</button>
+                    <button class="sub-tab" id="sub-btn-fre-earth" onclick="setSubTab('fre', 'earth', 'green')">Earth Curvature</button>
+                </div>
+                <div class="panel sub-tab-panel">
+                    <!-- Tab 1: Fresnel Zone -->
+                    <div id="sub-panel-fre-zone" class="sub-panel-content">
+                        <div class="result-row result-row-big">
+                            <span class="rlabel">At Obstacle Radius</span>
+                            <span><span class="rvalue" id="fr-radius">--</span><span class="runit">m</span></span>
+                        </div>
                         <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">Max (at midpoint)</span><span><span class="rvalue" id="fr-radius-max">--</span><span class="runit">m</span></span></div>
+                        <div class="result-row">
+                            <span class="rlabel">Max (at midpoint)</span>
+                            <span><span class="rvalue" id="fr-radius-max">--</span><span class="runit">m</span></span>
+                        </div>
                         <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">60% clear radius</span><span><span class="rvalue" id="fr-clear60" style="color:var(--amber)">--</span><span class="runit">m</span></span></div>
+                        <div class="result-row">
+                            <span class="rlabel">60% clear radius</span>
+                            <span><span class="rvalue" id="fr-clear60" style="color:var(--amber)">--</span><span class="runit">m</span></span>
+                        </div>
                     </div>
-                    <div class="results-col">
-                        <div class="col-header">Earth Curvature Bulge</div>
-                        <div class="result-row result-row-big"><span class="rlabel">Midpoint Bulge</span><span><span class="rvalue" id="fr-bulge">--</span><span class="runit">m</span></span></div>
+
+                    <!-- Tab 2: Earth Curvature -->
+                    <div id="sub-panel-fre-earth" class="sub-panel-content" style="display:none;">
+                        <div class="result-row result-row-big">
+                            <span class="rlabel" style="color: var(--green) !important;">Midpoint Bulge</span>
+                            <span><span class="rvalue" id="fr-bulge" style="color: var(--green) !important;">--</span><span class="runit" style="color: var(--green)">m</span></span>
+                        </div>
                         <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">Total Clearance Req.</span><span><span class="rvalue" id="fr-total">--</span><span class="runit">m</span></span></div>
+                        <div class="result-row">
+                            <span class="rlabel">Total Clearance Req.</span>
+                            <span><span class="rvalue" id="fr-total">--</span><span class="runit">m</span></span>
+                        </div>
                         <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">Recommended height</span><span><span class="rvalue" id="fr-anth">--</span><span class="runit">m</span></span></div>
+                        <div class="result-row">
+                            <span class="rlabel">Recommended height</span>
+                            <span><span class="rvalue" id="fr-anth">--</span><span class="runit">m</span></span>
+                        </div>
                     </div>
                 </div>
 
@@ -922,7 +1028,7 @@
             <div class="panel" style="margin-bottom:0;">
                 <h2><span class="icon">&#9881;</span> Cable Configuration</h2>
                 <div class="form-row">
-                    <label for="cbl-type">Coaxial Cable Type</label>
+                    <label for="cbl-type">Coaxial Cable Type (Seg 1)</label>
                     <select id="cbl-type" onchange="updateCable()"></select>
                 </div>
                 <div class="form-row">
@@ -930,33 +1036,83 @@
                     <input type="range" id="cbl-freq" min="100" max="6000" value="5800" step="50" oninput="updateCable()">
                 </div>
                 <div class="form-row">
-                    <label for="cbl-len">Cable Length <span class="val-display" id="cbl-len-val">30 cm</span></label>
+                    <label for="cbl-len">Segment 1 Length <span class="val-display" id="cbl-len-val">30 cm</span></label>
                     <input type="range" id="cbl-len" min="0.05" max="10" value="0.3" step="0.05" oninput="updateCable()">
                 </div>
-                <div class="sep"></div>
                 <div class="form-row">
-                    <label for="cbl-power">TX Input Power <span class="val-display" id="cbl-power-val">600 mW</span></label>
-                    <input type="range" id="cbl-power" min="0" max="36" value="28" step="0.5" oninput="updateCable()">
+                    <label for="cbl-power">TX Input Power <span class="val-display" id="cbl-power-val">800 mW</span></label>
+                    <input type="range" id="cbl-power" min="0" max="36" value="29" step="0.5" oninput="updateCable()">
+                </div>
+
+                <!-- Adapter Used / Segment 2 Inputs -->
+                <div class="form-row" style="flex-direction: row; align-items: center; gap: 0.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem;">
+                    <input type="checkbox" id="cbl-adapter-chk" onchange="toggleAdapterSection()" style="width: auto; cursor: pointer;">
+                    <label for="cbl-adapter-chk" style="cursor: pointer; font-size: 0.875rem; color: var(--text);">Adapter / Second Segment Used</label>
+                </div>
+
+                <div id="cbl-adapter-block" style="display: none; border-top: 1px dashed var(--border); padding-top: 0.75rem; margin-top: 0.5rem;">
+                    <div class="form-row">
+                        <label for="cbl-adapter-type">Connector / Adapter Type</label>
+                        <select id="cbl-adapter-type" onchange="updateCable()">
+                            <option value="sma">SMA Connector (0.15 dB)</option>
+                            <option value="rpsma">RPSMA Connector (0.15 dB)</option>
+                            <option value="mmcx">MMCX Connector (0.10 dB)</option>
+                            <option value="ufl_sma">U.FL to SMA Pigtail Adapter (0.40 dB)</option>
+                            <option value="sma_n">SMA to N-Type Adapter (0.20 dB)</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label for="cbl-type-2">Coaxial Cable Type (Seg 2)</label>
+                        <select id="cbl-type-2" onchange="updateCable()"></select>
+                    </div>
+                    <div class="form-row">
+                        <label for="cbl-len-2">Segment 2 Length <span class="val-display" id="cbl-len-2-val">30 cm</span></label>
+                        <input type="range" id="cbl-len-2" min="0.05" max="10" value="0.3" step="0.05" oninput="updateCable()">
+                    </div>
                 </div>
             </div>
 
+            <!-- Merged Cable Loss & Power Output to Tab Box -->
             <div>
-                <div class="results-columns">
-                    <div class="results-col col-accent">
-                        <div class="col-header">Cable Losses</div>
-                        <div class="result-row result-row-big"><span class="rlabel">Total Loss</span><span><span class="rvalue" id="cbl-loss">--</span><span class="runit">dB</span></span></div>
+                <div class="sub-tabs">
+                    <button class="sub-tab active sub-blue" id="sub-btn-cbl-loss" onclick="setSubTab('cbl', 'loss', 'blue')">Cable Loss</button>
+                    <button class="sub-tab" id="sub-btn-cbl-power" onclick="setSubTab('cbl', 'power', 'green')">Power Output</button>
+                </div>
+                <div class="panel sub-tab-panel">
+                    <!-- Tab 1: Cable Loss -->
+                    <div id="sub-panel-cbl-loss" class="sub-panel-content">
+                        <div class="result-row result-row-big">
+                            <span class="rlabel">Total Loss</span>
+                            <span><span class="rvalue" id="cbl-loss">--</span><span class="runit">dB</span></span>
+                        </div>
                         <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">Loss per meter</span><span><span class="rvalue" id="cbl-loss-m">--</span><span class="runit">dB/m</span></span></div>
+                        <div class="result-row">
+                            <span class="rlabel">Loss per meter</span>
+                            <span><span class="rvalue" id="cbl-loss-m">--</span><span class="runit">dB/m</span></span>
+                        </div>
                         <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">Power Delivered</span><span><span class="rvalue" id="cbl-pct">--</span><span class="runit">%</span></span></div>
+                        <div class="result-row">
+                            <span class="rlabel">Power Delivered</span>
+                            <span><span class="rvalue" id="cbl-pct">--</span><span class="runit">%</span></span>
+                        </div>
                     </div>
-                    <div class="results-col">
-                        <div class="col-header">Power Output</div>
-                        <div class="result-row result-row-big"><span class="rlabel">Effective Output</span><span><span class="rvalue" id="cbl-out-mw">--</span><span class="runit">mW</span></span></div>
+
+                    <!-- Tab 2: Power Output -->
+                    <div id="sub-panel-cbl-power" class="sub-panel-content" style="display:none;">
+                        <div class="result-row result-row-big">
+                            <span class="rlabel" style="color: var(--green) !important;">Effective Output</span>
+                            <span><span class="rvalue" id="cbl-out-mw" style="color: var(--green) !important;">--</span><span class="runit" style="color: var(--green)">mW</span></span>
+                        </div>
                         <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">Power in dBm</span><span><span class="rvalue" id="cbl-out-dbm">--</span><span class="runit">dBm</span></span></div>
+                        <div class="result-row">
+                            <span class="rlabel">Power in dBm</span>
+                            <span><span class="rvalue" id="cbl-out-dbm">--</span><span class="runit">dBm</span></span>
+                        </div>
                         <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">Wattage Lost</span><span><span class="rvalue" id="cbl-lost-mw" style="color: var(--red)">--</span><span class="runit">mW</span></span></div>
+                        <div class="result-row">
+                            <span class="rlabel">Wattage Lost</span>
+                            <span><span class="rvalue" id="cbl-lost-mw" style="color: var(--red)">--</span><span class="runit">mW</span></span>
+                        </div>
                     </div>
                 </div>
 
@@ -976,7 +1132,7 @@
             <h2><span class="icon">&#9881;</span> Match Presets</h2>
             <div class="presets-grid">
                 <button class="preset-btn" onclick="setVswr(1.0)"><div class="ptitle">1.0 : 1</div><div class="pdetail">Perfect match</div></button>
-                <button class="preset-btn active" id="vp-15" onclick="setVswr(1.5)"><div class="ptitle">1.5 : 1</div><div class="pdetail">Excellent Match</div></button>
+                <button class="preset-btn" onclick="setVswr(1.5)"><div class="ptitle">1.5 : 1</div><div class="pdetail">Excellent Match</div></button>
                 <button class="preset-btn" onclick="setVswr(2.0)"><div class="ptitle">2.0 : 1</div><div class="pdetail">Acceptable Match</div></button>
                 <button class="preset-btn" onclick="setVswr(3.0)"><div class="ptitle">3.0 : 1</div><div class="pdetail">Poor Match</div></button>
             </div>
@@ -987,11 +1143,10 @@
                 <h2><span class="icon">&#9881;</span> Impedance Matching</h2>
                 <div class="form-row">
                     <label for="vswr-in">VSWR <span class="val-display" id="vswr-in-val">1.50 : 1</span></label>
-                    <input type="range" id="vswr-in" min="1" max="6" value="1.5" step="0.01" oninput="updateVswr('vswr')">
+                    <input type="range" id="vswr-in" min="1" max="6" value="1.5" step="0.01" oninput="updateVswr()">
                 </div>
-                <div class="sep"></div>
                 
-                <div class="info-tip">
+                <div class="info-tip" style="margin-top: 1rem;">
                     <strong>What is VSWR?</strong>
                     <br><strong>Voltage Standing Wave Ratio (VSWR)</strong> measures how efficiently radio frequency power is transferred from your transmitter to your antenna.
                     <br><br>• A VSWR of <strong>1.0:1</strong> is a perfect match (0% power reflected).
@@ -1000,21 +1155,42 @@
                 </div>
             </div>
 
+            <!-- Merged Reflections & Transmission to Tab Box -->
             <div>
-                <div class="results-columns">
-                    <div class="results-col col-accent">
-                        <div class="col-header">Reflections <span id="vswr-badge"></span></div>
-                        <div class="result-row result-row-big"><span class="rlabel">Reflected Power</span><span><span class="rvalue" id="vswr-refl">--</span><span class="runit">%</span></span></div>
+                <div class="sub-tabs">
+                    <button class="sub-tab active sub-blue" id="sub-btn-vswr-refl" onclick="setSubTab('vswr', 'refl', 'blue')">Reflections</button>
+                    <button class="sub-tab" id="sub-btn-vswr-trans" onclick="setSubTab('vswr', 'trans', 'green')">Transmission</button>
+                </div>
+                <div class="panel sub-tab-panel">
+                    <!-- Tab 1: Reflections -->
+                    <div id="sub-panel-vswr-refl" class="sub-panel-content">
+                        <div class="result-row result-row-big">
+                            <span class="rlabel">Reflected Power</span>
+                            <span><span class="rvalue" id="vswr-refl">--</span><span class="runit">%</span></span>
+                        </div>
                         <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">Return Loss</span><span><span class="rvalue" id="vswr-rl-out">--</span><span class="runit">dB</span></span></div>
+                        <div class="result-row">
+                            <span class="rlabel">Return Loss</span>
+                            <span><span class="rvalue" id="vswr-rl-out">--</span><span class="runit">dB</span></span>
+                        </div>
                         <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">Refl. Coefficient (Γ)</span><span><span class="rvalue" id="vswr-gamma">--</span></span></div>
+                        <div class="result-row">
+                            <span class="rlabel">Refl. Coefficient (Γ)</span>
+                            <span><span class="rvalue" id="vswr-gamma">--</span></span>
+                        </div>
                     </div>
-                    <div class="results-col">
-                        <div class="col-header">Transmission Efficiency</div>
-                        <div class="result-row result-row-big"><span class="rlabel">Power Delivered</span><span><span class="rvalue" id="vswr-trans">--</span><span class="runit">%</span></span></div>
+
+                    <!-- Tab 2: Transmission -->
+                    <div id="sub-panel-vswr-trans" class="sub-panel-content" style="display:none;">
+                        <div class="result-row result-row-big">
+                            <span class="rlabel" style="color: var(--green) !important;">Power Delivered</span>
+                            <span><span class="rvalue" id="vswr-trans" style="color: var(--green) !important;">--</span><span class="runit" style="color: var(--green)">%</span></span>
+                        </div>
                         <div class="result-sep"></div>
-                        <div class="result-row"><span class="rlabel">Mismatch Loss</span><span><span class="rvalue" id="vswr-ml">--</span><span class="runit">dB</span></span></div>
+                        <div class="result-row">
+                            <span class="rlabel">Mismatch Loss</span>
+                            <span><span class="rvalue" id="vswr-ml">--</span><span class="runit">dB</span></span>
+                        </div>
                     </div>
                 </div>
 
@@ -1129,7 +1305,8 @@
         updateFurther();
         updateAntenna();
         updateFresnel();
-        updateVswr('vswr');
+        updateCable();
+        updateVswr();
     });
 
     // Theme switching listener
@@ -1165,6 +1342,33 @@
         }, 50);
     }
 
+    // Generic Sub-Tab Switching Logic (TPA Comparison style)
+    function setSubTab(section, tabKey, color) {
+        // Hide all sub-panels in this section
+        document.querySelectorAll(`[id^="sub-panel-${section}-"]`).forEach(el => {
+            el.style.display = 'none';
+        });
+        // Deactivate all tab buttons in this section
+        document.querySelectorAll(`[id^="sub-btn-${section}-"]`).forEach(el => {
+            el.classList.remove('active', 'sub-blue', 'sub-green');
+        });
+        
+        // Show active panel
+        const activePanel = document.getElementById(`sub-panel-${section}-${tabKey}`);
+        if (activePanel) activePanel.style.display = 'block';
+        
+        // Highlight active tab button
+        const activeBtn = document.getElementById(`sub-btn-${section}-${tabKey}`);
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+            if (color === 'blue') {
+                activeBtn.classList.add('sub-blue');
+            } else if (color === 'green') {
+                activeBtn.classList.add('sub-green');
+            }
+        }
+    }
+
     function chartColors() {
         const isLightTheme = document.body.classList.contains('light-theme');
         return {
@@ -1196,22 +1400,15 @@
     let rangeChart = null;
 
     const linkPresets = {
-        '58g': { freq: 5800, power: 28, txGain: 2, rxGain: 8, sens: -90, margin: 3 }, // 600mW VTx
-        '24elrs': { freq: 2440, power: 20, txGain: 2, rxGain: 2, sens: -115, margin: 6 }, // 100mW ELRS LoRa
+        '58g': { freq: 5800, power: 29, txGain: 2, rxGain: 8, sens: -90, margin: 3 }, // 800mW VTx
+        '24elrs': { freq: 2440, power: 24, txGain: 2, rxGain: 2, sens: -115, margin: 6 }, // 250mW ELRS LoRa
         '915crsf': { freq: 915, power: 24, txGain: 2, rxGain: 2, sens: -115, margin: 6 }, // 250mW Crossfire
-        '12g': { freq: 1280, power: 29, txGain: 2, rxGain: 10, sens: -92, margin: 3 }, // 800mW 1.2G VTx
-        'dji': { freq: 5800, power: 32, txGain: 2, rxGain: 5, sens: -95, margin: 4 } // DJI O3 FCC 1.6W
+        'dji': { freq: 5800, power: 30.8, txGain: 2, rxGain: 5, sens: -95, margin: 4 } // DJI O4 Pro FCC 1.2W
     };
 
     function loadLinkPreset(presetKey) {
         const preset = linkPresets[presetKey];
         if (!preset) return;
-
-        // Deactivate all preset buttons, activate selected
-        document.querySelectorAll('#tab-link .presets-grid .preset-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        document.getElementById(`lp-${presetKey}`).classList.add('active');
 
         // Load values to inputs
         document.getElementById('link-freq').value = preset.freq;
@@ -1269,10 +1466,8 @@
         const km = rangeFromLoss(maxPathLoss, freq);
         if (km >= 1) {
             document.getElementById('range-km').innerText = km.toFixed(2);
-            document.getElementById('range-meters').innerText = Math.round(km * 1000).toLocaleString();
         } else {
             document.getElementById('range-km').innerText = km.toFixed(4);
-            document.getElementById('range-meters').innerText = (km * 1000).toFixed(1);
         }
         document.getElementById('range-miles').innerText = (km * 0.621371).toFixed(2);
         
@@ -1282,16 +1477,6 @@
 
         // Render Received Power chart vs distance
         renderRangeChart(freq, powerDbm, txGain, rxGain, sens, margin, km);
-
-        // Deactivate presets if input differs from standard preset values
-        const activePresetBtn = document.querySelector('#tab-link .presets-grid .preset-btn.active');
-        if (activePresetBtn) {
-            const pk = activePresetBtn.id.replace('lp-', '');
-            const p = linkPresets[pk];
-            if (p && (freq !== p.freq || powerDbm !== p.power || txGain !== p.txGain || rxGain !== p.rxGain || sens !== p.sens || margin !== p.margin)) {
-                activePresetBtn.classList.remove('active');
-            }
-        }
     }
 
     function renderRangeChart(freq, powerDbm, txGain, rxGain, sens, margin, maxKm) {
@@ -1422,17 +1607,10 @@
     // TAB 2: mW ⟷ dBm CONVERSION
     // ==========================================
     const powerPresets = [
-        { mw: 25, label: "25 mW (Race)" },
+        { mw: 25, label: "25 mW" },
         { mw: 100, label: "100 mW" },
-        { mw: 200, label: "200 mW" },
-        { mw: 350, label: "350 mW" },
-        { mw: 400, label: "400 mW" },
-        { mw: 600, label: "600 mW" },
         { mw: 800, label: "800 mW" },
-        { mw: 1000, label: "1 W" },
-        { mw: 1600, label: "1.6 W (DJI)" },
-        { mw: 2000, label: "2 W" },
-        { mw: 2500, label: "2.5 W" }
+        { mw: 1200, label: "1.2 W (DJI)" }
     ];
 
     function initializePowerPresets() {
@@ -1440,10 +1618,8 @@
         container.innerHTML = '';
         powerPresets.forEach(p => {
             const btn = document.createElement('button');
-            btn.className = 'preset-btn' + (p.mw === 25 ? ' active' : '');
+            btn.className = 'preset-btn';
             btn.onclick = () => {
-                document.querySelectorAll('#power-presets .preset-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
                 document.getElementById('conv-mw').value = p.mw;
                 convertPower('mw');
             };
@@ -1477,12 +1653,6 @@
 
         slider.value = Math.max(-10, Math.min(40, dbm));
         document.getElementById('conv-slider-display').innerText = `${dbm.toFixed(2)} dBm (${mw >= 1000 ? (mw/1000).toFixed(2)+' W' : mw.toFixed(1)+' mW'})`;
-
-        if (source !== 'preset') {
-            document.querySelectorAll('#power-presets .preset-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-        }
     }
 
     function syncConvSlider() {
@@ -1495,19 +1665,6 @@
     // TAB 3: TIMES FURTHER (dB DELTA)
     // ==========================================
     function setFurther(db) {
-        document.querySelectorAll('#tab-further .presets-grid .preset-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        if (db === 6) {
-            const b = document.getElementById('further-6');
-            if (b) b.classList.add('active');
-        } else {
-            document.querySelectorAll('#tab-further .presets-grid .preset-btn').forEach(btn => {
-                const title = btn.querySelector('.ptitle').innerText;
-                if (title.includes(db >= 0 ? '+' + db : db)) btn.classList.add('active');
-            });
-        }
-
         document.getElementById('tf-db').value = db;
         updateFurther();
     }
@@ -1523,8 +1680,8 @@
         
         const rp = (rm - 1) * 100;
         const rpEl = document.getElementById('tf-range-pct');
-        rpEl.innerText = `${rp >= 0 ? 'Increase of ' : 'Decrease of '}${Math.abs(rp).toFixed(1)}%`;
-        rpEl.style.color = rp >= 0 ? '#3b82f6' : '#ef4444'; // Blue positive indicator
+        rpEl.innerText = `${rp >= 0 ? '+' : ''}${rp.toFixed(1)}%`;
+        rpEl.style.color = rp >= 0 ? 'var(--blue)' : 'var(--red)';
 
         // Area Multiplier = RangeMultiplier^2 = 10^(dB/10)
         const am = Math.pow(10, db / 10);
@@ -1532,8 +1689,8 @@
         
         const ap = (am - 1) * 100;
         const apEl = document.getElementById('tf-area-pct');
-        apEl.innerText = `${ap >= 0 ? 'Increase of ' : 'Decrease of '}${Math.abs(ap).toLocaleString(undefined, {maximumFractionDigits: 1})}%`;
-        apEl.style.color = ap >= 0 ? '#3b82f6' : '#ef4444';
+        apEl.innerText = `${ap >= 0 ? '+' : ''}${ap.toFixed(1)}%`;
+        apEl.style.color = ap >= 0 ? 'var(--green)' : 'var(--red)';
 
         // Update concentric circle SVG
         const newC = document.getElementById('vc-new');
@@ -1554,12 +1711,6 @@
     const C_LIGHT = 299792.458; // speed of light / frequency scaling factor
 
     function loadAntPreset(freq) {
-        document.querySelectorAll('#tab-antenna .preset-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        const map = { 5800: 'ap-58', 2440: 'ap-24', 915: 'ap-915', 868: 'ap-868' };
-        if (map[freq]) document.getElementById(map[freq]).classList.add('active');
-
         document.getElementById('ant-freq').value = freq;
         updateAntenna();
     }
@@ -1587,15 +1738,6 @@
         document.getElementById('dipole-upper-svg-label').textContent = `${q.toFixed(1)} mm`;
         document.getElementById('dipole-lower-svg-label').textContent = `${q.toFixed(1)} mm`;
         document.getElementById('dipole-total-svg-label').textContent = `${(q * 2).toFixed(1)} mm`;
-
-        // Clear active presets if sliders edited value
-        const activePreset = document.querySelector('#tab-antenna .preset-btn.active');
-        if (activePreset) {
-            const pf = { 'ap-58': 5800, 'ap-24': 2440, 'ap-915': 915, 'ap-868': 868 }[activePreset.id];
-            if (freq !== pf) {
-                document.querySelectorAll('#tab-antenna .preset-btn').forEach(btn => btn.classList.remove('active'));
-            }
-        }
     }
 
 
@@ -1603,12 +1745,6 @@
     // TAB 5: FRESNEL ZONE CLEARANCE
     // ==========================================
     function loadFresnelPreset(freq) {
-        document.querySelectorAll('#tab-fresnel .preset-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        const map = { 5800: 'fp-58', 2440: 'fp-24', 1280: 'fp-12', 915: 'fp-915' };
-        if (map[freq]) document.getElementById(map[freq]).classList.add('active');
-
         document.getElementById('fr-freq').value = freq;
         updateFresnel();
     }
@@ -1645,15 +1781,6 @@
         document.getElementById('fr-anth').innerText = total.toFixed(2);
 
         drawFresnel(D, posPct, r, rMax, bulge);
-
-        // Clear active presets if slider changed
-        const activePreset = document.querySelector('#tab-fresnel .preset-btn.active');
-        if (activePreset) {
-            const pf = { 'fp-58': 5800, 'fp-24': 2440, 'fp-12': 1280, 'fp-915': 915 }[activePreset.id];
-            if (freqMHz !== pf) {
-                document.querySelectorAll('#tab-fresnel .preset-btn').forEach(btn => btn.classList.remove('active'));
-            }
-        }
     }
 
     function drawFresnel(D, posPct, r, rMax, bulge) {
@@ -1720,36 +1847,85 @@
         { id: 'lmr400', name: 'LMR-400 coax', a2400: 0.22 }
     ];
 
+    const cablePresets = [
+        {
+            name: "ELRS Receiver (7cm U.FL)",
+            desc: "7cm RG178 Receiver pigtail",
+            c1: "ufl", len1: 0.07, power: 24, // 250mW
+            adapter: false
+        },
+        {
+            name: "VTx Pigtail (U.FL to SMA)",
+            desc: "7cm RG178 + SMA + 5cm RG316",
+            c1: "ufl", len1: 0.07, power: 29, // 800mW
+            adapter: true, adType: "ufl_sma", c2: "rg316", len2: 0.05
+        },
+        {
+            name: "SMA Extension (15cm RG316)",
+            desc: "15cm RG316 + SMA + 1m RG316",
+            c1: "rg316", len1: 0.15, power: 29, // 800mW
+            adapter: true, adType: "sma", c2: "rg316", len2: 1.0
+        },
+        {
+            name: "Long Range Coax (LMR-400)",
+            desc: "50cm LMR240 + N-Type + 5m LMR400",
+            c1: "lmr240", len1: 0.5, power: 30, // 1W
+            adapter: true, adType: "sma_n", c2: "lmr400", len2: 5.0
+        }
+    ];
+
     let cableChart = null;
 
     function cableLossPerM(cable, freqMHz) {
-        // Attenuation scales roughly with the square root of frequency
         return cable.a2400 * Math.sqrt(freqMHz / 2400);
     }
 
     function initCable() {
-        const select = document.getElementById('cbl-type');
-        select.innerHTML = cables.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-        select.value = 'rg316';
+        const select1 = document.getElementById('cbl-type');
+        const select2 = document.getElementById('cbl-type-2');
+        
+        const opts = cables.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        select1.innerHTML = opts;
+        select2.innerHTML = opts;
+        
+        select1.value = 'rg316';
+        select2.value = 'rg316';
 
         const grid = document.getElementById('cable-presets');
-        grid.innerHTML = cables.slice(0, 6).map(c => 
-            `<button class="preset-btn" onclick="pickCable('${c.id}', this)">
+        grid.innerHTML = cablePresets.map((c, idx) => 
+            `<button class="preset-btn" onclick="loadCablePreset(${idx})">
                 <div class="ptitle">${c.name}</div>
-                <div class="pdetail">${c.a2400.toFixed(2)} dB/m @2.4G</div>
+                <div class="pdetail">${c.desc}</div>
             </button>`
         ).join('');
 
         updateCable();
     }
 
-    function pickCable(id, btnElement) {
-        document.getElementById('cbl-type').value = id;
-        document.querySelectorAll('#cable-presets .preset-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        if (btnElement) btnElement.classList.add('active');
+    function toggleAdapterSection() {
+        const checked = document.getElementById('cbl-adapter-chk').checked;
+        document.getElementById('cbl-adapter-block').style.display = checked ? 'block' : 'none';
         updateCable();
+    }
+
+    function loadCablePreset(idx) {
+        const p = cablePresets[idx];
+        if (!p) return;
+
+        document.getElementById('cbl-type').value = p.c1;
+        document.getElementById('cbl-len').value = p.len1;
+        document.getElementById('cbl-power').value = p.power;
+
+        const chk = document.getElementById('cbl-adapter-chk');
+        chk.checked = p.adapter;
+        
+        if (p.adapter) {
+            document.getElementById('cbl-adapter-type').value = p.adType;
+            document.getElementById('cbl-type-2').value = p.c2;
+            document.getElementById('cbl-len-2').value = p.len2;
+        }
+
+        toggleAdapterSection();
     }
 
     function updateCable() {
@@ -1766,7 +1942,26 @@
         document.getElementById('cbl-power-val').innerText = powerMw >= 1000 ? `${(powerMw/1000).toFixed(2)} W` : `${Math.round(powerMw)} mW`;
 
         const lossPerMeter = cableLossPerM(cable, freq);
-        const totalLoss = lossPerMeter * len;
+        
+        // Adapter segment additions
+        const adapterChecked = document.getElementById('cbl-adapter-chk').checked;
+        let adapterLoss = 0;
+        let seg2Loss = 0;
+
+        if (adapterChecked) {
+            const adType = document.getElementById('cbl-adapter-type').value;
+            const losses = { 'sma': 0.15, 'rpsma': 0.15, 'mmcx': 0.10, 'ufl_sma': 0.40, 'sma_n': 0.20 };
+            adapterLoss = losses[adType] || 0;
+
+            const cable2Id = document.getElementById('cbl-type-2').value;
+            const cable2 = cables.find(c => c.id === cable2Id) || cables[0];
+            const len2 = parseFloat(document.getElementById('cbl-len-2').value);
+
+            seg2Loss = cableLossPerM(cable2, freq) * len2;
+            document.getElementById('cbl-len-2-val').innerText = len2 < 1 ? `${Math.round(len2 * 100)} cm` : `${len2.toFixed(2)} m`;
+        }
+
+        const totalLoss = (lossPerMeter * len) + adapterLoss + seg2Loss;
         document.getElementById('cbl-loss').innerText = totalLoss.toFixed(2);
         document.getElementById('cbl-loss-m').innerText = lossPerMeter.toFixed(2);
 
@@ -1778,16 +1973,10 @@
         document.getElementById('cbl-out-dbm').innerText = (powerDbm - totalLoss).toFixed(1);
         document.getElementById('cbl-lost-mw').innerText = (powerMw - powerOutMw).toFixed(powerMw - powerOutMw < 10 ? 2 : 0);
 
-        renderCableChart(cable, freq, len);
-
-        // Highlight matching preset button
-        document.querySelectorAll('#cable-presets .preset-btn').forEach(btn => {
-            const title = btn.querySelector('.ptitle').innerText;
-            btn.classList.toggle('active', title === cable.name);
-        });
+        renderCableChart(cable, freq, len, adapterLoss + seg2Loss);
     }
 
-    function renderCableChart(cable, freq, curLen) {
+    function renderCableChart(cable, freq, curLen, constantLoss) {
         const ctx = document.getElementById('cableChart').getContext('2d');
         const labels = [];
         const data = [];
@@ -1795,7 +1984,7 @@
         for (let i = 0; i <= 20; i++) {
             const L = (i / 20) * Math.max(2, curLen * 1.5);
             labels.push(L.toFixed(1));
-            data.push((cableLossPerM(cable, freq) * L).toFixed(2));
+            data.push(((cableLossPerM(cable, freq) * L) + constantLoss).toFixed(2));
         }
 
         const c = chartColors();
@@ -1852,13 +2041,13 @@
                         x: {
                             grid: { color: c.grid },
                             ticks: { color: c.label, font: { size: 9, family: 'Outfit' }, maxTicksLimit: 11 },
-                            title: { display: true, text: 'Cable Length (m)', color: c.label, font: { size: 10, family: 'Outfit', weight: 'bold' } }
+                            title: { display: true, text: 'Segment 1 Length (m)', color: c.label, font: { size: 10, family: 'Outfit', weight: 'bold' } }
                         },
                         y: {
                             grid: { color: c.grid },
                             ticks: { color: c.label, font: { size: 9, family: 'Outfit' } },
                             beginAtZero: true,
-                            title: { display: true, text: 'Attenuation Loss (dB)', color: c.label, font: { size: 10, family: 'Outfit', weight: 'bold' } }
+                            title: { display: true, text: 'Total Attenuation Loss (dB)', color: c.label, font: { size: 10, family: 'Outfit', weight: 'bold' } }
                         }
                     }
                 }
@@ -1871,18 +2060,6 @@
     // TAB 7: VSWR (IMPENDANCE MATCHING)
     // ==========================================
     function setVswr(v) {
-        document.querySelectorAll('#tab-vswr .presets-grid .preset-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        if (v === 1.5) {
-            const b = document.getElementById('vp-15');
-            if (b) b.classList.add('active');
-        } else {
-            document.querySelectorAll('#tab-vswr .presets-grid .preset-btn').forEach(btn => {
-                const title = btn.querySelector('.ptitle').innerText;
-                if (title.startsWith(v.toFixed(1))) btn.classList.add('active');
-            });
-        }
         document.getElementById('vswr-in').value = v;
         updateVswr();
     }
@@ -1913,25 +2090,7 @@
         document.getElementById('vswr-trans').innerText = transPct.toFixed(2);
         document.getElementById('vswr-ml').innerText = ml.toFixed(3);
 
-        const badge = document.getElementById('vswr-badge');
-        if (vswr <= 1.5) {
-            badge.innerHTML = '<span class="badge good">Good Match</span>';
-        } else if (vswr <= 2.0) {
-            badge.innerHTML = '<span class="badge ok">Acceptable Match</span>';
-        } else {
-            badge.innerHTML = '<span class="badge bad">Poor Match</span>';
-        }
-
         drawVswrGauge(transPct, reflPct);
-
-        // Clear active presets if customized
-        const activePreset = document.querySelector('#tab-vswr .presets-grid .preset-btn.active');
-        if (activePreset) {
-            const pv = parseFloat(activePreset.querySelector('.ptitle').innerText);
-            if (Math.abs(vswr - pv) > 0.05) {
-                document.querySelectorAll('#tab-vswr .presets-grid .preset-btn').forEach(btn => btn.classList.remove('active'));
-            }
-        }
     }
 
     function drawVswrGauge(transPct, reflPct) {
