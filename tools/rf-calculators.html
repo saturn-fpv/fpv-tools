@@ -782,13 +782,13 @@
                             <line x1="150" y1="0" x2="150" y2="200" stroke="#27272a" stroke-dasharray="3 3" />
                             
                             <!-- Circles -->
-                            <circle cx="150" cy="100" r="80" id="vc-new" fill="rgba(232, 114, 42, 0.04)" stroke="#e8722a" stroke-width="2" stroke-dasharray="4 4" style="transition: r 0.2s;" />
+                            <circle cx="150" cy="100" r="80" id="vc-new" fill="rgba(16, 185, 129, 0.04)" stroke="#10b981" stroke-width="2" stroke-dasharray="4 4" style="transition: r 0.2s;" />
                             <circle cx="150" cy="100" r="40" id="vc-orig" fill="rgba(59, 123, 246, 0.18)" stroke="#3b82f6" stroke-width="2" style="transition: r 0.2s;" />
                             <circle cx="150" cy="100" r="4" fill="#ffffff" />
                             
                             <!-- Labels -->
-                            <text x="155" y="93" fill="#3b82f6" font-size="8" font-family="Outfit" font-weight="600">Base Range (1.0x)</text>
-                            <text x="155" y="60" fill="#e8722a" font-size="8" font-family="Outfit" font-weight="600" id="vc-new-label">New Range (2.0x)</text>
+                            <text id="vc-orig-label" x="155" y="47" fill="#3b82f6" font-size="8" font-family="Outfit" font-weight="600">Base Range (1.0x)</text>
+                            <text id="vc-new-label" x="155" y="14" fill="#10b981" font-size="8" font-family="Outfit" font-weight="600">New Range (2.0x)</text>
                         </svg>
                     </div>
                 </div>
@@ -1692,16 +1692,41 @@
         apEl.innerText = `${ap >= 0 ? '+' : ''}${ap.toFixed(1)}%`;
         apEl.style.color = ap >= 0 ? 'var(--green)' : 'var(--red)';
 
-        // Update concentric circle SVG
-        const newC = document.getElementById('vc-new');
-        const label = document.getElementById('vc-new-label');
-        const base = 45;
-        const maxR = 90;
-        const scaled = Math.min(maxR, base * rm);
+        // Dynamic auto-scaling of concentric circles visualization
+        let rOrig = 45;
+        let rNew = 45 * rm;
+        const maxR = 85;
 
-        newC.setAttribute('r', scaled);
-        label.textContent = `New Range (${rm.toFixed(2)}x)`;
-        label.setAttribute('y', rm >= 1 ? 100 - scaled - 8 : 100 - scaled + 12);
+        // Auto-scale both circles down if the new circle exceeds max radius boundary
+        if (rNew > maxR) {
+            const s = maxR / rNew;
+            rOrig = 45 * s;
+            rNew = maxR;
+        }
+
+        const newC = document.getElementById('vc-new');
+        const origC = document.getElementById('vc-orig');
+        const labelOrig = document.getElementById('vc-orig-label');
+        const labelNew = document.getElementById('vc-new-label');
+
+        newC.setAttribute('r', rNew);
+        origC.setAttribute('r', rOrig);
+
+        labelNew.textContent = `New Range (${rm.toFixed(2)}x)`;
+
+        // Overlapping label prevention layout math
+        let yOrig = 100 - rOrig - 6;
+        let yNew = 100 - rNew - 6;
+        if (rm >= 1.0) {
+            if (rNew - rOrig < 12) {
+                yNew = 100 - rNew - 16;
+            }
+        } else {
+            yNew = 100 + rNew + 12;
+        }
+
+        labelOrig.setAttribute('y', yOrig);
+        labelNew.setAttribute('y', yNew);
     }
 
 
@@ -1807,8 +1832,8 @@
 
         let parts = '';
         parts += `<rect x="0" y="0" width="${W}" height="${H}" fill="none"/>`;
-        // Ground curvature
-        parts += `<path d="M0 ${groundY + 20} Q ${cx} ${groundY - bulgeVis} ${W} ${groundY + 20} L ${W} ${H} L 0 ${H} Z" fill="rgba(59, 130, 246, 0.06)" stroke="#3b82f6" stroke-width="1.5" opacity="0.8"/>`;
+        // Curvature ground path colored GREEN
+        parts += `<path d="M0 ${groundY + 20} Q ${cx} ${groundY - bulgeVis} ${W} ${groundY + 20} L ${W} ${H} L 0 ${H} Z" fill="rgba(16, 185, 129, 0.06)" stroke="#10b981" stroke-width="1.5" opacity="0.8"/>`;
         // Fresnel Ellipse (60% clearance inner)
         parts += `<ellipse cx="${cx}" cy="${losY}" rx="${ellA}" ry="${ellB}" fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.6"/>`;
         parts += `<ellipse cx="${cx}" cy="${losY}" rx="${ellA}" ry="${ellB * 0.6}" fill="none" stroke="#ef4444" stroke-width="1" stroke-dasharray="2 2" opacity="0.7"/>`;
@@ -1849,25 +1874,25 @@
 
     const cablePresets = [
         {
-            name: "ELRS Receiver (7cm U.FL)",
-            desc: "7cm RG178 Receiver pigtail",
+            name: "ELRS Receiver",
+            desc: "7cm ufl / RG178 pigtail",
             c1: "ufl", len1: 0.07, power: 24, // 250mW
             adapter: false
         },
         {
-            name: "VTx Pigtail (U.FL to SMA)",
-            desc: "7cm RG178 + SMA + 5cm RG316",
+            name: "VTX Pigtail",
+            desc: "7cm ufl + sma + 5cm RG316",
             c1: "ufl", len1: 0.07, power: 29, // 800mW
             adapter: true, adType: "ufl_sma", c2: "rg316", len2: 0.05
         },
         {
-            name: "SMA Extension (15cm RG316)",
-            desc: "15cm RG316 + SMA + 1m RG316",
+            name: "SMA Extension",
+            desc: "15cm RG316 + sma + 1m RG316",
             c1: "rg316", len1: 0.15, power: 29, // 800mW
             adapter: true, adType: "sma", c2: "rg316", len2: 1.0
         },
         {
-            name: "Long Range Coax (LMR-400)",
+            name: "Long Range Coax",
             desc: "50cm LMR240 + N-Type + 5m LMR400",
             c1: "lmr240", len1: 0.5, power: 30, // 1W
             adapter: true, adType: "sma_n", c2: "lmr400", len2: 5.0
