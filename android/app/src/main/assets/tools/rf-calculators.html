@@ -30,7 +30,16 @@
             padding: 1.5rem;
             min-height: 100vh;
         }
-        .container { max-width: 1040px; margin: 0 auto; }
+        @media (max-width: 640px) {
+            body {
+                padding: 0.75rem;
+            }
+        }
+        .container {
+            width: 100%;
+            max-width: 1040px;
+            margin: 0 auto;
+        }
         h1 {
             font-size: 1.875rem;
             font-weight: bold;
@@ -54,6 +63,8 @@
             scrollbar-width: none;
             -ms-overflow-style: none;
             border-bottom: none;
+            width: 100%;
+            max-width: 100%;
         }
         .tool-tabs::-webkit-scrollbar { display: none; }
         .tool-tab {
@@ -121,6 +132,8 @@
             overflow: hidden;
             border-bottom: none;
             margin-bottom: 0;
+            width: 100%;
+            max-width: 100%;
         }
         .sub-tab {
             flex: 1;
@@ -262,11 +275,15 @@
         .preset-btn .ptitle { font-weight: 600; font-size: 0.8125rem; margin-bottom: 0.15rem; }
         .preset-btn .pdetail { color: var(--dim); font-size: 0.6875rem; }
 
+        /* Responsive Grid with min-width constraint to prevent canvas overflow */
         .input-results-grid {
             display: grid;
             grid-template-columns: 1fr;
             gap: 1.5rem;
             margin-bottom: 1.5rem;
+        }
+        .input-results-grid > div {
+            min-width: 0;
         }
         @media (min-width: 1024px) {
             .input-results-grid { grid-template-columns: 420px 1fr; }
@@ -391,6 +408,18 @@
         .badge.good { background: rgba(16, 185, 129, 0.15); color: var(--green); }
         .badge.ok { background: rgba(245, 158, 11, 0.15); color: var(--amber); }
         .badge.bad { background: rgba(239, 68, 68, 0.15); color: var(--red); }
+
+        /* Power Inputs responsive grid layout */
+        .power-inputs-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        @media (min-width: 480px) {
+            .power-inputs-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+        }
 
         /* Light Theme overrides */
         body.light-theme {
@@ -659,7 +688,7 @@
         <div class="panel">
             <h2><span class="icon">🔄</span> Power Conversion Calculator</h2>
             <div style="display: grid; grid-template-columns: 1fr; gap: 1.25rem;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                <div class="power-inputs-grid">
                     <div class="form-row">
                         <label for="conv-mw">Milliwatts</label>
                         <div class="input-group">
