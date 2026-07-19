@@ -221,6 +221,23 @@
             min-width: 35px;
         }
 
+        /* Compact precise number entry class modeled after stator-volume.html */
+        .ni {
+            background-color: var(--bg);
+            color: inherit;
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            padding: 0.15rem 0.35rem;
+            font-family: var(--mono);
+            font-weight: bold;
+            font-size: 0.8125rem;
+            width: 4.5rem;
+            text-align: right;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .ni:focus { border-color: var(--blue); }
+
         /* Solid Grey Sliders (Rate Converter style) */
         input[type="range"] {
             -webkit-appearance: none;
@@ -586,32 +603,68 @@
                     <h2><span class="icon">&#9881;</span> Link Parameters</h2>
                     
                     <div class="form-row">
-                        <label for="link-freq">Frequency <span class="val-display" id="link-freq-val">5800 MHz</span></label>
+                        <label>
+                            <span>Frequency</span>
+                            <div style="display:flex; align-items:center; gap:0.3rem;">
+                                <input class="ni" type="number" id="link-freq-num" min="100" max="6000" step="1" value="5800" oninput="onLinkFreqNumInput(this.value)">
+                                <span class="unit" style="min-width:auto;">MHz</span>
+                            </div>
+                        </label>
                         <input type="range" id="link-freq" min="100" max="6000" value="5800" step="50" oninput="this.step='50'; updateLink()">
                     </div>
 
                     <div class="form-row">
-                        <label for="link-power">TX Power <span class="val-display" id="link-power-val">29 dBm (800 mW)</span></label>
+                        <label>
+                            <span>TX Power <span id="link-power-mw" style="color:var(--dim); font-size:0.75rem; font-weight:normal;">(800 mW)</span></span>
+                            <div style="display:flex; align-items:center; gap:0.3rem;">
+                                <input class="ni" type="number" id="link-power-num" min="0" max="36" step="0.1" value="29" oninput="onLinkPowerNumInput(this.value)">
+                                <span class="unit" style="min-width:auto;">dBm</span>
+                            </div>
+                        </label>
                         <input type="range" id="link-power" min="0" max="36" value="29" step="0.5" oninput="updateLink()">
                     </div>
 
                     <div class="form-row">
-                        <label for="link-tx-gain">TX Antenna Gain <span class="val-display" id="link-tx-gain-val">2.0 dBi</span></label>
+                        <label>
+                            <span>TX Antenna Gain</span>
+                            <div style="display:flex; align-items:center; gap:0.3rem;">
+                                <input class="ni" type="number" id="link-tx-gain-num" min="-5" max="25" step="0.1" value="2.0" oninput="onLinkTxGainNumInput(this.value)">
+                                <span class="unit" style="min-width:auto;">dBi</span>
+                            </div>
+                        </label>
                         <input type="range" id="link-tx-gain" min="-5" max="25" value="2" step="0.5" oninput="updateLink()">
                     </div>
 
                     <div class="form-row">
-                        <label for="link-rx-gain">RX Antenna Gain <span class="val-display" id="link-rx-gain-val">8.0 dBi</span></label>
+                        <label>
+                            <span>RX Antenna Gain</span>
+                            <div style="display:flex; align-items:center; gap:0.3rem;">
+                                <input class="ni" type="number" id="link-rx-gain-num" min="-5" max="25" step="0.1" value="8.0" oninput="onLinkRxGainNumInput(this.value)">
+                                <span class="unit" style="min-width:auto;">dBi</span>
+                            </div>
+                        </label>
                         <input type="range" id="link-rx-gain" min="-5" max="25" value="8" step="0.5" oninput="updateLink()">
                     </div>
 
                     <div class="form-row">
-                        <label for="link-sens">RX Sensitivity <span class="val-display" id="link-sens-val">-90 dBm</span></label>
+                        <label>
+                            <span>RX Sensitivity</span>
+                            <div style="display:flex; align-items:center; gap:0.3rem;">
+                                <input class="ni" type="number" id="link-sens-num" min="-130" max="-60" step="1" value="-90" oninput="onLinkSensNumInput(this.value)">
+                                <span class="unit" style="min-width:auto;">dBm</span>
+                            </div>
+                        </label>
                         <input type="range" id="link-sens" min="-130" max="-60" value="-90" step="1" oninput="updateLink()">
                     </div>
 
                     <div class="form-row">
-                        <label for="link-margin">Fade Margin <span class="val-display" id="link-margin-val">3 dB</span></label>
+                        <label>
+                            <span>Fade Margin</span>
+                            <div style="display:flex; align-items:center; gap:0.3rem;">
+                                <input class="ni" type="number" id="link-margin-num" min="0" max="20" step="1" value="3" oninput="onLinkMarginNumInput(this.value)">
+                                <span class="unit" style="min-width:auto;">dB</span>
+                            </div>
+                        </label>
                         <input type="range" id="link-margin" min="0" max="20" value="3" step="1" oninput="updateLink()">
                     </div>
                 </div>
@@ -756,7 +809,13 @@
             <div class="panel" style="margin-bottom:0;">
                 <h2><span class="icon">🔄</span> dB Change</h2>
                 <div class="form-row">
-                    <label for="tf-db">Change in Signal Strength <span class="val-display" id="tf-db-val">+6.0 dB</span></label>
+                    <label>
+                        <span>Change in Signal Strength</span>
+                        <div style="display:flex; align-items:center; gap:0.3rem;">
+                            <input class="ni" type="number" id="tf-db-num" min="-30" max="30" step="0.1" value="6.0" oninput="onTfDbNumInput(this.value)">
+                            <span class="unit" style="min-width:auto;">dB</span>
+                        </div>
+                    </label>
                     <input type="range" id="tf-db" min="-30" max="30" value="6" step="0.5" oninput="updateFurther()">
                 </div>
 
@@ -853,8 +912,14 @@
             <div class="panel" style="margin-bottom:0;">
                 <h2><span class="icon">&#9881;</span> Antenna Parameters</h2>
                 <div class="form-row">
-                    <label for="ant-freq">Target Frequency <span class="val-display" id="ant-freq-val">5800 MHz</span></label>
-                    <input type="range" id="ant-freq" min="900" max="6000" value="5800" step="50" oninput="this.step='50'; updateAntenna()">
+                    <label>
+                        <span>Target Frequency</span>
+                        <div style="display:flex; align-items:center; gap:0.3rem;">
+                            <input class="ni" type="number" id="ant-freq-num" min="100" max="6000" step="1" value="5800" oninput="onAntFreqNumInput(this.value)">
+                            <span class="unit" style="min-width:auto;">MHz</span>
+                        </div>
+                    </label>
+                    <input type="range" id="ant-freq" min="100" max="6000" value="5800" step="50" oninput="this.step='50'; updateAntenna()">
                 </div>
                 <div class="form-row">
                     <label for="ant-vf">Velocity Factor (Vf)</label>
@@ -972,15 +1037,33 @@
             <div class="panel" style="margin-bottom:0;">
                 <h2><span class="icon">&#9881;</span> Path Parameters</h2>
                 <div class="form-row">
-                    <label for="fr-freq">Frequency <span class="val-display" id="fr-freq-val">5800 MHz</span></label>
-                    <input type="range" id="fr-freq" min="900" max="6000" value="5800" step="50" oninput="this.step='50'; updateFresnel()">
+                    <label>
+                        <span>Frequency</span>
+                        <div style="display:flex; align-items:center; gap:0.3rem;">
+                            <input class="ni" type="number" id="fr-freq-num" min="100" max="6000" step="1" value="5800" oninput="onFrFreqNumInput(this.value)">
+                            <span class="unit" style="min-width:auto;">MHz</span>
+                        </div>
+                    </label>
+                    <input type="range" id="fr-freq" min="100" max="6000" value="5800" step="50" oninput="this.step='50'; updateFresnel()">
                 </div>
                 <div class="form-row">
-                    <label for="fr-dist">Link Distance <span class="val-display" id="fr-dist-val">2.0 km</span></label>
+                    <label>
+                        <span>Link Distance</span>
+                        <div style="display:flex; align-items:center; gap:0.3rem;">
+                            <input class="ni" type="number" id="fr-dist-num" min="0.1" max="30" step="0.1" value="2.0" oninput="onFrDistNumInput(this.value)">
+                            <span class="unit" style="min-width:auto;">km</span>
+                        </div>
+                    </label>
                     <input type="range" id="fr-dist" min="0.1" max="30" value="2" step="0.1" oninput="updateFresnel()">
                 </div>
                 <div class="form-row">
-                    <label for="fr-pos">Obstacle Position <span class="val-display" id="fr-pos-val">Midpoint (50%)</span></label>
+                    <label>
+                        <span>Obstacle Position</span>
+                        <div style="display:flex; align-items:center; gap:0.3rem;">
+                            <input class="ni" type="number" id="fr-pos-num" min="5" max="95" step="1" value="50" oninput="onFrPosNumInput(this.value)">
+                            <span class="unit" style="min-width:auto;">%</span>
+                        </div>
+                    </label>
                     <input type="range" id="fr-pos" min="5" max="95" value="50" step="1" oninput="updateFresnel()">
                 </div>
                 <div class="info-tip">
@@ -1061,15 +1144,33 @@
                     <select id="cbl-type" onchange="updateCable()"></select>
                 </div>
                 <div class="form-row">
-                    <label for="cbl-freq">Frequency <span class="val-display" id="cbl-freq-val">5800 MHz</span></label>
+                    <label>
+                        <span>Frequency</span>
+                        <div style="display:flex; align-items:center; gap:0.3rem;">
+                            <input class="ni" type="number" id="cbl-freq-num" min="100" max="6000" step="1" value="5800" oninput="onCblFreqNumInput(this.value)">
+                            <span class="unit" style="min-width:auto;">MHz</span>
+                        </div>
+                    </label>
                     <input type="range" id="cbl-freq" min="100" max="6000" value="5800" step="50" oninput="updateCable()">
                 </div>
                 <div class="form-row">
-                    <label for="cbl-len">Segment 1 Length <span class="val-display" id="cbl-len-val">30 cm</span></label>
+                    <label>
+                        <span>Segment 1 Length <span id="cbl-len-helper" style="color:var(--dim); font-size:0.75rem; font-weight:normal;">(30 cm)</span></span>
+                        <div style="display:flex; align-items:center; gap:0.3rem;">
+                            <input class="ni" type="number" id="cbl-len-num" min="0.05" max="10" step="0.01" value="0.30" oninput="onCblLenNumInput(this.value)">
+                            <span class="unit" style="min-width:auto;">m</span>
+                        </div>
+                    </label>
                     <input type="range" id="cbl-len" min="0.05" max="10" value="0.3" step="0.05" oninput="updateCable()">
                 </div>
                 <div class="form-row">
-                    <label for="cbl-power">TX Input Power <span class="val-display" id="cbl-power-val">800 mW</span></label>
+                    <label>
+                        <span>TX Input Power <span id="cbl-power-mw" style="color:var(--dim); font-size:0.75rem; font-weight:normal;">(800 mW)</span></span>
+                        <div style="display:flex; align-items:center; gap:0.3rem;">
+                            <input class="ni" type="number" id="cbl-power-num" min="0" max="36" step="0.1" value="29" oninput="onCblPowerNumInput(this.value)">
+                            <span class="unit" style="min-width:auto;">dBm</span>
+                        </div>
+                    </label>
                     <input type="range" id="cbl-power" min="0" max="36" value="29" step="0.5" oninput="updateCable()">
                 </div>
 
@@ -1095,7 +1196,13 @@
                         <select id="cbl-type-2" onchange="updateCable()"></select>
                     </div>
                     <div class="form-row">
-                        <label for="cbl-len-2">Segment 2 Length <span class="val-display" id="cbl-len-2-val">30 cm</span></label>
+                        <label>
+                            <span>Segment 2 Length <span id="cbl-len-2-helper" style="color:var(--dim); font-size:0.75rem; font-weight:normal;">(30 cm)</span></span>
+                            <div style="display:flex; align-items:center; gap:0.3rem;">
+                                <input class="ni" type="number" id="cbl-len-2-num" min="0.05" max="10" step="0.01" value="0.30" oninput="onCblLen2NumInput(this.value)">
+                                <span class="unit" style="min-width:auto;">m</span>
+                            </div>
+                        </label>
                         <input type="range" id="cbl-len-2" min="0.05" max="10" value="0.3" step="0.05" oninput="updateCable()">
                     </div>
                 </div>
@@ -1171,7 +1278,13 @@
             <div class="panel" style="margin-bottom:0;">
                 <h2><span class="icon">&#9881;</span> Impedance Matching</h2>
                 <div class="form-row">
-                    <label for="vswr-in">VSWR <span class="val-display" id="vswr-in-val">1.50 : 1</span></label>
+                    <label>
+                        <span>VSWR</span>
+                        <div style="display:flex; align-items:center; gap:0.3rem;">
+                            <input class="ni" type="number" id="vswr-in-num" min="1" max="6" step="0.01" value="1.50" oninput="onVswrNumInput(this.value)">
+                            <span class="unit" style="min-width:auto;">: 1</span>
+                        </div>
+                    </label>
                     <input type="range" id="vswr-in" min="1" max="6" value="1.5" step="0.01" oninput="updateVswr()">
                 </div>
                 
@@ -1466,22 +1579,17 @@
         const sens = parseFloat(document.getElementById('link-sens').value);
         const margin = parseFloat(document.getElementById('link-margin').value);
 
-        // Update value displays in labels
-        document.getElementById('link-freq-val').innerText = `${freq} MHz`;
-        
-        const powerMw = Math.pow(10, powerDbm / 10);
-        let powerDisplayString = `${powerDbm} dBm (`;
-        if (powerMw >= 1000) {
-            powerDisplayString += `${(powerMw/1000).toFixed(2)} W)`;
-        } else {
-            powerDisplayString += `${Math.round(powerMw)} mW)`;
-        }
-        document.getElementById('link-power-val').innerText = powerDisplayString;
+        // Keep precise number input values synchronized
+        document.getElementById('link-freq-num').value = freq;
+        document.getElementById('link-power-num').value = powerDbm;
+        document.getElementById('link-tx-gain-num').value = txGain.toFixed(1);
+        document.getElementById('link-rx-gain-num').value = rxGain.toFixed(1);
+        document.getElementById('link-sens-num').value = sens;
+        document.getElementById('link-margin-num').value = margin;
 
-        document.getElementById('link-tx-gain-val').innerText = `${txGain.toFixed(1)} dBi`;
-        document.getElementById('link-rx-gain-val').innerText = `${rxGain.toFixed(1)} dBi`;
-        document.getElementById('link-sens-val').innerText = `${sens} dBm`;
-        document.getElementById('link-margin-val').innerText = `${margin} dB`;
+        // Update helper power conversions in MW
+        const powerMw = Math.pow(10, powerDbm / 10);
+        document.getElementById('link-power-mw').innerText = `(${powerMw >= 1000 ? (powerMw/1000).toFixed(2)+' W' : Math.round(powerMw)+' mW'})`;
 
         // EIRP = Power + Tx Gain
         const eirp = powerDbm + txGain;
@@ -1660,6 +1768,7 @@
         });
     }
 
+    // Precise conversions
     function convertPower(source) {
         const mwInput = document.getElementById('conv-mw');
         const dbmInput = document.getElementById('conv-dbm');
@@ -1704,7 +1813,8 @@
     function updateFurther() {
         const db = parseFloat(document.getElementById('tf-db').value);
         
-        document.getElementById('tf-db-val').innerText = `${db >= 0 ? '+' : ''}${db.toFixed(1)} dB`;
+        // Sync number input
+        document.getElementById('tf-db-num').value = db.toFixed(1);
 
         // Range Multiplier = 10^(dB/20)
         const rm = Math.pow(10, db / 20);
@@ -1778,7 +1888,8 @@
         const freq = parseFloat(document.getElementById('ant-freq').value);
         const vf = parseFloat(document.getElementById('ant-vf').value);
 
-        document.getElementById('ant-freq-val').innerText = `${freq} MHz`;
+        // Sync precise input
+        document.getElementById('ant-freq-num').value = freq;
 
         // Full wave in mm: Wavelength = (Speed of Light * Velocity Factor) / Frequency
         const wl = (C_LIGHT * vf) / freq;
@@ -1815,9 +1926,10 @@
         const D = parseFloat(document.getElementById('fr-dist').value); // km
         const posPct = parseFloat(document.getElementById('fr-pos').value); // %
 
-        document.getElementById('fr-freq-val').innerText = `${freqMHz} MHz`;
-        document.getElementById('fr-dist-val').innerText = `${D.toFixed(1)} km`;
-        document.getElementById('fr-pos-val').innerText = `${posPct}% ${posPct === 50 ? '(Midpoint)' : ''}`.trim();
+        // Sync inputs
+        document.getElementById('fr-freq-num').value = freqMHz;
+        document.getElementById('fr-dist-num').value = D.toFixed(1);
+        document.getElementById('fr-pos-num').value = posPct;
 
         const fGHz = freqMHz / 1000;
         const d1 = D * (posPct / 100);
@@ -1996,11 +2108,15 @@
         const len = parseFloat(document.getElementById('cbl-len').value);
         const powerDbm = parseFloat(document.getElementById('cbl-power').value);
 
-        document.getElementById('cbl-freq-val').innerText = `${freq} MHz`;
-        document.getElementById('cbl-len-val').innerText = len < 1 ? `${Math.round(len * 100)} cm` : `${len.toFixed(2)} m`;
-        
+        // Sync precise inputs
+        document.getElementById('cbl-freq-num').value = freq;
+        document.getElementById('cbl-len-num').value = len.toFixed(2);
+        document.getElementById('cbl-power-num').value = powerDbm;
+
+        // Update helpers
+        document.getElementById('cbl-len-helper').innerText = len < 1 ? `(${Math.round(len * 100)} cm)` : `(${len.toFixed(2)} m)`;
         const powerMw = Math.pow(10, powerDbm / 10);
-        document.getElementById('cbl-power-val').innerText = powerMw >= 1000 ? `${(powerMw/1000).toFixed(2)} W` : `${Math.round(powerMw)} mW`;
+        document.getElementById('cbl-power-mw').innerText = `(${powerMw >= 1000 ? (powerMw/1000).toFixed(2)+' W' : Math.round(powerMw)+' mW'})`;
 
         const lossPerMeter = cableLossPerM(cable, freq);
         
@@ -2019,7 +2135,10 @@
             const len2 = parseFloat(document.getElementById('cbl-len-2').value);
 
             seg2Loss = cableLossPerM(cable2, freq) * len2;
-            document.getElementById('cbl-len-2-val').innerText = len2 < 1 ? `${Math.round(len2 * 100)} cm` : `${len2.toFixed(2)} m`;
+            
+            // Sync segment 2
+            document.getElementById('cbl-len-2-num').value = len2.toFixed(2);
+            document.getElementById('cbl-len-2-helper').innerText = len2 < 1 ? `(${Math.round(len2 * 100)} cm)` : `(${len2.toFixed(2)} m)`;
         }
 
         const totalLoss = (lossPerMeter * len) + adapterLoss + seg2Loss;
@@ -2128,7 +2247,8 @@
     function updateVswr() {
         const vswr = parseFloat(document.getElementById('vswr-in').value);
 
-        document.getElementById('vswr-in-val').innerText = `${vswr.toFixed(2)} : 1`;
+        // Sync precise input
+        document.getElementById('vswr-in-num').value = vswr.toFixed(2);
 
         // Refection coefficient (Gamma): Γ = (VSWR - 1) / (VSWR + 1)
         const gamma = (vswr - 1) / (vswr + 1);
@@ -2194,6 +2314,141 @@
         parts += `<text x="${cx + rOuter - 6}" y="${cy + 18}" text-anchor="middle" fill="#ef4444" font-size="10" font-family="Outfit" font-weight="600">Reflected ${reflPct.toFixed(1)}%</text>`;
 
         svg.innerHTML = parts;
+    }
+
+    // ========================================================
+    // PRECISE NUM INPUT TO RANGE SLIDER DYNAMIC SYNCHRONIZERS
+    // ========================================================
+    function onLinkFreqNumInput(val) {
+        const num = parseFloat(val);
+        if (!isNaN(num) && num >= 100 && num <= 6000) {
+            const slider = document.getElementById('link-freq');
+            slider.step = "1";
+            slider.value = num;
+            updateLink();
+        }
+    }
+    function onLinkPowerNumInput(val) {
+        const num = parseFloat(val);
+        if (!isNaN(num) && num >= 0 && num <= 36) {
+            const slider = document.getElementById('link-power');
+            slider.value = num;
+            updateLink();
+        }
+    }
+    function onLinkTxGainNumInput(val) {
+        const num = parseFloat(val);
+        if (!isNaN(num) && num >= -5 && num <= 25) {
+            const slider = document.getElementById('link-tx-gain');
+            slider.value = num;
+            updateLink();
+        }
+    }
+    function onLinkRxGainNumInput(val) {
+        const num = parseFloat(val);
+        if (!isNaN(num) && num >= -5 && num <= 25) {
+            const slider = document.getElementById('link-rx-gain');
+            slider.value = num;
+            updateLink();
+        }
+    }
+    function onLinkSensNumInput(val) {
+        const num = parseFloat(val);
+        if (!isNaN(num) && num >= -130 && num <= -60) {
+            const slider = document.getElementById('link-sens');
+            slider.value = num;
+            updateLink();
+        }
+    }
+    function onLinkMarginNumInput(val) {
+        const num = parseFloat(val);
+        if (!isNaN(num) && num >= 0 && num <= 20) {
+            const slider = document.getElementById('link-margin');
+            slider.value = num;
+            updateLink();
+        }
+    }
+    function onTfDbNumInput(val) {
+        const num = parseFloat(val);
+        if (!isNaN(num) && num >= -30 && num <= 30) {
+            const slider = document.getElementById('tf-db');
+            slider.value = num;
+            updateFurther();
+        }
+    }
+    function onAntFreqNumInput(val) {
+        const num = parseFloat(val);
+        if (!isNaN(num) && num >= 100 && num <= 6000) {
+            const slider = document.getElementById('ant-freq');
+            slider.step = "1";
+            slider.value = num;
+            updateAntenna();
+        }
+    }
+    function onFrFreqNumInput(val) {
+        const num = parseFloat(val);
+        if (!isNaN(num) && num >= 100 && num <= 6000) {
+            const slider = document.getElementById('fr-freq');
+            slider.step = "1";
+            slider.value = num;
+            updateFresnel();
+        }
+    }
+    function onFrDistNumInput(val) {
+        const num = parseFloat(val);
+        if (!isNaN(num) && num >= 0.1 && num <= 30) {
+            const slider = document.getElementById('fr-dist');
+            slider.value = num;
+            updateFresnel();
+        }
+    }
+    function onFrPosNumInput(val) {
+        const num = parseFloat(val);
+        if (!isNaN(num) && num >= 5 && num <= 95) {
+            const slider = document.getElementById('fr-pos');
+            slider.value = num;
+            updateFresnel();
+        }
+    }
+    function onCblFreqNumInput(val) {
+        const num = parseFloat(val);
+        if (!isNaN(num) && num >= 100 && num <= 6000) {
+            const slider = document.getElementById('cbl-freq');
+            slider.value = num;
+            updateCable();
+        }
+    }
+    function onCblLenNumInput(val) {
+        const num = parseFloat(val);
+        if (!isNaN(num) && num >= 0.05 && num <= 10) {
+            const slider = document.getElementById('cbl-len');
+            slider.value = num;
+            updateCable();
+        }
+    }
+    function onCblPowerNumInput(val) {
+        const num = parseFloat(val);
+        if (!isNaN(num) && num >= 0 && num <= 36) {
+            const slider = document.getElementById('cbl-power');
+            slider.value = num;
+            updateCable();
+        }
+    }
+    function onCblLen2NumInput(val) {
+        const num = parseFloat(val);
+        if (!isNaN(num) && num >= 0.05 && num <= 10) {
+            const slider = document.getElementById('cbl-len-2');
+            slider.value = num;
+            updateCable();
+        }
+    }
+    function onVswrNumInput(val) {
+        const num = parseFloat(val);
+        if (!isNaN(num) && num >= 1 && num <= 6) {
+            const slider = document.getElementById('vswr-in');
+            slider.value = num;
+            updateVswr();
+        }
     }
 </script>
 </body>
