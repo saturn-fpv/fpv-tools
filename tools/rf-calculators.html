@@ -673,8 +673,8 @@
             <!-- Results Merged to Tab Box -->
             <div>
                 <div class="sub-tabs">
-                    <button class="sub-tab active sub-blue" id="sub-btn-link-range" onclick="setSubTab('link', 'range', 'blue')">Theoretical Max Range</button>
-                    <button class="sub-tab" id="sub-btn-link-stats" onclick="setSubTab('link', 'stats', 'green')">Link Statistics</button>
+                    <button class="sub-tab active sub-blue" id="sub-btn-link-range" onclick="setSubTab('link', 'range', 'blue')">Theoretical Max <span style="color: var(--blue);">Range</span></button>
+                    <button class="sub-tab" id="sub-btn-link-stats" onclick="setSubTab('link', 'stats', 'green')"><span style="color: var(--green);">Link</span> Statistics</button>
                 </div>
                 <div class="panel sub-tab-panel">
                     <!-- Tab 1: Theoretical Max Range -->
@@ -812,7 +812,7 @@
                     <label>
                         <span>Change in Signal Strength</span>
                         <div style="display:flex; align-items:center; gap:0.3rem;">
-                            <input class="ni" type="number" id="tf-db-num" min="-30" max="30" step="1" value="6.0" oninput="onTfDbNumInput(this.value)">
+                            <input class="ni" type="number" id="tf-db-num" min="-30" max="30" step="0.1" value="6.0" oninput="onTfDbNumInput(this.value)">
                             <span class="unit" style="min-width:auto;">dB</span>
                         </div>
                     </label>
@@ -821,8 +821,8 @@
 
                 <div class="info-tip" style="margin-top:0.5rem;">
                     <strong>FPV Signal Variance Examples:</strong>
-                    <br>• <strong>+6 dB</strong>: Doubling transmitter power (e.g. 400mW to 800mW) OR upgrading standard 2dBi receiver omni to an 8dBi patch.
-                    <br>• <strong>+12 dB</strong>: Upgrading antenna gains on both receiver and transmitter.
+                    <br>• <strong>+3 dB</strong>: Doubling transmitter power (e.g. 400mW to 800mW).
+                    <br>• <strong>+6 dB</strong>: Upgrading standard 2dBi receiver omni to an 8dBi patch. This doubles the range!
                     <br>• <strong>-6 dB</strong>: Flying behind dense foliage, or pointing antennas 90° out of polarization.
                 </div>
             </div>
@@ -830,8 +830,8 @@
             <div>
                 <!-- Merged Range Multiplier and Coverage Area to Tab Box -->
                 <div class="sub-tabs">
-                    <button class="sub-tab active sub-blue" id="sub-btn-tf-range" onclick="setSubTab('tf', 'range', 'blue')">Range Multiplier</button>
-                    <button class="sub-tab" id="sub-btn-tf-area" onclick="setSubTab('tf', 'area', 'green')">Coverage Area</button>
+                    <button class="sub-tab active sub-blue" id="sub-btn-tf-range" onclick="setSubTab('tf', 'range', 'blue')"><span style="color: var(--blue);">Range</span> Multiplier</button>
+                    <button class="sub-tab" id="sub-btn-tf-area" onclick="setSubTab('tf', 'area', 'green')">Coverage <span style="color: var(--green);">Area</span></button>
                 </div>
                 <div class="panel sub-tab-panel">
                     <!-- Tab 1: Range Multiplier -->
@@ -935,8 +935,8 @@
             <!-- Merged Monopole & Dipole to Tab Box -->
             <div>
                 <div class="sub-tabs">
-                    <button class="sub-tab active sub-blue" id="sub-btn-ant-mono" onclick="setSubTab('ant', 'mono', 'blue')">Monopole</button>
-                    <button class="sub-tab" id="sub-btn-ant-dipole" onclick="setSubTab('ant', 'dipole', 'green')">Dipole</button>
+                    <button class="sub-tab active sub-blue" id="sub-btn-ant-mono" onclick="setSubTab('ant', 'mono', 'blue')"><span style="color: var(--blue);">Mono</span>pole</button>
+                    <button class="sub-tab" id="sub-btn-ant-dipole" onclick="setSubTab('ant', 'dipole', 'green')"><span style="color: var(--green);">Di</span>pole</button>
                 </div>
                 <div class="panel sub-tab-panel">
                     <!-- Tab 1: Monopole -->
@@ -1050,11 +1050,11 @@
                     <label>
                         <span>Link Distance</span>
                         <div style="display:flex; align-items:center; gap:0.3rem;">
-                            <input class="ni" type="number" id="fr-dist-num" min="0.1" max="30" step="0.1" value="2.0" oninput="onFrDistNumInput(this.value)">
+                            <input class="ni" type="number" id="fr-dist-num" min="1" max="100" step="1" value="2" oninput="onFrDistNumInput(this.value)">
                             <span class="unit" style="min-width:auto;">km</span>
                         </div>
                     </label>
-                    <input type="range" id="fr-dist" min="0.1" max="30" value="2" step="0.1" oninput="this.step='0.1'; updateFresnel()">
+                    <input type="range" id="fr-dist" min="1" max="100" value="2" step="1" oninput="this.step='1'; updateFresnel()">
                 </div>
                 <div class="form-row">
                     <label>
@@ -1074,8 +1074,8 @@
             <!-- Merged Fresnel Radius & Earth Curvature to Tab Box -->
             <div>
                 <div class="sub-tabs">
-                    <button class="sub-tab active sub-blue" id="sub-btn-fre-zone" onclick="setSubTab('fre', 'zone', 'blue')">Fresnel Zone</button>
-                    <button class="sub-tab" id="sub-btn-fre-earth" onclick="setSubTab('fre', 'earth', 'green')">Earth Curvature</button>
+                    <button class="sub-tab active sub-blue" id="sub-btn-fre-zone" onclick="setSubTab('fre', 'zone', 'blue')"><span style="color: var(--blue);">Fresnel</span> Zone</button>
+                    <button class="sub-tab" id="sub-btn-fre-earth" onclick="setSubTab('fre', 'earth', 'green')"><span style="color: var(--green);">Earth</span> Curvature</button>
                 </div>
                 <div class="panel sub-tab-panel">
                     <!-- Tab 1: Fresnel Zone -->
@@ -1211,8 +1211,8 @@
             <!-- Merged Cable Loss & Power Output to Tab Box -->
             <div>
                 <div class="sub-tabs">
-                    <button class="sub-tab active sub-blue" id="sub-btn-cbl-loss" onclick="setSubTab('cbl', 'loss', 'blue')">Cable Loss</button>
-                    <button class="sub-tab" id="sub-btn-cbl-power" onclick="setSubTab('cbl', 'power', 'green')">Power Output</button>
+                    <button class="sub-tab active sub-blue" id="sub-btn-cbl-loss" onclick="setSubTab('cbl', 'loss', 'blue')"><span style="color: var(--blue);">Cable</span> Loss</button>
+                    <button class="sub-tab" id="sub-btn-cbl-power" onclick="setSubTab('cbl', 'power', 'green')"><span style="color: var(--green);">Power</span> Output</button>
                 </div>
                 <div class="panel sub-tab-panel">
                     <!-- Tab 1: Cable Loss -->
@@ -1289,11 +1289,10 @@
                 </div>
                 
                 <div class="info-tip" style="margin-top: 1rem;">
-                    <strong>What is VSWR?</strong>
-                    <br><strong>Voltage Standing Wave Ratio (VSWR)</strong> measures how efficiently radio frequency power is transferred from your transmitter to your antenna.
-                    <br><br>• A VSWR of <strong>1.0:1</strong> is a perfect match (0% power reflected).
-                    <br>• Standard FPV elements aim for <strong>≤ 1.5:1</strong> (only 4% power reflected).
-                    <br>• Ratios above <strong>2.0:1</strong> waste power. Ratios above <strong>3.0:1</strong> reflect too much energy back as heat, risking burning out your video transmitter (VTx) output stages.
+                    <strong>VSWR (Voltage Standing Wave Ratio):</strong>
+                    <br>• <strong>1.0:1</strong>: Perfect match (0% power reflected).
+                    <br>• <strong>≤ 1.5:1</strong>: Excellent match (4% reflected).
+                    <br>• <strong>≥ 2.0:1</strong>: High reflection. Ratios above 3.0:1 can damage the transmitter (VTx) from heat.
                 </div>
             </div>
 
@@ -1928,7 +1927,7 @@
 
         // Sync inputs
         document.getElementById('fr-freq-num').value = freqMHz;
-        document.getElementById('fr-dist-num').value = D.toFixed(1);
+        document.getElementById('fr-dist-num').value = D.toFixed(0);
         document.getElementById('fr-pos-num').value = posPct;
 
         const fGHz = freqMHz / 1000;
@@ -2409,9 +2408,9 @@
     }
     function onFrDistNumInput(val) {
         const num = parseFloat(val);
-        if (!isNaN(num) && num >= 0.1 && num <= 30) {
+        if (!isNaN(num) && num >= 1 && num <= 100) {
             const slider = document.getElementById('fr-dist');
-            slider.step = "0.1";
+            slider.step = "1";
             slider.value = num;
             updateFresnel();
         }
