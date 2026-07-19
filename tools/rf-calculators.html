@@ -587,7 +587,7 @@
                     
                     <div class="form-row">
                         <label for="link-freq">Frequency <span class="val-display" id="link-freq-val">5800 MHz</span></label>
-                        <input type="range" id="link-freq" min="100" max="6000" value="5800" step="50" oninput="updateLink()">
+                        <input type="range" id="link-freq" min="100" max="6000" value="5800" step="50" oninput="this.step='50'; updateLink()">
                     </div>
 
                     <div class="form-row">
@@ -854,7 +854,7 @@
                 <h2><span class="icon">&#9881;</span> Antenna Parameters</h2>
                 <div class="form-row">
                     <label for="ant-freq">Target Frequency <span class="val-display" id="ant-freq-val">5800 MHz</span></label>
-                    <input type="range" id="ant-freq" min="900" max="6000" value="5800" step="50" oninput="updateAntenna()">
+                    <input type="range" id="ant-freq" min="900" max="6000" value="5800" step="50" oninput="this.step='50'; updateAntenna()">
                 </div>
                 <div class="form-row">
                     <label for="ant-vf">Velocity Factor (Vf)</label>
@@ -973,7 +973,7 @@
                 <h2><span class="icon">&#9881;</span> Path Parameters</h2>
                 <div class="form-row">
                     <label for="fr-freq">Frequency <span class="val-display" id="fr-freq-val">5800 MHz</span></label>
-                    <input type="range" id="fr-freq" min="900" max="6000" value="5800" step="50" oninput="updateFresnel()">
+                    <input type="range" id="fr-freq" min="900" max="6000" value="5800" step="50" oninput="this.step='50'; updateFresnel()">
                 </div>
                 <div class="form-row">
                     <label for="fr-dist">Link Distance <span class="val-display" id="fr-dist-val">2.0 km</span></label>
@@ -1440,7 +1440,10 @@
         if (!preset) return;
 
         // Load values to inputs
-        document.getElementById('link-freq').value = preset.freq;
+        const freqSlider = document.getElementById('link-freq');
+        freqSlider.step = "1";
+        freqSlider.value = preset.freq;
+
         document.getElementById('link-power').value = preset.power;
         document.getElementById('link-tx-gain').value = preset.txGain;
         document.getElementById('link-rx-gain').value = preset.rxGain;
@@ -1765,7 +1768,9 @@
     const C_LIGHT = 299792.458; // speed of light / frequency scaling factor
 
     function loadAntPreset(freq) {
-        document.getElementById('ant-freq').value = freq;
+        const slider = document.getElementById('ant-freq');
+        slider.step = "1";
+        slider.value = freq;
         updateAntenna();
     }
 
@@ -1799,7 +1804,9 @@
     // TAB 5: FRESNEL ZONE CLEARANCE
     // ==========================================
     function loadFresnelPreset(freq) {
-        document.getElementById('fr-freq').value = freq;
+        const slider = document.getElementById('fr-freq');
+        slider.step = "1";
+        slider.value = freq;
         updateFresnel();
     }
 
