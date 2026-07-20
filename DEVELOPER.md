@@ -93,3 +93,12 @@ This section outlines automated workflow rules for AI agents:
 * **Secrets & Keys:** Never stage, commit, or push cryptographic keys (`*.jks`, `*.keystore`) or local properties/secret files (`secrets.properties`, `local.properties`). Even if they are modified locally, ensure they remain unstaged.
 * **Code Integrity:** Always adhere strictly to the project architecture, file synchronization requirements, and relative directory constraints specified in this file.
 
+### 10. Shared JavaScript Libraries
+To maintain a DRY codebase, keep tools lightweight, and respect F-Droid's open-source compliance, several general-purpose libraries are maintained in the shared `js/` directory. Developers and AI coding assistants **MUST** reuse these libraries instead of copying duplicate code block implementations directly into individual tool HTML pages:
+
+1. **`js/blackbox-decoder.js` (Custom):** A generic Betaflight Blackbox V2 binary log decoder (`BBL` module). Parses raw `.bbl`/`.bfl` file buffers, handles predictors, and outputs raw signal arrays (`time`, `setpoint`, `gyro`, `motor`). Essential for any flight log analytics tool.
+2. **`js/chart.umd.min.js` (Vendored):** Chart.js library used for rendering customizable telemetry and data charts offline.
+3. **`js/leaflet.js` & `js/leaflet.css` (Vendored):** Leaflet mapping library used for displaying coordinates and 3D flight paths completely offline (accompanied by offline map tiles).
+4. **`js/jszip.min.js` (Vendored):** JSZip library used for reading and writing ZIP archives entirely in the browser (e.g. unpacking logs or telemetry packages offline).
+
+

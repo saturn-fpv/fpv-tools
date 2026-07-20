@@ -9,7 +9,8 @@ const FPV_TOOLS_LIST = [
   { key: 'pid', name: 'PID Simulator', icon: '🎮', path: 'pid-simulator.html', tag: 'Tuning' },
   { key: 'freq', name: 'Frequency Planner', icon: '📡', path: 'frequency-planner.html', tag: 'Race Day' },
   { key: 'telemetry', name: 'Telemetry Parser', icon: '🗺️', path: 'telemetry-parser.html', tag: 'Post-Flight' },
-  { key: 'rfcalc', name: 'RF Calculators', icon: '📡', path: 'rf-calculators.html', tag: 'Radio' }
+  { key: 'rfcalc', name: 'RF Calculators', icon: '📶', path: 'rf-calculators.html', tag: 'Radio' },
+  { key: 'chirp', name: 'Chirp Analyzer', icon: '〰️', path: 'chirp-analyzer.html', tag: 'Post-Flight' }
 ];
 
 if (typeof module !== 'undefined' && module.exports) {
