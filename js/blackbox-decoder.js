@@ -455,6 +455,11 @@ var BBL = (function () {
       if (isFinite(+headers['maxthrottle'])) motorHi = +headers['maxthrottle'];
     }
     var motorRange = motorHi - motorLo;
+    if (motorRange <= 0) {
+      motorLo = 1000;
+      motorHi = 2000;
+      motorRange = 1000;
+    }
 
     var ctx = {
       minthrottle: isFinite(+headers['minthrottle']) ? +headers['minthrottle'] : 1150,
