@@ -1,0 +1,2201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chirp Response Analyzer - Saturn FPV</title>
+<link rel="stylesheet" href="../css/fonts.css">
+<style>
+  :root {
+    --bg: #111827;
+    --panel: #1f2937;
+    --panel2: #111827;
+    --line: #374151;
+    --text: #e5e7eb;
+    --muted: #9ca3af;
+    --orange: #E8722A;
+    --blue: #3b82f6;
+    --green: #10b981;
+    --amber: #ff9f0a;
+    --red: #ef4444;
+    --mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, Menlo, monospace;
+  }
+
+  body.light-theme {
+    --bg: #f3f4f6;
+    --panel: #ffffff;
+    --panel2: #f9fafb;
+    --line: #d1d5db;
+    --text: #1f2937;
+    --muted: #4b5563;
+    --blue: #2563eb;
+    --green: #059669;
+    --amber: #d97706;
+    --red: #dc2626;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--text); font-family: 'Outfit', system-ui, -apple-system, sans-serif; }
+  body { min-height: 100vh; padding: 1.5rem; padding-bottom: 60px; }
+
+  .container { max-width: 960px; margin: 0 auto; }
+
+  header.top { text-align: center; margin-bottom: 1.5rem; }
+  header.top .brand h1 { font-size: 1.75rem; font-weight: 700; color: var(--text); margin-bottom: 0.25rem; }
+  header.top .brand .sub { color: var(--muted); font-size: 0.875rem; }
+
+  /* Sleek centered segment control tab bar */
+  .tool-tabs {
+      display: flex;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 4px;
+      margin: 10px auto 20px auto;
+      gap: 4px;
+      max-width: 320px;
+      width: 100%;
+  }
+  .tool-tab {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--muted);
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+      border-radius: 8px;
+      font-family: inherit;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+  }
+  .tool-tab:hover {
+      color: var(--text);
+  }
+  .tool-tab[data-page="setup"].active {
+      color: var(--blue);
+      background: var(--bg);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  }
+  .tool-tab[data-page="results"].active {
+      color: var(--green);
+      background: var(--bg);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  }
+  
+  body.light-theme .tool-tabs {
+      background: #e5e7eb;
+      border-color: #d1d5db;
+  }
+  body.light-theme .tool-tab[data-page="setup"].active {
+      background: #ffffff;
+      color: var(--blue);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+  body.light-theme .tool-tab[data-page="results"].active {
+      background: #ffffff;
+      color: var(--green);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+
+  /* Standalone card panels matching standard toolkit style */
+  .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 15px;
+  }
+  body.light-theme .panel {
+      background: #ffffff;
+      border-color: #d1d5db;
+  }
+
+  select, input[type=number], button.btn {
+      font-family: var(--mono);
+      font-size: 12px;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--line);
+      padding: 6px 10px;
+      border-radius: 6px;
+      outline: none;
+      transition: border-color 0.2s;
+  }
+  select:focus-visible, input:focus-visible, button:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
+  select:focus, input[type=number]:focus { border-color: var(--blue); }
+  select { cursor: pointer; }
+  
+  button.btn { cursor: pointer; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; background: var(--panel); }
+  button.btn:hover { border-color: var(--muted); background: var(--bg); }
+  button.btn.primary { border-color: var(--blue); color: var(--blue); }
+  button.btn.primary:hover { background: rgba(59, 130, 246, 0.08); }
+
+  .tabpage { display: none; }
+  .tabpage.active { display: block; }
+
+  /* setup */
+  .slots { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px; }
+  @media (max-width: 860px) { .slots { grid-template-columns: 1fr; } }
+  
+  .slot { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  body.light-theme .slot { background: #ffffff; border-color: #d1d5db; }
+
+  .slot h2 { font-family: var(--mono); font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .slot h2 .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .slot.a h2 { color: var(--blue); } .slot.a .dot { background: var(--blue); }
+  .slot.b h2 { color: var(--green); } .slot.b .dot { background: var(--green); }
+  
+  .drop { border: 2px dashed var(--line); border-radius: 8px; padding: 20px; cursor: pointer; transition: border-color 0.15s, background-color 0.15s; min-height: 80px; }
+  .drop.dragging { border-color: var(--blue); background: rgba(59,130,246,0.05); }
+  .slot.b .drop.dragging { border-color: var(--green); background: rgba(16,185,129,0.05); }
+  .drop .prompt { color: var(--muted); font-size: 13px; text-align: center; padding: 12px 0; }
+  .drop .prompt strong { color: var(--text); }
+  
+  .fileline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .fileline .fname { font-family: var(--mono); font-size: 12px; font-weight: 600; }
+  .fileline .spacer { flex: 1; }
+  .meta { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .meta .err { color: var(--red); }
+  .meta .warn { color: var(--amber); }
+  
+  .prevwrap { margin-top: 12px; }
+  .prevlabel { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+  canvas.preview { width: 100%; height: 110px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; display: block; cursor: crosshair; touch-action: none; }
+  body.light-theme canvas.preview { background: #f9fafb; border-color: #d1d5db; }
+  
+  .setuphint { color: var(--muted); font-size: 12px; margin-top: 14px; line-height: 1.55; }
+
+  /* results */
+  .controlbar { display: flex; flex-wrap: wrap; gap: 14px 18px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-bottom: 14px; }
+  body.light-theme .controlbar { background: #ffffff; border-color: #d1d5db; }
+
+  .ctl { display: flex; align-items: center; gap: 7px; }
+  .ctl label, .ctl .lab { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  
+  /* Styled Sliders */
+  input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 90px;
+      height: 6px;
+      background: var(--line);
+      border-radius: 3px;
+      outline: none;
+      margin: 0;
+      cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--blue);
+      cursor: pointer;
+      transition: transform 0.1s;
+      border: none;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+  }
+  input[type="range"]::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--blue);
+      cursor: pointer;
+      border: none;
+      transition: transform 0.1s;
+  }
+  input[type="range"]::-moz-range-thumb:hover {
+      transform: scale(1.2);
+  }
+
+  .ctl .val { font-family: var(--mono); font-size: 11px; color: var(--text); min-width: 42px; }
+  .ctl input[type=number] { width: 64px; }
+  .ctl input[type=checkbox] { accent-color: var(--blue); width: 14px; height: 14px; cursor: pointer; }
+
+  #metrics { margin-bottom: 14px; position: relative; font-family: var(--mono); background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; overflow-x: auto; }
+  body.light-theme #metrics { background: #ffffff; border-color: #d1d5db; }
+
+  #metrics table { border-collapse: collapse; width: 100%; }
+  #metrics th.lgcell { text-align: left; font-weight: 400; }
+  #metrics th:not(:first-child), #metrics td:not(:first-child) { width: 130px; }
+  #metrics th, #metrics td { text-align: right; padding: 6px 12px; font-size: 13px; font-weight: 400; white-space: nowrap; }
+  #metrics thead th { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); }
+  #metrics tbody th { text-align: left; font-size: 12px; letter-spacing: 0.1em; }
+  #metrics .rowA th, #metrics .rowA td { color: var(--blue); }
+  #metrics .rowB th, #metrics .rowB td { color: var(--green); }
+  #metrics .rowD th, #metrics .rowD td { color: var(--amber); }
+  #metrics .u { color: var(--muted); font-size: 10px; margin-left: 3px; }
+  .osd-empty { color: var(--muted); font-size: 12px; letter-spacing: 0.1em; padding: 10px 4px; }
+
+  .lgchip { display: inline-flex; align-items: center; gap: 7px; color: var(--text); letter-spacing: 0.04em; cursor: pointer; font-size: 12px; }
+  .lgchip input { margin: 0; }
+  .lgA input { accent-color: var(--blue); }
+  .lgB input { accent-color: var(--green); }
+  .lgchip i { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+  .lgchip b { font-weight: 700; letter-spacing: 0.1em; }
+  .lgA i { background: var(--blue); } .lgA b { color: var(--blue); }
+  .lgB i { background: var(--green); } .lgB b { color: var(--green); }
+
+  #markinfo { margin-bottom: 14px; font-family: var(--mono); background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--amber); border-radius: 0 12px 12px 0; overflow-x: auto; }
+  body.light-theme #markinfo { background: #ffffff; border-color: #d1d5db; }
+
+  #markhead { display: flex; align-items: center; gap: 14px; padding: 8px 12px; cursor: pointer; user-select: none; }
+  #markhead .mh-label { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+  #marksum { font-size: 11px; color: var(--muted); letter-spacing: 0.05em; flex: 1; }
+  #markarrow { color: var(--amber); font-size: 12px; }
+  #markhead .btn.mini { font-size: 10px; padding: 3px 8px; border-radius: 4px; }
+  #marktable { padding: 0 8px 8px; }
+  #markinfo table { border-collapse: collapse; table-layout: fixed; }
+  #markinfo th:first-child, #markinfo td:first-child { width: 110px; }
+  #markinfo th:not(:first-child), #markinfo td:not(:first-child) { width: 150px; }
+  #markinfo .mutecell { color: var(--muted); font-size: 11px; text-align: left; }
+  #markinfo th, #markinfo td { text-align: right; padding: 5px 12px; font-size: 12px; font-weight: 400; white-space: nowrap; }
+  #markinfo thead th { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--amber); border-bottom: 1px solid var(--line); }
+  #markinfo tbody th { text-align: left; font-size: 11px; letter-spacing: 0.08em; }
+  #markinfo .rowA th, #markinfo .rowA td { color: var(--blue); }
+  #markinfo .rowB th, #markinfo .rowB td { color: var(--green); }
+  #markinfo .u { color: var(--muted); font-size: 10px; margin-left: 3px; }
+
+  /* Sub-tabs system for charts */
+  .charttabs {
+      display: flex;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 12px 12px 0 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      border-bottom: none;
+      width: 100%;
+      margin-top: 15px;
+  }
+  body.light-theme .charttabs {
+      background: #f3f4f6;
+  }
+
+  .charttabs::-webkit-scrollbar { display: none; }
+  .ctab {
+      flex: 1;
+      background: var(--bg);
+      border: none;
+      color: var(--muted);
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+      border-bottom: 2px solid transparent;
+      font-family: inherit;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+  }
+  .ctab:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.02);
+  }
+  .ctab.active {
+      color: var(--blue);
+      background: var(--panel);
+      border-bottom: 2px solid var(--blue);
+  }
+
+  body.light-theme .charttabs {
+      border-color: #d1d5db;
+  }
+  body.light-theme .ctab {
+      background-color: #f3f4f6;
+      border-color: #d1d5db;
+      color: #4b5563;
+  }
+  body.light-theme .ctab:hover {
+      background-color: #e5e7eb;
+      color: #111827;
+  }
+  body.light-theme .ctab.active {
+      background-color: #ffffff;
+      color: var(--blue);
+      border-color: var(--blue);
+  }
+
+  .chartbox {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 0 0 12px 12px;
+      margin-bottom: 12px;
+      padding: 12px;
+      border-top: none;
+  }
+  body.light-theme .chartbox {
+      background: #ffffff;
+      border-color: #d1d5db;
+  }
+
+  .chartbox h3 { font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px 4px; }
+  canvas.chart { width: 100%; height: 280px; display: block; cursor: crosshair; }
+
+  .chartbar { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .chartopt { display: inline-flex; gap: 6px; align-items: center; font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); cursor: pointer; white-space: nowrap; }
+  .chartopt input { accent-color: var(--blue); margin: 0; }
+  .chartopts { display: flex; gap: 12px 16px; flex-wrap: wrap; align-items: center; }
+
+  @media (max-width: 760px) {
+    #metrics th, #metrics td { padding: 5px 7px; font-size: 12px; }
+    #metrics th:not(:first-child), #metrics td:not(:first-child) { width: auto; }
+    .lgchip .lgtxt { max-width: 32vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: bottom; }
+    #marksum { display: none; }
+    #markinfo th:first-child, #markinfo td:first-child { width: 82px; }
+    #markinfo th:not(:first-child), #markinfo td:not(:first-child) { width: 102px; }
+    #markinfo th, #markinfo td { padding: 5px 7px; font-size: 11px; }
+    canvas.chart { height: 220px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="top">
+    <div class="brand">
+      <h1>Chirp Response Analyzer</h1>
+      <div class="sub">Measure frequency response, tracking error, and motor saturation from Betaflight chirp sweeps.</div>
+    </div>
+  </header>
+
+  <!-- Sleek centered segment control tab bar -->
+  <div class="tool-tabs">
+    <button class="tool-tab active" data-page="setup">Setup</button>
+    <button class="tool-tab" data-page="results">Results</button>
+  </div>
+
+  <!-- SETUP -->
+  <section class="tabpage active" id="page-setup">
+    <div class="slots">
+      <div class="slot a">
+        <h2><span class="dot"></span>Log A</h2>
+        <div class="drop" id="dropA">
+          <div class="prompt" id="promptA">Drop a <strong>.bbl / .bfl</strong> blackbox file here or click to browse</div>
+          <div id="infoA" style="display:none">
+            <div class="fileline">
+              <span class="fname" id="fnameA"></span>
+              <span class="spacer"></span>
+              <select id="logselA" style="display:none"></select>
+              <button class="btn" id="clearA">Clear</button>
+            </div>
+            <div class="meta" id="metaA"></div>
+          </div>
+        </div>
+        <input type="file" id="fileA" accept=".bbl,.bfl,.txt,.log" hidden>
+        <div class="prevwrap">
+          <div class="prevlabel"><span>Setpoint + chirp segment</span><button class="btn" id="autoA">Auto detect</button></div>
+          <canvas class="preview" id="prevA"></canvas>
+        </div>
+      </div>
+
+      <div class="slot b">
+        <h2><span class="dot"></span>Log B <span style="color:var(--muted);letter-spacing:0.05em">(optional, for comparison)</span></h2>
+        <div class="drop" id="dropB">
+          <div class="prompt" id="promptB">Drop a <strong>.bbl / .bfl</strong> blackbox file here or click to browse</div>
+          <div id="infoB" style="display:none">
+            <div class="fileline">
+              <span class="fname" id="fnameB"></span>
+              <span class="spacer"></span>
+              <select id="logselB" style="display:none"></select>
+              <button class="btn" id="clearB">Clear</button>
+            </div>
+            <div class="meta" id="metaB"></div>
+          </div>
+        </div>
+        <input type="file" id="fileB" accept=".bbl,.bfl,.txt,.log" hidden>
+        <div class="prevwrap">
+          <div class="prevlabel"><span>Setpoint + chirp segment</span><button class="btn" id="autoB">Auto detect</button></div>
+          <canvas class="preview" id="prevB"></canvas>
+        </div>
+      </div>
+    </div>
+    
+    <div class="controlbar" id="setupbar">
+      <div class="ctl"><label for="axis">Axis</label>
+        <select id="axis">
+          <option value="0" selected>Roll</option>
+          <option value="1">Pitch</option>
+          <option value="2">Yaw</option>
+        </select>
+      </div>
+      <div class="ctl"><label for="method">Method</label>
+        <select id="method">
+          <option value="welch" selected>Welch H1</option>
+          <option value="tracking">Chirp tracking</option>
+        </select>
+      </div>
+      <div class="ctl"><label for="winsec">Window</label>
+        <select id="winsec">
+          <option value="0.25">0.25 s</option>
+          <option value="0.5" selected>0.5 s</option>
+          <option value="1">1 s</option>
+          <option value="2">2 s</option>
+        </select>
+      </div>
+      <div class="ctl"><label for="smooth">Smooth</label><input type="range" id="smooth" min="1" max="15" step="2" value="3"><span class="val" id="smoothv">3 pt</span></div>
+      <div class="ctl"><label for="fmin">f min</label><input type="number" id="fmin" value="1" step="0.5" min="0.2"></div>
+      <div class="ctl"><label for="fmax">f max</label><input type="number" id="fmax" value="300" step="10"></div>
+      <div class="ctl"><label for="logx">Log f</label><input type="checkbox" id="logx" checked></div>
+    </div>
+
+    <p class="setuphint">The highlighted band marks the part of the flight that gets analyzed. Drag its edges to trim, drag inside to move, or drag on empty space to select a new region. Auto detect looks for the chirp signature itself - a clean tone whose frequency rises over time - so it can pick the sweep out of a log that also contains normal flying. Switching the axis re-runs it, since each sweep excites one axis at a time.</p>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="tabpage" id="page-results">
+    <div id="metrics" class="osdgrid"></div>
+
+    <div id="markinfo">
+      <div id="markhead"><span class="mh-label">Markers</span><span id="marksum">click a chart for M1, again for M2</span><button class="btn mini" id="clearmarks">Clear</button><span id="markarrow">&#9656;</span></div>
+      <div id="marktable" style="display:none"></div>
+    </div>
+
+    <div class="charttabs">
+      <button class="ctab active" data-chart="mag">Magnitude</button>
+      <button class="ctab" data-chart="phase">Latency</button>
+      <button class="ctab" data-chart="coh">Coherence</button>
+      <button class="ctab" data-chart="err">Error</button>
+      <button class="ctab" data-chart="sat">Saturation</button>
+    </div>
+
+    <div id="charts">
+      <div class="chartbox" id="chartbox_mag"><div class="chartbar"><h3 id="charttitle_mag">Magnitude gyro / setpoint [dB]</h3><label class="chartopt"><input type="checkbox" id="magpct">show as % of commanded rate</label></div><canvas class="chart" id="chart_mag"></canvas></div>
+      <div class="chartbox" id="chartbox_phase"><div class="chartbar"><h3 id="charttitle_phase">Latency [ms, from phase lag]</h3><label class="chartopt"><input type="checkbox" id="phasems" checked>show as latency in ms</label></div><canvas class="chart" id="chart_phase"></canvas></div>
+      <div class="chartbox" id="chartbox_coh"><div class="chartbar"><h3>Coherence (Welch)</h3></div><canvas class="chart" id="chart_coh"></canvas></div>
+      <div class="chartbox" id="chartbox_err"><div class="chartbar"><h3 id="charttitle_err">Tracking error amplitude [deg/s]</h3><label class="chartopt"><input type="checkbox" id="errrel">show as % of commanded amplitude</label></div><canvas class="chart" id="chart_err"></canvas></div>
+      <div class="chartbox" id="chartbox_sat"><div class="chartbar"><h3>Motor saturation [% of window samples]</h3><div class="chartopts"><div class="ctl"><label for="sathi">Sat high</label><input type="range" id="sathi" min="90" max="100" step="0.1" value="99"><span class="val" id="sathiv">99.0%</span></div><div class="ctl"><label for="satlo">Sat low</label><input type="range" id="satlo" min="0" max="15" step="0.1" value="2"><span class="val" id="satlov">2.0%</span></div></div></div><canvas class="chart" id="chart_sat"></canvas></div>
+    </div>
+  </section>
+</div>
+
+<!-- DYNAMIC HELP CONTENT STORAGE -->
+<div id="help-content-source" style="display:none;">
+      <h2>What this measures</h2>
+      <p>Fly Betaflight's chirp mode (4.6 and newer) so the flight controller injects a swept-sine setpoint on one axis, then load the blackbox log here. Because the sweep passes through each frequency one at a time, the log directly reveals how the whole system - PID loop, motors, props, battery - responds across the spectrum.</p>
+      <p>The result is the closed-loop frequency response: how much of the commanded rate arrives (magnitude), how late it arrives (latency), how much rate is missing (tracking error), and whether the motors ever hit a hard limit (saturation).</p>
+
+      <h2>Methods</h2>
+      <p><strong>Welch H1</strong> (default) is the classic cross-spectral estimate Pxy/Pxx with 50% overlapping windows. The averaging across many windows is what makes the curves smooth, and the coherence trace belongs to this estimate. It is what most PID analysis tools show.</p>
+      <p><strong>Chirp tracking</strong> slides an FFT window along the sweep and evaluates gyro/setpoint exactly at the instantaneous chirp frequency. Without cross-window averaging it looks noisier, but it follows the sweep on its own schedule, which helps with short segments and unusual chirp settings. Error amplitude and saturation always come from chirp tracking, regardless of this selector.</p>
+
+      <h2>Settings</h2>
+      <p>All analysis settings live in the Setup tab. <strong>Axis</strong> picks which sweep to analyze - each chirp run excites one axis, and switching re-runs auto detect. <strong>Window</strong> sets the FFT length: longer windows resolve lower frequencies (2 s reaches the sub-Hz head of a sweep) at the cost of time resolution; 0.5 s is a good default. <strong>Smooth</strong> is display smoothing only. <strong>F min / F max</strong> clip the frequency axis; F max auto-fits the detected sweep until a value is typed. <strong>Log f</strong> toggles the logarithmic frequency axis. Settings that affect only one chart sit inside that chart: the unit toggles and the saturation thresholds.</p>
+
+      <h2>Reading the numbers</h2>
+      <p><span class="a">Log A (blue)</span> and <span class="b">Log B (green)</span> are drawn together on every chart; the checkbox in front of each row in the numbers panel hides that log without unloading it. The panel condenses each log into two comparable figures: the -3 dB bandwidth and the worst-case error amplitude with the frequency where it occurs. The delta row is B minus A.</p>
+      <p>Hover any chart for exact values and the A/B delta at the cursor. Click a chart to set marker M1, click again for M2: the marker readout panel lists both values and their difference for every curve, so nothing has to be memorized while comparing. Curve sections drawn dashed have coherence below 0.6 - measurement noise, not quad behavior.</p>
+
+      <h2>The charts</h2>
+      <h3>Magnitude / delivered rate</h3>
+      <p>How much of the commanded rate the quad delivers at each frequency. 0 dB (or 100%) means it follows 1:1; where the curve falls, the quad stops keeping up. The red line marks the -3 dB bandwidth threshold (70.7% delivered) and the small dotted verticals show where each log crosses it - the BW value in the numbers panel. dB is logarithmic (every -6 dB is a halving); the checkbox in the chart switches to a linear percent axis.</p>
+      <h3>Latency</h3>
+      <p>Equivalent delay computed from phase lag at each frequency: ms = phase / (360 x f). Lower and flatter is snappier. Filters add lag that grows with frequency, feedforward removes lag; this chart shows which knob moved what. Untick the checkbox to see raw unwrapped phase in degrees.</p>
+      <h3>Coherence</h3>
+      <p>A trust meter, not a result: near 1 the gyro at that frequency is genuinely driven by the setpoint and the other charts are valid; low means noise dominates. Below the red 0.6 line, the curves in the magnitude, latency and error tabs are drawn dashed. It judges the measurement, not the quad.</p>
+      <h3>Tracking error</h3>
+      <p>The rate not delivered at the chirp frequency, |setpoint - gyro|, in deg/s. Betaflight's chirp lag filter (default 3 Hz) shrinks the excitation as frequency rises, so absolute error usually peaks in the mid band - largely driven by phase lag - and falls off at the top even while tracking keeps degrading. The checkbox switches to error as % of the commanded amplitude, which removes the excitation shaping and makes runs with different chirp settings comparable.</p>
+      <h3>Motor saturation</h3>
+      <p>The share of samples per window where any motor is pinned at its upper limit or its floor. Zero means the motors had headroom the whole sweep: the magnitude roll-off is then a bandwidth limit of tune and filtering, not missing thrust. <strong>Sat high</strong> counts a sample when a motor output is at or above that percent of its range; <strong>Sat low</strong> counts motors pinned at the bottom - set it just above the idle percentage to also catch motors that cannot slow down any further.</p>
+
+      <h2>Workflow tips</h2>
+      <p>Fly one sweep per axis per battery state, keep throttle as steady as possible, and use identical chirp settings for every run to be compared. Compare like with like: same axis, same window, same frequency limits. To probe thrust headroom directly, fly the same sweep at two amplitudes and load them as A and B: where the louder run's magnitude drops below the quieter one, saturation has begun.</p>
+
+      <h2>Assumptions and limits</h2>
+      <p>Files must be Blackbox data version 2 (any remotely recent Betaflight) with setpoint logging enabled, which is the default field set. The decoder is header-driven, so new firmware fields are fine. Multi-flight files are supported - pick the flight from the dropdown. Gyro is scaled to deg/s using the log's own scale header; setpoint is logged in deg/s already. Auto detect looks for the chirp signature itself - a clean tone whose frequency rises over time - so it can pick the sweep out of a log that also contains normal flying; trim manually if it lands wrong. Nothing leaves the browser: files are parsed locally.</p>
+</div>
+
+<script src="../js/blackbox-decoder.js"></script>
+<script>
+/* DSP for chirp response analysis.
+ * - resampleUniform: irregular blackbox timestamps -> uniform grid
+ * - autoDetectSegment: find the chirp region via windowed setpoint RMS
+ * - analyzeTracking: STFT ridge tracking of the chirp.
+ * - analyzeWelch: classic Welch H1 = Pxy/Pxx plus coherence.
+ */
+var DSP = (function () {
+  'use strict';
+
+  function fft(re, im) {
+    var n = re.length;
+    if (n <= 1) return;
+    for (var i = 1, j = 0; i < n; i++) {
+      var bit = n >> 1;
+      for (; j & bit; bit >>= 1) j ^= bit;
+      j ^= bit;
+      if (i < j) {
+        var tr = re[i]; re[i] = re[j]; re[j] = tr;
+        var ti = im[i]; im[i] = im[j]; im[j] = ti;
+      }
+    }
+    for (var len = 2; len <= n; len <<= 1) {
+      var ang = (-2 * Math.PI) / len;
+      var wr = Math.cos(ang), wi = Math.sin(ang);
+      for (var s = 0; s < n; s += len) {
+        var cwr = 1, cwi = 0;
+        for (var k = 0; k < len / 2; k++) {
+          var ur = re[s + k], ui = im[s + k];
+          var vr = re[s + k + len / 2] * cwr - im[s + k + len / 2] * cwi;
+          var vi = re[s + k + len / 2] * cwi + im[s + k + len / 2] * cwr;
+          re[s + k] = ur + vr;
+          im[s + k] = ui + vi;
+          re[s + k + len / 2] = ur - vr;
+          im[s + k + len / 2] = ui - vi;
+          var nwr = cwr * wr - cwi * wi;
+          cwi = cwr * wi + cwi * wr;
+          cwr = nwr;
+        }
+      }
+    }
+  }
+
+  function nextPow2(n) {
+    var p = 1;
+    while (p < n) p <<= 1;
+    return p;
+  }
+
+  function hann(n) {
+    var w = new Float64Array(n), sum = 0;
+    for (var i = 0; i < n; i++) {
+      w[i] = 0.5 * (1 - Math.cos((2 * Math.PI * i) / (n - 1)));
+      sum += w[i];
+    }
+    return { w: w, sum: sum };
+  }
+
+  function resampleUniform(timeUs, cols, tStartUs, tEndUs, dtUs) {
+    var n = Math.floor((tEndUs - tStartUs) / dtUs);
+    if (n < 8) return null;
+    var out = cols.map(function () { return new Float64Array(n); });
+    var m = timeUs.length;
+    var j = 0;
+    for (var i = 0; i < n; i++) {
+      var t = tStartUs + i * dtUs;
+      while (j < m - 2 && timeUs[j + 1] <= t) j++;
+      var t0 = timeUs[j], t1 = timeUs[j + 1];
+      var a = t1 > t0 ? (t - t0) / (t1 - t0) : 0;
+      if (a < 0) a = 0;
+      if (a > 1) a = 1;
+      for (var c = 0; c < cols.length; c++) {
+        var col = cols[c];
+        out[c][i] = col[j] + (col[j + 1] - col[j]) * a;
+      }
+    }
+    return { fs: 1e6 / dtUs, dtUs: dtUs, n: n, out: out };
+  }
+
+  function medianDt(timeUs) {
+    var m = timeUs.length;
+    if (m < 10) return 0;
+    var step = Math.max(1, Math.floor(m / 4000));
+    var diffs = [];
+    for (var i = step; i < m; i += step) diffs.push((timeUs[i] - timeUs[i - step]) / step);
+    diffs.sort(function (a, b) { return a - b; });
+    return diffs[Math.floor(diffs.length / 2)];
+  }
+
+  function autoDetectSegment(timeUs, sp, opts) {
+    opts = opts || {};
+    var m = timeUs.length;
+    if (m < 200) return null;
+    var dtUs = medianDt(timeUs);
+    if (!(dtUs > 0)) return rmsDetect(timeUs, sp, opts);
+    var rs = resampleUniform(timeUs, [sp], timeUs[0], timeUs[m - 1], dtUs);
+    if (!rs) return rmsDetect(timeUs, sp, opts);
+    var fs = rs.fs, x = rs.out[0], n = rs.n;
+    var winN = Math.round(1.0 * fs);
+    if (winN < 64 || n < winN * 4) return rmsDetect(timeUs, sp, opts);
+    var nfft = nextPow2(winN);
+    var hop = Math.round(winN / 4);
+    var hw = hann(winN);
+    var re = new Float64Array(nfft), im = new Float64Array(nfft);
+    var kTop = Math.floor(nfft * 0.45);
+
+    var wins = [];
+    for (var start = 0; start + winN <= n; start += hop) {
+      var i, mean = 0, rms = 0;
+      for (i = 0; i < winN; i++) mean += x[start + i];
+      mean /= winN;
+      re.fill(0); im.fill(0);
+      for (i = 0; i < winN; i++) {
+        var v = x[start + i] - mean;
+        rms += v * v;
+        re[i] = v * hw.w[i];
+      }
+      rms = Math.sqrt(rms / winN);
+      fft(re, im);
+      var peakK = 1, peakP = 0, totalP = 0, k;
+      for (k = 1; k <= kTop; k++) {
+        var p = re[k] * re[k] + im[k] * im[k];
+        totalP += p;
+        if (p > peakP) { peakP = p; peakK = k; }
+      }
+      var half = Math.max(2, Math.round(0.2 * peakK));
+      var bandP = 0;
+      for (k = Math.max(1, peakK - half); k <= Math.min(kTop, peakK + half); k++) {
+        bandP += re[k] * re[k] + im[k] * im[k];
+      }
+      wins.push({
+        t0: start,
+        rms: rms,
+        f: (peakK * fs) / nfft,
+        purity: totalP > 0 ? bandP / totalP : 0,
+        amp: rms * Math.SQRT2,
+      });
+    }
+    var W = wins.length;
+    if (W < 8) return rmsDetect(timeUs, sp, opts);
+
+    function pearson(idx) {
+      var nn = idx.length, sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0;
+      for (var q = 0; q < nn; q++) {
+        var xv = q, yv = Math.log(wins[idx[q]].f + 1e-6);
+        sx += xv; sy += yv; sxx += xv * xv; syy += yv * yv; sxy += xv * yv;
+      }
+      var num = nn * sxy - sx * sy;
+      var den = Math.sqrt((nn * sxx - sx * sx) * (nn * syy - sy * sy));
+      var denX = nn * sxx - sx * sx;
+      return {
+        corr: den > 0 ? num / den : 0,
+        slope: denX > 0 ? num / denX : 0,
+      };
+    }
+
+    function evalRun(idx) {
+      if (idx.length < 6) return null;
+      var fMinR = Infinity, fMaxR = 0;
+      idx.forEach(function (q) {
+        if (wins[q].f < fMinR) fMinR = wins[q].f;
+        if (wins[q].f > fMaxR) fMaxR = wins[q].f;
+      });
+      var span = fMaxR / Math.max(0.1, fMinR);
+      var fit = pearson(idx);
+      if (fit.corr >= 0.85 && span >= 5) {
+        return { score: idx.length * Math.pow(fit.corr, 8) * Math.min(span, 30), slope: fit.slope };
+      }
+      return null;
+    }
+
+    function findBest(minPurity) {
+      var minAmp = opts.minAmp || 12;
+      var best = null;
+      var run = [];
+      var gap = 0;
+      function flush() {
+        if (run.length >= 6) {
+          [0, 1 / 6, 2 / 6, 3 / 6, 4 / 6].forEach(function (frac) {
+            var sub = run.slice(Math.floor(run.length * frac));
+            var ev = evalRun(sub);
+            if (ev != null && (!best || ev.score > best.score)) best = { run: sub, score: ev.score, slope: ev.slope };
+          });
+        }
+        run = [];
+        gap = 0;
+      }
+      for (var q = 0; q < W; q++) {
+        var chirpy = wins[q].amp >= minAmp && wins[q].purity >= minPurity && wins[q].f >= 0.8;
+        if (chirpy) {
+          if (run.length && wins[q].f < 0.55 * wins[run[run.length - 1]].f) flush();
+          run.push(q);
+          gap = 0;
+        } else if (run.length) {
+          gap++;
+          if (gap > 2) flush();
+        }
+      }
+      flush();
+      return best;
+    }
+
+    var best = findBest(0.5) || findBest(0.35);
+    if (!best) return rmsDetect(timeUs, sp, opts);
+
+    var run = best.run;
+    var rmsVals = run.map(function (q) { return wins[q].rms; }).sort(function (a, b) { return a - b; });
+    var medRms = rmsVals[Math.floor(rmsVals.length / 2)];
+    var lo = run[0], hi = run[run.length - 1];
+    var fRunStart = wins[run[0]].f;
+    var fRunEnd = wins[run[run.length - 1]].f;
+    var slope = Math.max(0.02, best.slope || 0.1);
+    var backMax = Math.min(28, Math.max(4, Math.ceil(Math.log(Math.max(fRunStart, 1) / 0.18) / slope) + 1));
+    var steps = 0;
+    while (lo > 0 && steps < backMax) {
+      var wv = wins[lo - 1];
+      if (wv.rms >= Math.max(8, 0.2 * medRms) && wv.rms <= 3 * medRms && wv.f <= 1.5 * fRunStart) { lo--; steps++; }
+      else break;
+    }
+    var fwdMax = Math.round(5 / (hop / fs));
+    steps = 0;
+    while (hi < W - 1 && steps < fwdMax) {
+      var wv2 = wins[hi + 1];
+      if (wv2.purity >= 0.3 && wv2.amp >= 6 && wv2.f >= 0.5 * fRunEnd) { hi++; steps++; }
+      else break;
+    }
+    var t0Us = timeUs[0] + (wins[lo].t0 / fs) * 1e6;
+    var t1Us = timeUs[0] + ((wins[hi].t0 + winN) / fs) * 1e6;
+    return {
+      t0Us: Math.max(timeUs[0], t0Us - 100000),
+      t1Us: Math.min(timeUs[m - 1], t1Us + 100000),
+      method: 'chirp',
+    };
+  }
+
+  function rmsDetect(timeUs, sp, opts) {
+    opts = opts || {};
+    var m = timeUs.length;
+    if (m < 100) return null;
+    var winUs = (opts.winMs || 100) * 1000;
+    var t0 = timeUs[0], t1 = timeUs[m - 1];
+    var nWin = Math.max(1, Math.floor((t1 - t0) / winUs));
+    if (nWin < 5) return null;
+    var rms = new Float64Array(nWin);
+    var cnt = new Int32Array(nWin);
+    for (var i = 0; i < m; i++) {
+      var w = Math.min(nWin - 1, Math.floor((timeUs[i] - t0) / winUs));
+      rms[w] += sp[i] * sp[i];
+      cnt[w]++;
+    }
+    for (var k = 0; k < nWin; k++) rms[k] = cnt[k] ? Math.sqrt(rms[k] / cnt[k]) : 0;
+    var sorted = Array.from(rms).sort(function (a, b) { return a - b; });
+    var p95 = sorted[Math.floor(sorted.length * 0.95)];
+    if (p95 < (opts.minRms || 5)) return null;
+    var thr = p95 * (opts.thrFrac || 0.2);
+    var maxGap = Math.round((opts.maxGapMs || 500) / (opts.winMs || 100));
+    var bestS = -1, bestE = -1, bestLen = 0;
+    var s = -1, gap = 0, e = -1;
+    for (var q = 0; q < nWin; q++) {
+      if (rms[q] >= thr) {
+        if (s < 0) s = q;
+        e = q;
+        gap = 0;
+      } else if (s >= 0) {
+        gap++;
+        if (gap > maxGap) {
+          if (e - s > bestLen) { bestLen = e - s; bestS = s; bestE = e; }
+          s = -1; e = -1; gap = 0;
+        }
+      }
+    }
+    if (s >= 0 && e - s > bestLen) { bestLen = e - s; bestS = s; bestE = e; }
+    if (bestS < 0 || bestLen < 3) return null;
+    var marginUs = (opts.marginMs || 150) * 1000;
+    return {
+      t0Us: Math.max(t0, t0 + bestS * winUs + marginUs),
+      t1Us: Math.min(t1, t0 + (bestE + 1) * winUs - marginUs),
+    };
+  }
+
+  function analyzeTracking(data, opts) {
+    var dtUs = medianDt(data.timeUs);
+    if (!(dtUs > 0)) return { points: [], fs: 0 };
+    var rs = resampleUniform(
+      data.timeUs,
+      [data.sp, data.gy, data.mMax, data.mMin],
+      opts.t0Us, opts.t1Us, dtUs
+    );
+    if (!rs) return { points: [], fs: 0 };
+    var fs = rs.fs;
+    var sp = rs.out[0], gy = rs.out[1], mMax = rs.out[2], mMin = rs.out[3];
+
+    var winN = Math.min(rs.n, Math.round(opts.winSec * fs));
+    if (winN < 32) return { points: [], fs: fs };
+    var nfft = nextPow2(winN);
+    var hop = Math.max(1, Math.round(winN * (1 - (opts.overlap || 0.75))));
+    var hw = hann(winN);
+    var W = hw.sum;
+
+    var kMin = Math.max(1, Math.floor((opts.fMin * nfft) / fs));
+    var kMax = Math.min(nfft / 2 - 2, Math.ceil((opts.fMax * nfft) / fs));
+    if (kMax <= kMin) return { points: [], fs: fs };
+
+    var sRe = new Float64Array(nfft), sIm = new Float64Array(nfft);
+    var gRe = new Float64Array(nfft), gIm = new Float64Array(nfft);
+    var sumW2 = 0;
+    for (var wi = 0; wi < winN; wi++) sumW2 += hw.w[wi] * hw.w[wi];
+    var ampNorm = nfft * sumW2;
+    var points = [];
+    var satHi = opts.satHi, satLo = opts.satLo;
+
+    for (var start = 0; start + winN <= rs.n; start += hop) {
+      var i, k;
+      sIm.fill(0); gIm.fill(0);
+      sRe.fill(0); gRe.fill(0);
+      var mS = 0, mG = 0;
+      for (i = 0; i < winN; i++) { mS += sp[start + i]; mG += gy[start + i]; }
+      mS /= winN; mG /= winN;
+      for (i = 0; i < winN; i++) {
+        sRe[i] = (sp[start + i] - mS) * hw.w[i];
+        gRe[i] = (gy[start + i] - mG) * hw.w[i];
+      }
+      fft(sRe, sIm);
+      fft(gRe, gIm);
+
+      var peakK = -1, peakP = 0, totalP = 0;
+      for (k = kMin; k <= kMax; k++) {
+        var p = sRe[k] * sRe[k] + sIm[k] * sIm[k];
+        totalP += p;
+        if (p > peakP) { peakP = p; peakK = k; }
+      }
+      if (peakK < kMin || totalP <= 0) continue;
+
+      var half = Math.max(2, Math.round(0.18 * peakK));
+      var b0 = Math.max(kMin, peakK - half), b1 = Math.min(kMax, peakK + half);
+      var bandS = 0, bandG = 0, bandE = 0, crossR = 0, crossI = 0, centroid = 0;
+      for (k = b0; k <= b1; k++) {
+        var sr = sRe[k], si = sIm[k], gr = gRe[k], gi = gIm[k];
+        var ps = sr * sr + si * si;
+        bandS += ps;
+        bandG += gr * gr + gi * gi;
+        bandE += (sr - gr) * (sr - gr) + (si - gi) * (si - gi);
+        crossR += sr * gr + si * gi;
+        crossI += sr * gi - si * gr;
+        centroid += k * ps;
+      }
+      if (bandS <= 0) continue;
+
+      var purity = bandS / totalP;
+      if (purity < (opts.minPurity != null ? opts.minPurity : 0.25)) continue;
+
+      var aSp = 2 * Math.sqrt(bandS / ampNorm);
+      if (aSp < (opts.minAmp != null ? opts.minAmp : 3)) continue;
+
+      var f = ((centroid / bandS) * fs) / nfft;
+
+      var hR = crossR / bandS;
+      var hI = crossI / bandS;
+      var magH = Math.sqrt(hR * hR + hI * hI);
+      var phase = (Math.atan2(hI, hR) * 180) / Math.PI;
+      var errAmp = 2 * Math.sqrt(bandE / ampNorm);
+      var aGy = 2 * Math.sqrt(bandG / ampNorm);
+
+      var satCount = 0;
+      for (i = 0; i < winN; i++) {
+        var mm = mMax[start + i];
+        var mn = mMin[start + i];
+        if (mm >= satHi || mn <= satLo) satCount++;
+      }
+
+      points.push({
+        f: f,
+        magDb: 20 * Math.log10(magH + 1e-12),
+        phaseDeg: phase,
+        errAmp: errAmp,
+        satPct: (100 * satCount) / winN,
+        aSp: aSp,
+        aGy: aGy,
+        tSec: (start + winN / 2) / fs,
+      });
+    }
+
+    points.sort(function (a, b) { return a.f - b.f; });
+
+    var offset = 0;
+    for (var pI = 1; pI < points.length; pI++) {
+      var dP = points[pI].phaseDeg + offset - points[pI - 1].phaseDegU;
+      var prevU = pI === 1 ? points[0].phaseDeg : points[pI - 1].phaseDegU;
+      dP = points[pI].phaseDeg + offset - prevU;
+      while (dP > 180) { offset -= 360; dP -= 360; }
+      while (dP < -180) { offset += 360; dP += 360; }
+      points[pI].phaseDegU = points[pI].phaseDeg + offset;
+    }
+    if (points.length) points[0].phaseDegU = points[0].phaseDeg;
+
+    return { points: points, fs: fs, nfft: nfft, winN: winN };
+  }
+
+  function analyzeWelch(data, opts) {
+    var dtUs = medianDt(data.timeUs);
+    if (!(dtUs > 0)) return null;
+    var rs = resampleUniform(data.timeUs, [data.sp, data.gy], opts.t0Us, opts.t1Us, dtUs);
+    if (!rs) return null;
+    var fs = rs.fs;
+    var sp = rs.out[0], gy = rs.out[1];
+    var winN = Math.min(rs.n, Math.round(opts.winSec * fs));
+    if (winN < 32) return null;
+    var nfft = nextPow2(winN);
+    var hop = Math.max(1, Math.round(winN * 0.5));
+    var hw = hann(winN);
+    var half = nfft / 2;
+    var pxx = new Float64Array(half), pyy = new Float64Array(half);
+    var pxyR = new Float64Array(half), pxyI = new Float64Array(half);
+    var sRe = new Float64Array(nfft), sIm = new Float64Array(nfft);
+    var gRe = new Float64Array(nfft), gIm = new Float64Array(nfft);
+    var segs = 0;
+    for (var start = 0; start + winN <= rs.n; start += hop) {
+      var i, mS = 0, mG = 0;
+      for (i = 0; i < winN; i++) { mS += sp[start + i]; mG += gy[start + i]; }
+      mS /= winN; mG /= winN;
+      sRe.fill(0); sIm.fill(0); gRe.fill(0); gIm.fill(0);
+      for (i = 0; i < winN; i++) {
+        sRe[i] = (sp[start + i] - mS) * hw.w[i];
+        gRe[i] = (gy[start + i] - mG) * hw.w[i];
+      }
+      fft(sRe, sIm);
+      fft(gRe, gIm);
+      for (var k = 0; k < half; k++) {
+        pxx[k] += sRe[k] * sRe[k] + sIm[k] * sIm[k];
+        pyy[k] += gRe[k] * gRe[k] + gIm[k] * gIm[k];
+        pxyR[k] += sRe[k] * gRe[k] + sIm[k] * gIm[k];
+        pxyI[k] += sRe[k] * gIm[k] - sIm[k] * gRe[k];
+      }
+      segs++;
+    }
+    if (!segs) return null;
+    var kMin = Math.max(1, Math.floor((opts.fMin * nfft) / fs));
+    var kMax = Math.min(half - 1, Math.ceil((opts.fMax * nfft) / fs));
+    var out = [];
+    for (var kk = kMin; kk <= kMax; kk++) {
+      if (pxx[kk] <= 0) continue;
+      var magH = Math.sqrt(pxyR[kk] * pxyR[kk] + pxyI[kk] * pxyI[kk]) / pxx[kk];
+      var coh = (pxyR[kk] * pxyR[kk] + pxyI[kk] * pxyI[kk]) / (pxx[kk] * pyy[kk] + 1e-30);
+      out.push({
+        f: (kk * fs) / nfft,
+        magDb: 20 * Math.log10(magH + 1e-12),
+        phaseDeg: (Math.atan2(pxyI[kk], pxyR[kk]) * 180) / Math.PI,
+        coh: Math.min(1, coh),
+      });
+    }
+    var offset = 0;
+    for (var pI = 0; pI < out.length; pI++) {
+      if (pI === 0) { out[0].phaseDegU = out[0].phaseDeg; continue; }
+      var dP = out[pI].phaseDeg + offset - out[pI - 1].phaseDegU;
+      while (dP > 180) { offset -= 360; dP -= 360; }
+      while (dP < -180) { offset += 360; dP += 360; }
+      out[pI].phaseDegU = out[pI].phaseDeg + offset;
+    }
+    return { bins: out, fs: fs, segments: segs };
+  }
+
+  function smoothPoints(points, key, span) {
+    if (span <= 1 || points.length < 3) return points.map(function (p) { return p[key]; });
+    var half = Math.floor(span / 2);
+    var out = new Array(points.length);
+    for (var i = 0; i < points.length; i++) {
+      var a = Math.max(0, i - half), b = Math.min(points.length - 1, i + half);
+      var sum = 0;
+      for (var j = a; j <= b; j++) sum += points[j][key];
+      out[i] = sum / (b - a + 1);
+    }
+    return out;
+  }
+
+  return {
+    fft: fft,
+    nextPow2: nextPow2,
+    resampleUniform: resampleUniform,
+    medianDt: medianDt,
+    autoDetectSegment: autoDetectSegment,
+    analyzeTracking: analyzeTracking,
+    analyzeWelch: analyzeWelch,
+    smoothPoints: smoothPoints,
+  };
+})();
+
+</script>
+<script>
+/* App layer: state, slots, previews, charts, metrics. */
+(function () {
+  'use strict';
+
+  var $ = function (sel) { return document.querySelector(sel); };
+  var $$ = function (sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); };
+
+  var COLORS = {
+    A: { line: '#3b82f6', dim: 'rgba(59,130,246,0.16)', text: '#3b82f6' },
+    B: { line: '#10b981', dim: 'rgba(16,185,129,0.16)', text: '#10b981' },
+  };
+
+  function updateColors() {
+    var isLight = document.body.classList.contains('light-theme');
+    COLORS.A.line = isLight ? '#2563eb' : '#3b82f6';
+    COLORS.A.text = isLight ? '#2563eb' : '#3b82f6';
+    COLORS.A.dim = isLight ? 'rgba(37,99,235,0.12)' : 'rgba(59,130,246,0.16)';
+    
+    COLORS.B.line = isLight ? '#059669' : '#10b981';
+    COLORS.B.text = isLight ? '#059669' : '#10b981';
+    COLORS.B.dim = isLight ? 'rgba(5, 150, 105, 0.12)' : 'rgba(16, 185, 129, 0.16)';
+  }
+
+  function getThemeColors() {
+    var isLight = document.body.classList.contains('light-theme');
+    return {
+      grid: isLight ? 'rgba(9, 9, 11, 0.08)' : 'rgba(143, 161, 179, 0.12)',
+      text: isLight ? '#27272A' : 'rgba(143, 161, 179, 0.75)',
+      refLine: isLight ? 'rgba(9, 9, 11, 0.22)' : 'rgba(232, 238, 244, 0.28)',
+      crosshair: isLight ? 'rgba(9, 9, 11, 0.35)' : 'rgba(232, 238, 244, 0.35)',
+      readoutBg: isLight ? 'rgba(244, 244, 245, 0.92)' : 'rgba(11, 15, 20, 0.88)',
+      readoutBorder: isLight ? '#D4D4D8' : 'rgba(143, 161, 179, 0.35)',
+      readoutText: isLight ? '#09090B' : '#e8eef4',
+      markerLine: isLight ? 'rgba(217, 119, 6, 0.75)' : 'rgba(255, 159, 10, 0.75)',
+      trustLine: isLight ? 'rgba(220, 38, 38, 0.75)' : 'rgba(255, 93, 93, 0.75)',
+      mutedText: isLight ? '#71717A' : 'rgba(143, 161, 179, 0.55)',
+    };
+  }
+
+  var AXIS_NAMES = ['Roll', 'Pitch', 'Yaw'];
+
+  var state = {
+    axis: 0,
+    method: 'welch',
+    winSec: 0.5,
+    smooth: 3,
+    satHi: 99.0,
+    satLo: 2.0,
+    fMin: 1,
+    fMax: 300,
+    fMaxManual: false,
+    errRel: false,
+    magPct: false,
+    phaseMs: true,
+    visible: { A: true, B: true },
+    activeChart: 'mag',
+    markOpen: false,
+    logX: true,
+    slots: { A: makeSlot('A'), B: makeSlot('B') },
+    hoverF: null,
+    m1: null,
+    m2: null,
+  };
+
+  function makeSlot(id) {
+    return {
+      id: id,
+      fileName: null,
+      fileSize: 0,
+      logs: null,
+      selIndex: -1,
+      segment: null,
+      tracking: null,
+      welch: null,
+      error: null,
+      dragMode: null,
+    };
+  }
+
+  function fmtDur(s) {
+    if (!isFinite(s)) return '-';
+    var m = Math.floor(s / 60);
+    var r = s - m * 60;
+    return m + ':' + (r < 10 ? '0' : '') + r.toFixed(1);
+  }
+  function fmtNum(v, dp) {
+    return v == null || !isFinite(v) ? '--' : v.toFixed(dp == null ? 1 : dp);
+  }
+
+  function bindSlot(id) {
+    var slot = state.slots[id];
+    var drop = $('#drop' + id);
+    var input = $('#file' + id);
+    drop.addEventListener('click', function (e) {
+      if (e.target.closest('select,button')) return;
+      input.click();
+    });
+    input.addEventListener('change', function () {
+      if (input.files && input.files[0]) loadFile(id, input.files[0]);
+      input.value = '';
+    });
+    ['dragover', 'dragenter'].forEach(function (ev) {
+      drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('dragging'); });
+    });
+    ['dragleave', 'drop'].forEach(function (ev) {
+      drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('dragging'); });
+    });
+    drop.addEventListener('drop', function (e) {
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) loadFile(id, e.dataTransfer.files[0]);
+    });
+    $('#clear' + id).addEventListener('click', function (e) {
+      e.stopPropagation();
+      state.slots[id] = makeSlot(id);
+      renderSlot(id);
+      scheduleAnalyze();
+    });
+    $('#auto' + id).addEventListener('click', function (e) {
+      e.stopPropagation();
+      autoSegment(id);
+      renderSlot(id);
+      scheduleAnalyze();
+    });
+    $('#logsel' + id).addEventListener('change', function (e) {
+      slot = state.slots[id];
+      slot.selIndex = +e.target.value;
+      slot.segment = null;
+      autoSegment(id);
+      renderSlot(id);
+      scheduleAnalyze();
+    });
+    bindPreview(id);
+  }
+
+  function loadFile(id, file) {
+    var slot = makeSlot(id);
+    state.slots[id] = slot;
+    slot.fileName = file.name;
+    slot.fileSize = file.size;
+    slot.error = null;
+    setStatus('READING ' + file.name.toUpperCase());
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var u8 = new Uint8Array(reader.result);
+        slot.logs = BBL.parseFile(u8);
+        var best = -1, bestDur = -1;
+        slot.logs.forEach(function (l, i) {
+          if (l.result && l.result.meta.durationS > bestDur && l.result.frames.count > 100) {
+            bestDur = l.result.meta.durationS;
+            best = i;
+          }
+        });
+        if (best < 0) {
+          slot.error = 'No decodable flight found in this file.';
+        } else {
+          slot.selIndex = best;
+          var r = slot.logs[best].result;
+          if (!r.meta.hasSetpoint) {
+            slot.error = 'This log has no setpoint fields. Chirp analysis needs setpoint logging (Betaflight 4.0 or newer with default blackbox fields).';
+          } else {
+            autoSegment(id);
+          }
+        }
+      } catch (e) {
+        slot.error = e.message || String(e);
+      }
+      renderSlot(id);
+      scheduleAnalyze();
+    };
+    reader.onerror = function () {
+      slot.error = 'Could not read file.';
+      renderSlot(id);
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function selLog(id) {
+    var slot = state.slots[id];
+    if (!slot.logs || slot.selIndex < 0) return null;
+    var entry = slot.logs[slot.selIndex];
+    return entry && entry.result ? entry.result : null;
+  }
+
+  function autoSegment(id) {
+    var slot = state.slots[id];
+    var r = selLog(id);
+    if (!r) return;
+    var seg = DSP.autoDetectSegment(r.frames.time, r.frames.sp[state.axis], {});
+    if (seg) slot.segment = seg;
+    else slot.segment = { t0Us: r.frames.time[0], t1Us: r.frames.time[r.frames.count - 1] };
+    slot.segmentAuto = !!seg;
+  }
+
+  function renderSlot(id) {
+    var slot = state.slots[id];
+    var r = selLog(id);
+    var meta = $('#meta' + id);
+    var drop = $('#drop' + id);
+    var logSel = $('#logsel' + id);
+    drop.classList.toggle('loaded', !!slot.fileName);
+    $('#prompt' + id).style.display = slot.fileName ? 'none' : '';
+    $('#info' + id).style.display = slot.fileName ? '' : 'none';
+
+    if (!slot.fileName) { drawPreview(id); return; }
+    $('#fname' + id).textContent = slot.fileName;
+
+    if (slot.error) {
+      meta.innerHTML = '<span class="err">' + escapeHtml(slot.error) + '</span>';
+      logSel.style.display = 'none';
+      drawPreview(id);
+      return;
+    }
+    var opts = '';
+    slot.logs.forEach(function (l, i) {
+      var label;
+      if (l.result) label = 'Flight ' + (i + 1) + ' \u00b7 ' + fmtDur(l.result.meta.durationS) + ' \u00b7 ' + l.result.frames.count + ' frames';
+      else label = 'Flight ' + (i + 1) + ' \u00b7 unreadable';
+      opts += '<option value="' + i + '"' + (i === slot.selIndex ? ' selected' : '') + (l.result ? '' : ' disabled') + '>' + label + '</option>';
+    });
+    logSel.innerHTML = opts;
+    logSel.style.display = slot.logs.length > 1 ? '' : 'none';
+
+    if (r) {
+      var warn = r.stats.corrupt > r.frames.count * 0.02 ? ' <span class="warn">' + r.stats.corrupt + ' corrupt frames skipped</span>' : '';
+      meta.innerHTML =
+        escapeHtml(r.meta.craft || 'unnamed craft') +
+        ' \u00b7 ' + escapeHtml(shortFw(r.meta.firmware)) +
+        ' \u00b7 ' + fmtNum(r.meta.sampleRateHz / 1000, 1) + ' kHz' +
+        ' \u00b7 ' + r.meta.motorCount + ' motors' + warn;
+    } else meta.textContent = '';
+    drawPreview(id);
+  }
+
+  function shortFw(fw) {
+    var m = /Betaflight\s+[\d.]+/.exec(fw);
+    return m ? m[0] : fw.slice(0, 24);
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  function previewGeom(id) {
+    var canvas = $('#prev' + id);
+    var rect = canvas.getBoundingClientRect();
+    return { canvas: canvas, w: rect.width, h: rect.height };
+  }
+
+  function drawPreview(id) {
+    var slot = state.slots[id];
+    var g = previewGeom(id);
+    var canvas = g.canvas;
+    var dpr = window.devicePixelRatio || 1;
+    if (canvas.width !== Math.round(g.w * dpr)) {
+      canvas.width = Math.round(g.w * dpr);
+      canvas.height = Math.round(g.h * dpr);
+    }
+    var ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, g.w, g.h);
+    var r = selLog(id);
+    var themeColors = getThemeColors();
+    if (!r || slot.error) {
+      ctx.fillStyle = themeColors.mutedText;
+      ctx.font = '11px "JetBrains Mono", ui-monospace, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(slot.fileName ? 'no preview' : 'setpoint preview appears here', g.w / 2, g.h / 2);
+      return;
+    }
+    var time = r.frames.time, sp = r.frames.sp[state.axis];
+    var n = r.frames.count;
+    var t0 = time[0], t1 = time[n - 1];
+    var span = Math.max(1, t1 - t0);
+    var maxAbs = 1;
+    for (var i = 0; i < n; i += 16) maxAbs = Math.max(maxAbs, Math.abs(sp[i]));
+    var mid = g.h / 2;
+    var col = COLORS[id];
+    ctx.strokeStyle = col.line;
+    ctx.globalAlpha = 0.85;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    var px = 0, lo = Infinity, hi = -Infinity;
+    for (var j = 0; j < n; j++) {
+      var x = ((time[j] - t0) / span) * g.w;
+      if (x - px >= 1 || j === n - 1) {
+        if (isFinite(lo)) {
+          var y1 = mid - (hi / maxAbs) * (mid - 4);
+          var y2 = mid - (lo / maxAbs) * (mid - 4);
+          ctx.moveTo(px + 0.5, Math.min(y1, y2));
+          ctx.lineTo(px + 0.5, Math.max(y1, y2) + 0.5);
+        }
+        px = Math.floor(x);
+        lo = Infinity; hi = -Infinity;
+      }
+      if (sp[j] < lo) lo = sp[j];
+      if (sp[j] > hi) hi = sp[j];
+    }
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    if (slot.segment) {
+      var x0 = ((slot.segment.t0Us - t0) / span) * g.w;
+      var x1 = ((slot.segment.t1Us - t0) / span) * g.w;
+      ctx.fillStyle = col.dim;
+      ctx.fillRect(x0, 0, x1 - x0, g.h);
+      ctx.fillStyle = col.line;
+      ctx.fillRect(x0 - 1, 0, 2, g.h);
+      ctx.fillRect(x1 - 1, 0, 2, g.h);
+      ctx.font = '10px "JetBrains Mono", ui-monospace, monospace';
+      ctx.textAlign = 'left';
+      ctx.fillStyle = themeColors.readoutText;
+      var segS = (slot.segment.t1Us - slot.segment.t0Us) / 1e6;
+      ctx.fillText(fmtDur((slot.segment.t0Us - t0) / 1e6) + ' + ' + segS.toFixed(1) + 's', Math.max(2, x0 + 4), 11);
+    }
+    ctx.fillStyle = themeColors.mutedText;
+    ctx.font = '9px "JetBrains Mono", ui-monospace, monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('0:00', 2, g.h - 3);
+    ctx.textAlign = 'right';
+    ctx.fillText(fmtDur(span / 1e6), g.w - 2, g.h - 3);
+  }
+
+  function bindPreview(id) {
+    var canvas = $('#prev' + id);
+    function toTime(clientX) {
+      var r = selLog(id);
+      if (!r) return null;
+      var rect = canvas.getBoundingClientRect();
+      var frac = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+      var t0 = r.frames.time[0], t1 = r.frames.time[r.frames.count - 1];
+      return t0 + frac * (t1 - t0);
+    }
+    function pxOf(tUs) {
+      var r = selLog(id);
+      var rect = canvas.getBoundingClientRect();
+      var t0 = r.frames.time[0], t1 = r.frames.time[r.frames.count - 1];
+      return ((tUs - t0) / (t1 - t0)) * rect.width;
+    }
+    var drag = null;
+    function onDown(clientX) {
+      var slot = state.slots[id];
+      var r = selLog(id);
+      if (!r) return;
+      var t = toTime(clientX);
+      if (slot.segment) {
+        var rect = canvas.getBoundingClientRect();
+        var x = clientX - rect.left;
+        var x0 = pxOf(slot.segment.t0Us), x1 = pxOf(slot.segment.t1Us);
+        if (Math.abs(x - x0) < 8) drag = { mode: 'l' };
+        else if (Math.abs(x - x1) < 8) drag = { mode: 'r' };
+        else if (x > x0 && x < x1) drag = { mode: 'move', grabT: t, seg0: slot.segment.t0Us, seg1: slot.segment.t1Us };
+        else drag = { mode: 'new', anchor: t };
+      } else drag = { mode: 'new', anchor: t };
+      if (drag.mode === 'new') slot.segment = { t0Us: t, t1Us: t };
+    }
+    function onMove(clientX) {
+      if (!drag) return;
+      var slot = state.slots[id];
+      var r = selLog(id);
+      if (!r || !slot.segment) return;
+      var t = toTime(clientX);
+      var tMin = r.frames.time[0], tMax = r.frames.time[r.frames.count - 1];
+      if (drag.mode === 'l') slot.segment.t0Us = Math.min(t, slot.segment.t1Us - 1e5);
+      else if (drag.mode === 'r') slot.segment.t1Us = Math.max(t, slot.segment.t0Us + 1e5);
+      else if (drag.mode === 'move') {
+        var d = t - drag.grabT;
+        var len = drag.seg1 - drag.seg0;
+        var n0 = Math.max(tMin, Math.min(tMax - len, drag.seg0 + d));
+        slot.segment.t0Us = n0;
+        slot.segment.t1Us = n0 + len;
+      } else if (drag.mode === 'new') {
+        slot.segment.t0Us = Math.min(drag.anchor, t);
+        slot.segment.t1Us = Math.max(drag.anchor, t);
+      }
+      slot.segment.t0Us = Math.max(tMin, slot.segment.t0Us);
+      slot.segment.t1Us = Math.min(tMax, slot.segment.t1Us);
+      drawPreview(id);
+    }
+    function onUp() {
+      if (!drag) return;
+      var slot = state.slots[id];
+      drag = null;
+      if (slot.segment && slot.segment.t1Us - slot.segment.t0Us < 2e5) {
+        autoSegment(id);
+        drawPreview(id);
+      }
+      slot.segmentAuto = false;
+      scheduleAnalyze();
+    }
+    canvas.addEventListener('mousedown', function (e) { onDown(e.clientX); e.preventDefault(); });
+    window.addEventListener('mousemove', function (e) { onMove(e.clientX); });
+    window.addEventListener('mouseup', onUp);
+    canvas.addEventListener('touchstart', function (e) { onDown(e.touches[0].clientX); e.preventDefault(); }, { passive: false });
+    canvas.addEventListener('touchmove', function (e) { onMove(e.touches[0].clientX); e.preventDefault(); }, { passive: false });
+    canvas.addEventListener('touchend', onUp);
+  }
+
+  var analyzeTimer = null;
+  function scheduleAnalyze() {
+    clearTimeout(analyzeTimer);
+    setStatus('COMPUTING');
+    analyzeTimer = setTimeout(runAnalysis, 120);
+  }
+
+  function runAnalysis() {
+    ['A', 'B'].forEach(function (id) {
+      var slot = state.slots[id];
+      var r = selLog(id);
+      slot.tracking = null;
+      slot.welch = null;
+      if (!r || slot.error || !slot.segment) return;
+      var f = r.frames;
+      var data = {
+        timeUs: f.time,
+        sp: f.sp[state.axis],
+        grid: f.gy[state.axis],
+        gy: f.gy[state.axis],
+        mMax: f.motorMax,
+        mMin: f.motorMin,
+      };
+      var searchFMax = state.fMaxManual
+        ? state.fMax
+        : Math.min(650, Math.max(50, 0.45 * (r.meta.sampleRateHz || 1000)));
+      var opts = {
+        t0Us: slot.segment.t0Us,
+        t1Us: slot.segment.t1Us,
+        winSec: state.winSec,
+        overlap: 0.75,
+        fMin: state.fMin,
+        fMax: searchFMax,
+        satHi: state.satHi / 100,
+        satLo: state.satLo / 100,
+        minAmp: 3,
+        minPurity: 0.25,
+      };
+      try {
+        slot.tracking = DSP.analyzeTracking(data, opts);
+        slot.welch = DSP.analyzeWelch(data, opts);
+      } catch (e) {
+        slot.error = 'Analysis failed: ' + (e.message || e);
+      }
+    });
+    if (!state.fMaxManual) {
+      var dataMax = 0;
+      ['A', 'B'].forEach(function (id) {
+        var tr = state.slots[id].tracking;
+        if (tr && tr.points.length) dataMax = Math.max(dataMax, tr.points[tr.points.length - 1].f);
+      });
+      if (dataMax > 0) {
+        state.fMax = Math.max(20, Math.ceil((dataMax * 1.15) / 10) * 10);
+        var fmaxEl = $('#fmax');
+        if (fmaxEl) fmaxEl.value = state.fMax;
+      }
+    }
+    buildSeries();
+    renderMetrics();
+    renderCharts();
+    renderMarkInfo();
+    var any = state.slots.A.tracking || state.slots.B.tracking;
+    setStatus(any ? 'READY' : 'WAITING FOR LOGS');
+  }
+
+  function buildSeries() {
+    ['A', 'B'].forEach(function (id) {
+      var slot = state.slots[id];
+      slot.series = null;
+      var tr = slot.tracking, we = slot.welch;
+      if (!tr || !tr.points.length) return;
+      var pts = tr.points;
+      var sm = state.smooth;
+      var s = {
+        trackF: pts.map(function (p) { return p.f; }),
+        mag: null, phase: null, coh: null, err: null, sat: null,
+        cohF: null, magF: null,
+      };
+      s.errAbs = { f: s.trackF, y: DSP.smoothPoints(pts, 'errAmp', sm) };
+      if (state.errRel) {
+        for (var rI = 0; rI < pts.length; rI++) {
+          pts[rI].relErr = pts[rI].aSp > 1e-6 ? (100 * pts[rI].errAmp) / pts[rI].aSp : 0;
+        }
+        s.err = { f: s.trackF, y: DSP.smoothPoints(pts, 'relErr', sm) };
+      } else {
+        s.err = s.errAbs;
+      }
+      s.sat = { f: s.trackF, y: DSP.smoothPoints(pts, 'satPct', sm) };
+      if (state.method === 'tracking') {
+        s.magDb = { f: s.trackF, y: DSP.smoothPoints(pts, 'magDb', sm) };
+        s.phaseDeg = { f: s.trackF, y: DSP.smoothPoints(pts, 'phaseDegU', sm) };
+      } else if (we && we.bins.length) {
+        var bf = we.bins.map(function (b) { return b.f; });
+        s.magDb = { f: bf, y: DSP.smoothPoints(we.bins, 'magDb', sm) };
+        s.phaseDeg = { f: bf, y: DSP.smoothPoints(we.bins, 'phaseDegU', sm) };
+      }
+      if (s.magDb) {
+        s.mag = state.magPct
+          ? { f: s.magDb.f, y: s.magDb.y.map(function (v) { return 100 * Math.pow(10, v / 20); }) }
+          : s.magDb;
+      }
+      if (s.phaseDeg) {
+        s.phase = state.phaseMs
+          ? {
+              f: s.phaseDeg.f,
+              y: s.phaseDeg.y.map(function (v, vi) {
+                var fv = s.phaseDeg.f[vi];
+                return fv > 0 ? (-v / (360 * fv)) * 1000 : NaN;
+              }),
+            }
+          : s.phaseDeg;
+      }
+      if (we && we.bins.length) {
+        s.coh = {
+          f: we.bins.map(function (b) { return b.f; }),
+          y: DSP.smoothPoints(we.bins, 'coh', sm),
+        };
+      }
+      slot.series = s;
+    });
+    CHARTS.forEach(function (c) {
+      if (c.id === 'err') {
+        c.unit = state.errRel ? '%' : 'deg/s';
+        c.dp = 1;
+      } else if (c.id === 'mag') {
+        c.unit = state.magPct ? '%' : 'dB';
+        c.dp = state.magPct ? 1 : 2;
+        c.refLines = state.magPct ? [100] : [0];
+        c.bwLine = state.magPct ? 70.7 : -3;
+      } else if (c.id === 'phase') {
+        c.unit = state.phaseMs ? 'ms' : 'deg';
+        c.dp = 1;
+      }
+    });
+    var errTitle = $('#charttitle_err');
+    if (errTitle) errTitle.textContent = state.errRel
+      ? 'Tracking error [% of commanded amplitude]'
+      : 'Tracking error amplitude [deg/s]';
+    var magTitle = $('#charttitle_mag');
+    if (magTitle) magTitle.textContent = state.magPct
+      ? 'Delivered rate [% of commanded]'
+      : 'Magnitude gyro / setpoint [dB]';
+    var phTitle = $('#charttitle_phase');
+    if (phTitle) phTitle.textContent = state.phaseMs
+      ? 'Latency [ms, from phase lag]'
+      : 'Phase [deg, unwrapped]';
+  }
+
+  var MARK_NAMES = { mag: 'MAG', phase: 'PHASE', coh: 'COH', err: 'ERR', sat: 'SAT' };
+
+  function renderMarkInfo() {
+    var sum = $('#marksum'), tbl = $('#marktable');
+    if (!sum || !tbl) return;
+    var f1 = state.m1, f2 = state.m2;
+    if (f1 != null && f2 != null && f2 < f1) { var t = f1; f1 = f2; f2 = t; }
+    sum.textContent = f1 == null
+      ? 'click a chart for M1, again for M2'
+      : 'M1 ' + f1.toFixed(1) + ' Hz' + (f2 != null ? ' \u00b7 M2 ' + f2.toFixed(1) + ' Hz' : '');
+    function head(name, fv) {
+      return '<th>' + name + (fv != null ? ' \u00b7 ' + fv.toFixed(1) + ' Hz' : '') + '</th>';
+    }
+    var html = '<table><thead><tr><th>Marker</th>' + head('M1', f1) + head('M2', f2) + '<th>M2 - M1</th></tr></thead><tbody>';
+    function cellV(v, c) {
+      return v == null ? '<td>--</td>' : '<td>' + v.toFixed(c.dp) + '<span class="u">' + c.unit + '</span></td>';
+    }
+    var rows = 0;
+    ['A', 'B'].forEach(function (id) {
+      if (!state.visible[id]) return;
+      var s = state.slots[id].series;
+      if (!s) return;
+      CHARTS.forEach(function (c) {
+        var ser = c.get(s);
+        if (!ser) return;
+        var name = c.id === 'phase' ? (state.phaseMs ? 'LAT' : 'PHASE') : MARK_NAMES[c.id];
+        var v1 = f1 != null ? interpAt(ser, f1) : null;
+        var v2 = f2 != null ? interpAt(ser, f2) : null;
+        html += '<tr class="row' + id + '"><th>' + name + ' ' + id + '</th>' + cellV(v1, c) + cellV(v2, c);
+        html += v1 == null || v2 == null
+          ? '<td>--</td>'
+          : '<td>' + (v2 - v1 >= 0 ? '+' : '') + (v2 - v1).toFixed(c.dp) + '<span class="u">' + c.unit + '</span></td>';
+        html += '</tr>';
+        rows++;
+      });
+    });
+    if (!rows) html += '<tr><td colspan="4" class="mutecell">load a log to see marker values</td></tr>';
+    html += '</tbody></table>';
+    tbl.innerHTML = html;
+  }
+
+  function interpAt(ser, f) {
+    if (!ser || !ser.f.length) return null;
+    var fa = ser.f, ya = ser.y;
+    if (f < fa[0] || f > fa[fa.length - 1]) return null;
+    var lo = 0, hi = fa.length - 1;
+    while (hi - lo > 1) {
+      var mid = (lo + hi) >> 1;
+      if (fa[mid] <= f) lo = mid;
+      else hi = mid;
+    }
+    var a = fa[hi] > fa[lo] ? (f - fa[lo]) / (fa[hi] - fa[lo]) : 0;
+    return ya[lo] + (ya[hi] - ya[lo]) * a;
+  }
+
+  function computeMetrics(id) {
+    var slot = state.slots[id];
+    var s = slot.series;
+    if (!s || !s.magDb) return null;
+    var m = {};
+    var pk = -Infinity, pkF = null;
+    for (var i = 0; i < s.magDb.f.length; i++) {
+      if (s.magDb.y[i] > pk) { pk = s.magDb.y[i]; pkF = s.magDb.f[i]; }
+    }
+    m.peakDb = pk; m.peakF = pkF;
+    m.bw = null;
+    for (var j = 1; j < s.magDb.f.length; j++) {
+      if (s.magDb.y[j - 1] >= -3 && s.magDb.y[j] < -3) {
+        var a = (-3 - s.magDb.y[j - 1]) / (s.magDb.y[j] - s.magDb.y[j - 1]);
+        m.bw = s.magDb.f[j - 1] + (s.magDb.f[j] - s.magDb.f[j - 1]) * a;
+        break;
+      }
+    }
+    var me = -Infinity, meF = null;
+    for (var k = 0; k < s.errAbs.f.length; k++) {
+      if (s.errAbs.y[k] > me) { me = s.errAbs.y[k]; meF = s.errAbs.f[k]; }
+    }
+    m.maxErr = me; m.maxErrF = meF;
+    m.satOnset = null;
+    var ms = 0;
+    for (var q = 0; q < s.sat.f.length; q++) {
+      if (m.satOnset == null && s.sat.y[q] >= 5) m.satOnset = s.sat.f[q];
+      if (s.sat.y[q] > ms) ms = s.sat.y[q];
+    }
+    m.maxSat = ms;
+    return m;
+  }
+
+  function renderMetrics() {
+    var mA = computeMetrics('A');
+    var mB = computeMetrics('B');
+    state.lastMetrics = { A: mA, B: mB };
+    var el = $('#metrics');
+    if (!state.slots.A.fileName && !state.slots.B.fileName) {
+      el.innerHTML = '<div class="osd-empty">Load a log to see the numbers.</div>';
+      return;
+    }
+    function cell(v, dp, unit) {
+      return v == null || !isFinite(v) ? '<td>--</td>' : '<td>' + v.toFixed(dp) + '<span class="u">' + unit + '</span></td>';
+    }
+    function chip(id) {
+      var slot = state.slots[id];
+      var r = selLog(id);
+      var txt = escapeHtml(slot.fileName) + (r && r.meta.craft ? ' \u00b7 ' + escapeHtml(r.meta.craft) : '');
+      return '<th class="lgcell"><label class="lgchip lg' + id + '"><input type="checkbox" class="lgvis" data-slot="' + id + '"' +
+        (state.visible[id] ? ' checked' : '') + '><i></i><b>' + id + '</b><span class="lgtxt">' + txt + '</span></label></th>';
+    }
+    var html =
+      '<table><thead><tr><th></th>' +
+      '<th>BW -3dB</th><th>Max err</th><th>@</th>' +
+      '</tr></thead><tbody>';
+    ['A', 'B'].forEach(function (id) {
+      if (!state.slots[id].fileName) return;
+      var m = id === 'A' ? mA : mB;
+      html += '<tr class="row' + id + '">' + chip(id) +
+        cell(m && m.bw, 1, 'Hz') + cell(m && m.maxErr, 1, 'deg/s') + cell(m && m.maxErrF, 1, 'Hz') + '</tr>';
+    });
+    if (mA && mB) {
+      function dCell(a, b, dp, unit) {
+        if (a == null || b == null || !isFinite(a) || !isFinite(b)) return '<td>--</td>';
+        var d = b - a;
+        return '<td>' + (d >= 0 ? '+' : '') + d.toFixed(dp) + '<span class="u">' + unit + '</span></td>';
+      }
+      html += '<tr class="rowD"><th>\u0394 B - A</th>' + dCell(mA.bw, mB.bw, 1, 'Hz') +
+        dCell(mA.maxErr, mB.maxErr, 1, 'deg/s') + dCell(mA.maxErrF, mB.maxErrF, 1, 'Hz') + '</tr>';
+    }
+    html += '</tbody></table>';
+    el.innerHTML = html;
+  }
+
+  var CHARTS = [
+    { id: 'mag', label: 'Magnitude gyro/setpoint', unit: 'dB', get: function (s) { return s && s.mag; }, refLines: [0], bwLine: -3, dp: 2 },
+    { id: 'phase', label: 'Phase', unit: 'ms', get: function (s) { return s && s.phase; }, refLines: [0], dp: 1 },
+    { id: 'coh', label: 'Coherence (Welch)', unit: '', get: function (s) { return s && s.coh; }, refLines: [1], trustLine: 0.6, yMin: 0, yMax: 1.05, dp: 3 },
+    { id: 'err', label: 'Error amplitude (tracking)', unit: 'deg/s', get: function (s) { return s && s.err; }, refLines: [], yMin: 0, dp: 1 },
+    { id: 'sat', label: 'Motor saturation (tracking)', unit: '%', get: function (s) { return s && s.sat; }, refLines: [5], yMin: 0, yMax: 100, dp: 1 },
+  ];
+
+  function chartVisible(c) {
+    return state.activeChart === c.id;
+  }
+
+  function xToF(chart, x) {
+    var g = chart.geom;
+    var frac = (x - g.padL) / (g.w - g.padL - g.padR);
+    frac = Math.min(1, Math.max(0, frac));
+    if (state.logX) return Math.exp(Math.log(state.fMin) + frac * (Math.log(state.fMax) - Math.log(state.fMin)));
+    return state.fMin + frac * (state.fMax - state.fMin);
+  }
+  function fToX(chart, f) {
+    var g = chart.geom;
+    var frac;
+    if (state.logX) frac = (Math.log(f) - Math.log(state.fMin)) / (Math.log(state.fMax) - Math.log(state.fMin));
+    else frac = (f - state.fMin) / (state.fMax - state.fMin);
+    return g.padL + frac * (g.w - g.padL - g.padR);
+  }
+
+  function niceTicks(min, max, count) {
+    var span = max - min;
+    if (span <= 0) return [];
+    var step = Math.pow(10, Math.floor(Math.log10(span / count)));
+    var err = (span / count) / step;
+    if (err >= 7.5) step *= 10;
+    else if (err >= 3.5) step *= 5;
+    else if (err >= 1.5) step *= 2;
+    var ticks = [];
+    for (var v = Math.ceil(min / step) * step; v <= max + 1e-9; v += step) ticks.push(v);
+    return ticks;
+  }
+
+  function logTicks(fMin, fMax) {
+    var ticks = [];
+    var majors = [1, 2, 5];
+    for (var dec = Math.pow(10, Math.floor(Math.log10(fMin))); dec <= fMax; dec *= 10) {
+      majors.forEach(function (m) {
+        var v = m * dec;
+        if (v >= fMin && v <= fMax) ticks.push(v);
+      });
+    }
+    return ticks;
+  }
+
+  function renderCharts() {
+    var wrap = $('#charts');
+    CHARTS.forEach(function (c) {
+      var box = $('#chartbox_' + c.id);
+      box.style.display = chartVisible(c) ? '' : 'none';
+      if (chartVisible(c)) drawChart(c);
+    });
+  }
+
+  function drawChart(c) {
+    var canvas = $('#chart_' + c.id);
+    var rect = canvas.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    if (rect.width === 0) return;
+    if (canvas.width !== Math.round(rect.width * dpr)) {
+      canvas.width = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+    }
+    var ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var w = rect.width, h = rect.height;
+    var padL = 52, padR = 14, padT = 8, padB = 22;
+    c.geom = { w: w, h: h, padL: padL, padR: padR, padT: padT, padB: padB };
+    ctx.clearRect(0, 0, w, h);
+
+    var serA = state.visible.A ? c.get(state.slots.A.series) : null;
+    var serB = state.visible.B ? c.get(state.slots.B.series) : null;
+    var yMin = c.yMin != null ? c.yMin : Infinity;
+    var yMax = c.yMax != null ? c.yMax : -Infinity;
+    var autoMin = c.yMin == null, autoMax = c.yMax == null;
+    [serA, serB].forEach(function (ser) {
+      if (!ser) return;
+      for (var i = 0; i < ser.f.length; i++) {
+        if (ser.f[i] < state.fMin || ser.f[i] > state.fMax) continue;
+        var v = ser.y[i];
+        if (!isFinite(v)) continue;
+        if (autoMin && v < yMin) yMin = v;
+        if (autoMax && v > yMax) yMax = v;
+      }
+    });
+    if (!isFinite(yMin) || !isFinite(yMax)) { yMin = 0; yMax = 1; }
+    if (yMax - yMin < 1e-6) { yMax += 1; yMin -= 1; }
+    if (autoMin || autoMax) {
+      var pad = (yMax - yMin) * 0.08;
+      if (autoMin) yMin -= pad;
+      if (autoMax) yMax += pad;
+    }
+    c.refLines.concat(c.bwLine != null ? [c.bwLine] : []).forEach(function (rl) {
+      if (autoMin && rl < yMin) yMin = rl - (yMax - yMin) * 0.05;
+      if (autoMax && rl > yMax) yMax = rl + (yMax - yMin) * 0.05;
+    });
+    c.yMinCur = yMin; c.yMaxCur = yMax;
+
+    function yToPix(v) { return padT + (1 - (v - yMin) / (yMax - yMin)) * (h - padT - padB); }
+
+    var themeColors = getThemeColors();
+
+    ctx.strokeStyle = themeColors.grid;
+    ctx.fillStyle = themeColors.text;
+    ctx.font = '10px "JetBrains Mono", ui-monospace, monospace';
+    ctx.lineWidth = 1;
+    var xt = state.logX ? logTicks(state.fMin, state.fMax) : niceTicks(state.fMin, state.fMax, 8);
+    xt.forEach(function (f) {
+      var x = Math.round(fToX(c, f)) + 0.5;
+      ctx.beginPath();
+      ctx.moveTo(x, padT);
+      ctx.lineTo(x, h - padB);
+      ctx.stroke();
+      ctx.textAlign = 'center';
+      ctx.fillText(f >= 1000 ? f / 1000 + 'k' : String(Math.round(f * 10) / 10), x, h - 8);
+    });
+    niceTicks(yMin, yMax, 5).forEach(function (v) {
+      var y = Math.round(yToPix(v)) + 0.5;
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(w - padR, y);
+      ctx.stroke();
+      ctx.textAlign = 'right';
+      ctx.fillText(String(Math.round(v * 100) / 100), padL - 6, y + 3);
+    });
+    ctx.strokeStyle = themeColors.refLine;
+    ctx.setLineDash([4, 4]);
+    c.refLines.forEach(function (rl) {
+      if (rl < yMin || rl > yMax) return;
+      var y = Math.round(yToPix(rl)) + 0.5;
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(w - padR, y);
+      ctx.stroke();
+    });
+    ctx.setLineDash([]);
+
+    if (c.trustLine != null && c.trustLine >= yMin && c.trustLine <= yMax) {
+      var yT = Math.round(yToPix(c.trustLine)) + 0.5;
+      ctx.strokeStyle = themeColors.trustLine;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.moveTo(padL, yT);
+      ctx.lineTo(w - padR, yT);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = themeColors.trustLine;
+      ctx.textAlign = 'left';
+      ctx.font = '9px "JetBrains Mono", ui-monospace, monospace';
+      ctx.fillText(c.trustLine.toFixed(1) + ' trust limit', padL + 4, yT - 4);
+    }
+
+    if (c.bwLine != null && c.bwLine >= yMin && c.bwLine <= yMax) {
+      var yR = Math.round(yToPix(c.bwLine)) + 0.5;
+      ctx.strokeStyle = themeColors.trustLine;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.moveTo(padL, yR);
+      ctx.lineTo(w - padR, yR);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = themeColors.trustLine;
+      ctx.textAlign = 'left';
+      ctx.font = '9px "JetBrains Mono", ui-monospace, monospace';
+      ctx.fillText(state.magPct ? '70.7%' : '-3 dB', padL + 4, yR - 4);
+      var lm = state.lastMetrics || {};
+      ['A', 'B'].forEach(function (bwId) {
+        if (!state.visible[bwId]) return;
+        var mm = lm[bwId];
+        if (!mm || mm.bw == null || mm.bw < state.fMin || mm.bw > state.fMax) return;
+        var xb = Math.round(fToX(c, mm.bw)) + 0.5;
+        ctx.strokeStyle = COLORS[bwId].line;
+        ctx.setLineDash([2, 3]);
+        ctx.beginPath();
+        ctx.moveTo(xb, yR);
+        ctx.lineTo(xb, h - padB);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = COLORS[bwId].line;
+        ctx.textAlign = 'center';
+        ctx.fillText(mm.bw.toFixed(1), xb, h - padB - 4);
+      });
+    }
+
+    var COH_TRUST = 0.6;
+    var cohAware = c.id === 'mag' || c.id === 'phase' || c.id === 'err';
+    [['A', serA], ['B', serB]].forEach(function (pair) {
+      var ser = pair[1];
+      if (!ser) return;
+      var slotSeries = state.slots[pair[0]].series;
+      var cohSer = cohAware && slotSeries ? slotSeries.coh : null;
+      var px = [], py = [], pv = [], pt = [];
+      for (var i = 0; i < ser.f.length; i++) {
+        var valid = ser.f[i] >= state.fMin && ser.f[i] <= state.fMax && isFinite(ser.y[i]);
+        px.push(valid ? fToX(c, ser.f[i]) : 0);
+        py.push(valid ? yToPix(Math.min(yMax, Math.max(yMin, ser.y[i]))) : 0);
+        pv.push(valid);
+        if (cohSer) {
+          var cv = interpAt(cohSer, ser.f[i]);
+          pt.push(cv == null || cv >= COH_TRUST);
+        } else pt.push(true);
+      }
+      ctx.strokeStyle = COLORS[pair[0]].line;
+      ctx.lineWidth = 1.6;
+      [true, false].forEach(function (solidPass) {
+        ctx.setLineDash(solidPass ? [] : [3, 4]);
+        ctx.globalAlpha = solidPass ? 1 : 0.6;
+        ctx.beginPath();
+        var started = false;
+        for (var j = 1; j < px.length; j++) {
+          if (!pv[j - 1] || !pv[j]) { started = false; continue; }
+          var solidSeg = pt[j - 1] && pt[j];
+          if (solidSeg === solidPass) {
+            if (!started) ctx.moveTo(px[j - 1], py[j - 1]);
+            ctx.lineTo(px[j], py[j]);
+            started = true;
+          } else started = false;
+        }
+        ctx.stroke();
+      });
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+    });
+
+    ctx.fillStyle = themeColors.text;
+    ctx.textAlign = 'left';
+    ctx.font = '10px "JetBrains Mono", ui-monospace, monospace';
+    ctx.save();
+    ctx.translate(12, padT + (h - padT - padB) / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.fillText(c.unit || '', 0, 0);
+    ctx.restore();
+
+    drawOverlay(c, serA, serB);
+  }
+
+  function drawOverlay(c, serA, serB) {
+    var canvas = $('#chart_' + c.id);
+    var ctx = canvas.getContext('2d');
+    var g = c.geom;
+    var themeColors = getThemeColors();
+    function yToPix(v) { return g.padT + (1 - (v - c.yMinCur) / (c.yMaxCur - c.yMinCur)) * (g.h - g.padT - g.padB); }
+
+    [state.m1, state.m2].forEach(function (mf, idx) {
+      if (mf == null) return;
+      var x = Math.round(fToX(c, mf)) + 0.5;
+      ctx.strokeStyle = themeColors.markerLine;
+      ctx.setLineDash([2, 3]);
+      ctx.beginPath();
+      ctx.moveTo(x, g.padT);
+      ctx.lineTo(x, g.h - g.padB);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = themeColors.markerLine;
+      ctx.font = '9px "JetBrains Mono", ui-monospace, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('M' + (idx + 1), x, g.padT + 8);
+    });
+
+    if (state.hoverF != null && state.hoverF >= state.fMin && state.hoverF <= state.fMax) {
+      var x = Math.round(fToX(c, state.hoverF)) + 0.5;
+      ctx.strokeStyle = themeColors.crosshair;
+      ctx.beginPath();
+      ctx.moveTo(x, g.padT);
+      ctx.lineTo(x, g.h - g.padB);
+      ctx.stroke();
+      var vA = interpAt(serA, state.hoverF);
+      var vB = interpAt(serB, state.hoverF);
+      [['A', vA], ['B', vB]].forEach(function (p) {
+        if (p[1] == null) return;
+        ctx.fillStyle = COLORS[p[0]].line;
+        ctx.beginPath();
+        ctx.arc(x, yToPix(Math.min(c.yMaxCur, Math.max(c.yMinCur, p[1]))), 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      var lines = [state.hoverF.toFixed(1) + ' Hz'];
+      if (vA != null) lines.push('A ' + vA.toFixed(c.dp) + ' ' + c.unit);
+      if (vB != null) lines.push('B ' + vB.toFixed(c.dp) + ' ' + c.unit);
+      if (vA != null && vB != null) lines.push('\u0394 ' + (vB - vA >= 0 ? '+' : '') + (vB - vA).toFixed(c.dp) + ' ' + c.unit);
+      drawReadout(ctx, g, lines, [themeColors.readoutText, COLORS.A.line, COLORS.B.line, themeColors.markerLine]);
+    } else if (state.m1 != null && state.m2 != null) {
+      var f1 = Math.min(state.m1, state.m2), f2 = Math.max(state.m1, state.m2);
+      var a1 = interpAt(serA, f1), a2 = interpAt(serA, f2);
+      var b1 = interpAt(serB, f1), b2 = interpAt(serB, f2);
+      var lines2 = ['\u0394f ' + (f2 - f1).toFixed(1) + ' Hz (' + (Math.log2(f2 / f1)).toFixed(2) + ' oct)'];
+      if (a1 != null && a2 != null) lines2.push('A ' + (a2 - a1 >= 0 ? '+' : '') + (a2 - a1).toFixed(c.dp) + ' ' + c.unit);
+      if (b1 != null && b2 != null) lines2.push('B ' + (b2 - b1 >= 0 ? '+' : '') + (b2 - b1).toFixed(c.dp) + ' ' + c.unit);
+      drawReadout(ctx, g, lines2, [themeColors.markerLine, COLORS.A.line, COLORS.B.line]);
+    }
+  }
+
+  function drawReadout(ctx, g, lines, colors) {
+    ctx.font = '11px "JetBrains Mono", ui-monospace, monospace';
+    var wMax = 0;
+    lines.forEach(function (l) { wMax = Math.max(wMax, ctx.measureText(l).width); });
+    var bw = wMax + 16, bh = lines.length * 14 + 8;
+    var bx = g.w - g.padR - bw - 4, by = g.padT + 4;
+    var themeColors = getThemeColors();
+    ctx.fillStyle = themeColors.readoutBg;
+    ctx.fillRect(bx, by, bw, bh);
+    ctx.strokeStyle = themeColors.readoutBorder;
+    ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
+    ctx.textAlign = 'left';
+    lines.forEach(function (l, i) {
+      ctx.fillStyle = colors[i] || themeColors.readoutText;
+      ctx.fillText(l, bx + 8, by + 15 + i * 14);
+    });
+  }
+
+  function bindCharts() {
+    CHARTS.forEach(function (c) {
+      var canvas = $('#chart_' + c.id);
+      canvas.addEventListener('mousemove', function (e) {
+        var rect = canvas.getBoundingClientRect();
+        if (!c.geom) return;
+        state.hoverF = xToF(c, e.clientX - rect.left);
+        renderCharts();
+      });
+      canvas.addEventListener('mouseleave', function () {
+        state.hoverF = null;
+        renderCharts();
+      });
+      canvas.addEventListener('click', function (e) {
+        var rect = canvas.getBoundingClientRect();
+        if (!c.geom) return;
+        var f = xToF(c, e.clientX - rect.left);
+        if (state.m1 == null) state.m1 = f;
+        else if (state.m2 == null) state.m2 = f;
+        else { state.m1 = f; state.m2 = null; }
+        renderCharts();
+        renderMarkInfo();
+      });
+    });
+  }
+
+  function setStatus(msg) {
+    var el = $('#status');
+    if (el) el.textContent = msg;
+  }
+
+  function bindTabs() {
+    $$('.tool-tab').forEach(function (t) {
+      t.addEventListener('click', function () {
+        $$('.tool-tab').forEach(function (x) { x.classList.remove('active'); });
+        t.classList.add('active');
+        $$('.tabpage').forEach(function (p) { p.classList.remove('active'); });
+        $('#page-' + t.dataset.page).classList.add('active');
+        if (t.dataset.page === 'results') renderCharts();
+        if (t.dataset.page === 'setup') { drawPreview('A'); drawPreview('B'); }
+      });
+    });
+  }
+
+  function bindControls() {
+    $('#axis').addEventListener('change', function (e) {
+      state.axis = +e.target.value;
+      ['A', 'B'].forEach(function (id) {
+        if (selLog(id)) autoSegment(id);
+        renderSlot(id);
+      });
+      scheduleAnalyze();
+    });
+    $('#method').addEventListener('change', function (e) {
+      state.method = e.target.value;
+      scheduleAnalyze();
+    });
+    $('#winsec').addEventListener('change', function (e) {
+      state.winSec = +e.target.value;
+      scheduleAnalyze();
+    });
+    var smooth = $('#smooth');
+    smooth.addEventListener('input', function () {
+      state.smooth = +smooth.value;
+      $('#smoothv').textContent = state.smooth === 1 ? 'off' : state.smooth + ' pt';
+      scheduleAnalyze();
+    });
+    var satHi = $('#sathi');
+    satHi.addEventListener('input', function () {
+      state.satHi = +satHi.value;
+      $('#sathiv').textContent = state.satHi.toFixed(1) + '%';
+      scheduleAnalyze();
+    });
+    var satLo = $('#satlo');
+    satLo.addEventListener('input', function () {
+      state.satLo = +satLo.value;
+      $('#satlov').textContent = state.satLo.toFixed(1) + '%';
+      scheduleAnalyze();
+    });
+    $('#fmin').addEventListener('change', function (e) {
+      var v = +e.target.value;
+      if (isFinite(v) && v > 0.1 && v < state.fMax) state.fMin = v;
+      e.target.value = state.fMin;
+      scheduleAnalyze();
+    });
+    $('#fmax').addEventListener('change', function (e) {
+      var v = +e.target.value;
+      if (isFinite(v) && v > state.fMin) {
+        state.fMax = v;
+        state.fMaxManual = true;
+      }
+      e.target.value = state.fMax;
+      scheduleAnalyze();
+    });
+    $('#errrel').addEventListener('change', function (e) {
+      state.errRel = e.target.checked;
+      scheduleAnalyze();
+    });
+    $('#magpct').addEventListener('change', function (e) {
+      state.magPct = e.target.checked;
+      scheduleAnalyze();
+    });
+    $('#phasems').addEventListener('change', function (e) {
+      state.phaseMs = e.target.checked;
+      scheduleAnalyze();
+    });
+    $('#metrics').addEventListener('change', function (e) {
+      var t = e.target;
+      if (!t || !t.classList || !t.classList.contains('lgvis')) return;
+      state.visible[t.dataset.slot] = t.checked;
+      renderCharts();
+      renderMarkInfo();
+    });
+    $('#logx').addEventListener('change', function (e) {
+      state.logX = e.target.checked;
+      renderCharts();
+    });
+    $$('.ctab').forEach(function (t) {
+      t.addEventListener('click', function () {
+        state.activeChart = t.dataset.chart;
+        $$('.ctab').forEach(function (x) { x.classList.toggle('active', x === t); });
+        renderCharts();
+      });
+    });
+    var markHead = $('#markhead');
+    if (markHead) markHead.addEventListener('click', function (e) {
+      if (e && e.target && (e.target.id === 'clearmarks' || (e.target.closest && e.target.closest('#clearmarks')))) return;
+      state.markOpen = !state.markOpen;
+      $('#marktable').style.display = state.markOpen ? '' : 'none';
+      var arrow = $('#markarrow');
+      if (arrow) arrow.textContent = state.markOpen ? '\u25be' : '\u25b8';
+    });
+    $('#clearmarks').addEventListener('click', function () {
+      state.m1 = null; state.m2 = null;
+      renderCharts();
+      renderMarkInfo();
+    });
+  }
+
+  window.addEventListener('resize', function () {
+    drawPreview('A');
+    drawPreview('B');
+    renderCharts();
+  });
+
+  // Listen for theme changes from parent wrapper
+  window.addEventListener('message', function(event) {
+      if (event.data && event.data.type === 'setTheme') {
+          if (event.data.theme === 'light') {
+              document.body.classList.add('light-theme');
+          } else {
+              document.body.classList.remove('light-theme');
+          }
+          updateColors();
+          drawPreview('A');
+          drawPreview('B');
+          renderCharts();
+      }
+  });
+
+  // init theme
+  (function() {
+      var t = localStorage.getItem('fpv-tools-theme');
+      if (!t) {
+          t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      if (t === 'light') {
+          document.body.classList.add('light-theme');
+      }
+      updateColors();
+  })();
+
+  // init UI hooks
+  bindTabs();
+  bindControls();
+  bindSlot('A');
+  bindSlot('B');
+  bindCharts();
+  renderSlot('A');
+  renderSlot('B');
+  renderMetrics();
+  setStatus('WAITING FOR LOGS');
+
+  // Iframe & parent bridge communication
+  if (window.parent && window.parent !== window) {
+      document.body.classList.add('in-iframe');
+      window.parent.postMessage({ type: 'pageChange', key: 'chirp' }, '*');
+      window.parent.postMessage({
+          type: 'helpData',
+          key: 'chirp',
+          html: document.getElementById('help-content-source').innerHTML
+      }, '*');
+  }
+})();
+
+</script>
+<script src="../partials/partial_tools.js"></script>
+</body>
+</html>
