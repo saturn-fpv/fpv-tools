@@ -43,6 +43,11 @@ The Master Source Files under `/tools/`, `/js/`, and `/css/` are shared directly
   * *Theme Persistence & Local File Restrictions:* Active theme preferences are saved in `localStorage` under the key `'fpv-tools-theme'`. Note that browsers isolate `localStorage` key spaces per file when pages are opened locally via the `file://` protocol. Persistent synchronization across all tools works natively inside the App and on the live Website (under HTTP/HTTPS), but will not sync across pages when opened directly via double-clicking files.
 * **App as the Source of Truth**: All edits, features, and fixes to tool logic, styles, or scripts **MUST** be performed in this repository first, verified locally via Android build compilation, and then synchronized to the website repository. Do not edit tool files inside the website repository directly.
 * **Relative Path Management**: All assets (scripts, stylesheets, local fonts) must be linked using relative paths (e.g. `../js/chart.umd.min.js`) rather than absolute paths (e.g. `/js/...`). Absolute paths will fail when loaded inside Android's local asset scheme (`file:///android_asset/tools/...`).
+* **Favicon Integration**: To ensure browser tabs display the favicon correctly on the website, all tool pages in this repository must contain the following link tag in their `<head>`:
+  ```html
+  <link rel="icon" type="image/png" href="../image/logo/favicon-32.png">
+  ```
+  While the Android app ignores this tag, it is required for the synced website pages. The physical `favicon-32.png` file lives exclusively in the website repository.
 * **Iframe & Standalone Chrome Detection**: The website standalone version injects its brand header and footer into the tools using `partials/partial_tools.js`. This script checks if the tool is loaded inside the app's iframe container:
   ```javascript
   if (window.parent && window.parent !== window) return;
