@@ -19,8 +19,8 @@ android {
         applicationId = "com.saturnfpv.fpvtools"
         minSdk = 24
         targetSdk = 36
-        versionCode = 6
-        versionName = "1.1.3"
+        versionCode = 7
+        versionName = "1.2.0"
         manifestPlaceholders["appName"] = "FPV Tools"
     }
 
