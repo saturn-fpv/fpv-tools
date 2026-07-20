@@ -149,7 +149,9 @@
             background: rgba(255,255,255,0.02);
         }
         .results-tab.active {
+            color: #3b82f6;
             background: #1f2937;
+            border-bottom: 2px solid #3b82f6;
         }
         .results-tab.active.ctrl0-active {
             color: #3b82f6;
@@ -291,7 +293,16 @@
         }
         body.light-theme .results-tab.active {
             background-color: #ffffff !important;
-            color: #1f2937 !important;
+            color: #2563eb !important;
+            border-bottom-color: #2563eb !important;
+        }
+        body.light-theme .results-tab.active.ctrl0-active {
+            color: #2563eb !important;
+            border-bottom-color: #2563eb !important;
+        }
+        body.light-theme .results-tab.active.ctrl1-active {
+            color: #059669 !important;
+            border-bottom-color: #059669 !important;
         }
         body.light-theme .results-tab:hover {
             background-color: #e5e7eb !important;
@@ -300,6 +311,14 @@
         body.light-theme .vbadge-tab {
             background-color: #e5e7eb !important;
             color: #4b5563 !important;
+        }
+        body.light-theme .vbadge-blue {
+            color: #2563eb !important;
+            background-color: rgba(37, 99, 235, 0.1) !important;
+        }
+        body.light-theme .vbadge-green {
+            color: #059669 !important;
+            background-color: rgba(5, 150, 105, 0.1) !important;
         }
         body.light-theme .cli-box {
             background-color: #f3f4f6 !important;
@@ -317,7 +336,7 @@
         }
     </style>
     <link rel="stylesheet" href="../css/fonts.css">
-    <link rel="icon" type="image/png" href="../logo/saturn_fpv_logo_white_small.jpg">
+    <link rel="icon" type="image/png" href="../image/logo/favicon-32.png">
 </head>
 <body>
     <script>
