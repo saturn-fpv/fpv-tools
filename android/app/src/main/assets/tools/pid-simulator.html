@@ -234,6 +234,7 @@ function PIDDemo(){
   const historyRef=useRef([]),[history,setHistory]=useState([]);
   const animRef=useRef(null),followerRef=useRef(0),rollAngleRef=useRef(0),[rollAngle,setRollAngle]=useState(0);
   const trackRef=useRef(null),draggingHandle=useRef(false),targetRawRef=useRef(0);
+  const appRef=useRef(null),[dims,setDims]=useState({w:900,h:700});
   useEffect(()=>{const update=()=>{const w=appRef.current?appRef.current.clientWidth:window.innerWidth;const h=window.innerHeight;if(w>0&&h>0)setDims({w,h});};update();window.addEventListener('resize',update);return()=>window.removeEventListener('resize',update);},[]);
 
   const isMobile=dims.w<640;
