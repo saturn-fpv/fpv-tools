@@ -1,0 +1,7 @@
+Version 1.2.1 Updates:
+- Overhauled RF Calculators link budget formulas, 10W power limits, and presets.
+- Added official ExpressLRS sensitivity and antenna gain reference guides.
+- Unified and redesigned interactive Help documentation overlays across all tools.
+- Redesigned TPA Comparison value controls to match Rate Converter.
+- Fixed Betaflight current sensor calibration CLI command (set ibata_scale).
+- Fixed PID Simulator layout scaling and Chirp response setup features.

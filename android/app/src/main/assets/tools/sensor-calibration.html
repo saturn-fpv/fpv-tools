@@ -151,14 +151,16 @@
         /* ── CLI output ── */
         .cli-box {
             background-color: #0f172a; border: 1px solid #1e293b; border-radius: 0.375rem;
-            padding: 0.75rem 1rem; margin-top: 0.75rem; font-family: 'Courier New', monospace;
-            font-size: 0.8125rem; color: #10b981; cursor: pointer;
-            display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;
+            padding: 0.6rem 0.75rem; margin-top: 0.75rem; font-family: 'Courier New', monospace;
+            font-size: 0.75rem; color: #10b981; position: relative; cursor: pointer;
+            line-height: 1.4; text-align: left;
         }
+        .cli-box span:first-child { white-space: pre-wrap; }
         .cli-box:hover { border-color: #334155; }
         .cli-box .copy-hint {
-            font-size: 0.6875rem; color: #4b5563; font-family: -apple-system, sans-serif;
-            white-space: nowrap; flex-shrink: 0;
+            position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);
+            font-size: 0.625rem; color: #4b5563; font-family: -apple-system, sans-serif;
+            white-space: nowrap;
         }
         .cli-box.copied .copy-hint { color: #10b981; }
 
@@ -412,10 +414,7 @@
                     <div id="accuracy-badge"></div>
                 </div>
 
-                <div class="cli-box" id="cli-box" style="display:none;" onclick="copyCLI(this)">
-                    <span id="cli-text"></span>
-                    <span class="copy-hint" id="copy-hint">Click to copy</span>
-                </div>
+                <div class="cli-box" id="cli-box" style="display:none;" onclick="copyCLI(this)"><span id="cli-text"></span><span class="copy-hint" id="copy-hint">Click to copy</span></div>
             </div>
 
             <!-- Error % Visualizer -->
@@ -480,10 +479,7 @@
                     <div class="result-sub" id="volt-result-info"></div>
                 </div>
 
-                <div class="cli-box" id="volt-cli-box" style="display:none;" onclick="copyCLI(this)">
-                    <span id="volt-cli-text"></span>
-                    <span class="copy-hint">Click to copy</span>
-                </div>
+                <div class="cli-box" id="volt-cli-box" style="display:none;" onclick="copyCLI(this)"><span id="volt-cli-text"></span><span class="copy-hint">Click to copy</span></div>
             </div>
 
             <div class="info">
@@ -553,7 +549,7 @@ function calculate() {
 
     // CLI command
     document.getElementById('cli-box').style.display = 'block';
-    document.getElementById('cli-text').textContent = 'set ibata_scale = ' + newScale;
+    document.getElementById('cli-text').textContent = 'set ibata_scale = ' + newScale + '\nsave';
 
     // Error bar
     document.getElementById('error-panel').style.display = 'block';
@@ -588,7 +584,7 @@ function calcVoltage() {
         'Error was ' + errorPct.toFixed(2) + '% (Scale ' + oldVScale + ' → ' + newVScale + ')';
 
     document.getElementById('volt-cli-box').style.display = 'block';
-    document.getElementById('volt-cli-text').textContent = 'set vbat_scale = ' + newVScale;
+    document.getElementById('volt-cli-text').textContent = 'set vbat_scale = ' + newVScale + '\nsave';
 }
 
 // ================================================================
@@ -653,21 +649,43 @@ window.addEventListener('message', function(event) {
 })();
 </script>
 <div id="help-content-source" style="display:none;">
-    <p><strong>Sensor Calibration Help</strong></p><br>
-    <p>This utility helps you calibrate your flight controller's internal current sensor and voltage dividers to guarantee accurate battery status telemetry and reliable mAh consumption readings.</p><br>
-    <p><strong>Current Sensor Steps:</strong></p>
-    <ol style="padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-        <li>Fly a pack and record the **mAh consumed** reported by your OSD/Configurator.</li>
-        <li>Put the battery on a charger and record the **mAh replaced** (charged).</li>
-        <li>Record your current **Betaflight Current Scale** (default is usually 400).</li>
-        <li>Click Calculate and paste the resulting `set ibata_scale` CLI command into the Betaflight console.</li>
-    </ol><br>
-    <p><strong>Voltage Sensor Steps:</strong></p>
-    <ol style="padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-        <li>Measure active battery voltage with a multimeter while connected to the quad.</li>
-        <li>Record the voltage shown by the Configurator and the current **Voltage Scale** (default 110).</li>
-        <li>Click Calculate and apply the `set vbat_scale` CLI command in Betaflight.</li>
-    </ol>
+    <div style="max-width: 800px; margin: 0 auto; padding: 0.5rem 0.25rem;">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--text, #FAFAFA); margin-bottom: 0.5rem;">Sensor Calibration</h1>
+        </div>
+
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>📖</span> Overview
+            </h3>
+            <p style="font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.5;">
+                Calibrate your flight controller's internal current sensor and voltage dividers to guarantee accurate battery status telemetry and reliable mAh consumption readings in your OSD.
+            </p>
+        </div>
+
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--blue, #3B7BF6); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>🛠️</span> How to Use (Current Sensor)
+            </h3>
+            <ol style="padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li>Fly a pack and record the <strong>mAh consumed</strong> reported by your OSD/Configurator.</li>
+                <li>Charge the battery back up and record the actual <strong>mAh replaced</strong> shown on your battery charger.</li>
+                <li>Enter your current <strong>Betaflight Current Scale</strong> (default is usually 400).</li>
+                <li>Click <strong>Calculate</strong> and copy the generated <code>set ibata_scale</code> CLI command into Betaflight Console.</li>
+            </ol>
+        </div>
+
+        <div>
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--blue, #3B7BF6); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>⚡</span> How to Use (Voltage Divider)
+            </h3>
+            <ol style="padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li>Measure active battery voltage with a digital multimeter while plugged into the quad.</li>
+                <li>Record the voltage reported in Betaflight Configurator and your active <strong>Voltage Scale</strong> (default 110).</li>
+                <li>Click <strong>Calculate</strong> and apply the generated <code>set vbat_scale</code> CLI command in Betaflight.</li>
+            </ol>
+        </div>
+    </div>
 </div>
 <script src="../partials/partial_tools.js"></script>
 <script>

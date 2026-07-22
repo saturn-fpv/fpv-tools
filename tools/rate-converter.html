@@ -756,6 +756,7 @@ function getCLIString(c) {
         lines.push("set pitch_rf_acro = " + Math.round(c.v.p3));
         lines.push("set yaw_rf_acro = " + Math.round(c.v.p3));
     }
+    lines.push("save");
     return lines.join("\n");
 }
 
@@ -1063,14 +1064,42 @@ window.addEventListener('message', function(event) {
         })();
 </script>
 <div id="help-content-source" style="display:none;">
-    <p><strong>Rate Converter Help</strong></p><br>
-    <p>Compare and convert rate curves across Actual, Betaflight, Quick, KISS, and RaceFlight rate models. This allows you to recreate the exact stick feel when moving between different flight controllers or firmware versions.</p><br>
-    <p><strong>How to use:</strong></p>
-    <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-        <li>Set your rates in the target curve using the sliders or numerical inputs.</li>
-        <li>To convert one curve model to another, choose your preferred target model in the "To:" select box at the bottom of the panel, and click <strong>Convert</strong>.</li>
-        <li>A hybrid coarse/fine grid search algorithm will run in the background to automatically find the mathematically closest rates under that model, matching the source curve's center sensitivity and maximum rates.</li>
-    </ul>
+    <div style="max-width: 800px; margin: 0 auto; padding: 0.5rem 0.25rem;">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--text, #FAFAFA); margin-bottom: 0.5rem;">Rate Converter</h1>
+        </div>
+
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>📖</span> Overview
+            </h3>
+            <p style="font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.5;">
+                Recreate the exact stick feel when moving between different flight controllers or firmware versions. This tool models rate curves mathematically to convert stick sensitivity and maximum deg/s rotation rates across Actual, Betaflight, Quick, KISS, and RaceFlight algorithms.
+            </p>
+        </div>
+
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--blue, #3B7BF6); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>🛠️</span> How to Use
+            </h3>
+            <ol style="padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li>Set your active rate values using the sliders or numerical inputs for Roll, Pitch, and Yaw.</li>
+                <li>Choose your source rate system (e.g. Betaflight) and your target rate system (e.g. Actual or KISS) from the dropdown selectors.</li>
+                <li>Click <strong>Convert</strong> to run a hybrid grid search algorithm that automatically finds the mathematically closest rates for your target firmware.</li>
+            </ol>
+        </div>
+
+        <div>
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>📊</span> Understanding the Charts & Controls
+            </h3>
+            <ul style="list-style: disc; padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li><strong>Rate Curve View:</strong> Overlays your source curve against the target curve, showing rotation speed (deg/s) from 0% center to 100% full stick deflection.</li>
+                <li><strong>Center Zoom Button:</strong> Zooms into the 0%–25% stick deflection zone for ultra-fine inspection of micro-corrections around center stick.</li>
+                <li><strong>Sensitivity Tab:</strong> Plots rate curve derivative slope (deg/s per mm of stick travel), giving you an exact mathematical visual of how linear or exponential the center stick response feels.</li>
+            </ul>
+        </div>
+    </div>
 </div>
 <script src="../partials/partial_tools.js"></script>
 <script>

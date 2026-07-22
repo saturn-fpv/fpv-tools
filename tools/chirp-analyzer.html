@@ -151,10 +151,13 @@
   .slot.a h2 { color: var(--blue); } .slot.a .dot { background: var(--blue); }
   .slot.b h2 { color: var(--green); } .slot.b .dot { background: var(--green); }
   
-  .drop { border: 2px dashed var(--line); border-radius: 8px; padding: 20px; cursor: pointer; transition: border-color 0.15s, background-color 0.15s; min-height: 80px; }
+  .drop { border: 2px dashed var(--line); border-radius: 8px; padding: 16px 20px; cursor: pointer; transition: border-color 0.15s, background-color 0.15s; min-height: 80px; text-align: center; }
+  .drop:hover { border-color: var(--blue); background: rgba(59,130,246,0.03); }
+  .slot.b .drop:hover { border-color: var(--green); background: rgba(16,185,129,0.03); }
   .drop.dragging { border-color: var(--blue); background: rgba(59,130,246,0.05); }
   .slot.b .drop.dragging { border-color: var(--green); background: rgba(16,185,129,0.05); }
-  .drop .prompt { color: var(--muted); font-size: 13px; text-align: center; padding: 12px 0; }
+  .drop .drop-icon { font-size: 1.6rem; margin-bottom: 0.25rem; opacity: 0.9; }
+  .drop .prompt { color: var(--muted); font-size: 13px; text-align: center; padding: 4px 0; }
   .drop .prompt strong { color: var(--text); }
   
   .fileline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -386,7 +389,7 @@
       <div class="slot a">
         <h2><span class="dot"></span>Log A</h2>
         <div class="drop" id="dropA">
-          <div class="prompt" id="promptA">Drop a <strong>.bbl / .bfl</strong> blackbox file here or click to browse</div>
+          <div class="prompt" id="promptA"><div class="drop-icon">📄</div>Drop a <strong>.bbl</strong> Blackbox file here, or click to browse</div>
           <div id="infoA" style="display:none">
             <div class="fileline">
               <span class="fname" id="fnameA"></span>
@@ -407,7 +410,7 @@
       <div class="slot b">
         <h2><span class="dot"></span>Log B <span style="color:var(--muted);letter-spacing:0.05em">(optional, for comparison)</span></h2>
         <div class="drop" id="dropB">
-          <div class="prompt" id="promptB">Drop a <strong>.bbl / .bfl</strong> blackbox file here or click to browse</div>
+          <div class="prompt" id="promptB"><div class="drop-icon">📄</div>Drop a <strong>.bbl</strong> Blackbox file here, or click to browse</div>
           <div id="infoB" style="display:none">
             <div class="fileline">
               <span class="fname" id="fnameB"></span>
@@ -452,9 +455,6 @@
       <div class="ctl"><label for="fmin">f min</label><input type="number" id="fmin" value="1" step="0.5" min="0.2"></div>
       <div class="ctl"><label for="fmax">f max</label><input type="number" id="fmax" value="300" step="10"></div>
       <div class="ctl"><label for="logx">Log f</label><input type="checkbox" id="logx" checked></div>
-    </div>
-
-    <p class="setuphint">The highlighted band marks the part of the flight that gets analyzed. Drag its edges to trim, drag inside to move, or drag on empty space to select a new region. Auto detect looks for the chirp signature itself - a clean tone whose frequency rises over time - so it can pick the sweep out of a log that also contains normal flying. Switching the axis re-runs it, since each sweep excites one axis at a time.</p>
   </section>
 
   <!-- RESULTS -->
@@ -486,38 +486,70 @@
 
 <!-- DYNAMIC HELP CONTENT STORAGE -->
 <div id="help-content-source" style="display:none;">
-      <h2>What this measures</h2>
-      <p>Fly Betaflight's chirp mode (4.6 and newer) so the flight controller injects a swept-sine setpoint on one axis, then load the blackbox log here. Because the sweep passes through each frequency one at a time, the log directly reveals how the whole system - PID loop, motors, props, battery - responds across the spectrum.</p>
-      <p>The result is the closed-loop frequency response: how much of the commanded rate arrives (magnitude), how late it arrives (latency), how much rate is missing (tracking error), and whether the motors ever hit a hard limit (saturation).</p>
+    <div style="max-width: 800px; margin: 0 auto; padding: 0.5rem 0.25rem;">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--text, #FAFAFA); margin-bottom: 0.5rem;">Chirp Analyzer</h1>
+        </div>
 
-      <h2>Methods</h2>
-      <p><strong>Welch H1</strong> (default) is the classic cross-spectral estimate Pxy/Pxx with 50% overlapping windows. The averaging across many windows is what makes the curves smooth, and the coherence trace belongs to this estimate. It is what most PID analysis tools show.</p>
-      <p><strong>Chirp tracking</strong> slides an FFT window along the sweep and evaluates gyro/setpoint exactly at the instantaneous chirp frequency. Without cross-window averaging it looks noisier, but it follows the sweep on its own schedule, which helps with short segments and unusual chirp settings. Error amplitude and saturation always come from chirp tracking, regardless of this selector.</p>
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>📖</span> Overview
+            </h3>
+            <p style="font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.5;">
+                By analyzing Blackbox logs containing swept-sine chirp setpoint signals, this tool calculates closed-loop frequency response: delivered rate (magnitude), latency (phase lag), tracking error, and motor saturation limits.
+            </p>
+        </div>
 
-      <h2>Settings</h2>
-      <p>All analysis settings live in the Setup tab. <strong>Axis</strong> picks which sweep to analyze - each chirp run excites one axis, and switching re-runs auto detect. <strong>Window</strong> sets the FFT length: longer windows resolve lower frequencies (2 s reaches the sub-Hz head of a sweep) at the cost of time resolution; 0.5 s is a good default. <strong>Smooth</strong> is display smoothing only. <strong>F min / F max</strong> clip the frequency axis; F max auto-fits the detected sweep until a value is typed. <strong>Log f</strong> toggles the logarithmic frequency axis. Settings that affect only one chart sit inside that chart: the unit toggles and the saturation thresholds.</p>
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--blue, #3B7BF6); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>🛠️</span> How to Use
+            </h3>
+            <ol style="padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li>Fly Betaflight chirp mode (<strong>Betaflight 2025.12 or newer</strong>) to record a swept-sine setpoint on one axis at a steady throttle level.</li>
+                <li>Drag and drop your Blackbox <code>.bbl</code> log file into Slot A (or compare two logs using Slot A and Slot B).</li>
+                <li>Select the target axis (Roll, Pitch, or Yaw). Auto-detect automatically isolates the chirp excitation region.</li>
+                <li>Review the -3 dB Bandwidth cutoff and Worst-case Error metrics in the readout panel.</li>
+            </ol>
+        </div>
 
-      <h2>Reading the numbers</h2>
-      <p><span class="a">Log A (blue)</span> and <span class="b">Log B (green)</span> are drawn together on every chart; the checkbox in front of each row in the numbers panel hides that log without unloading it. The panel condenses each log into two comparable figures: the -3 dB bandwidth and the worst-case error amplitude with the frequency where it occurs. The delta row is B minus A.</p>
-      <p>Hover any chart for exact values and the A/B delta at the cursor. Click a chart to set marker M1, click again for M2: the marker readout panel lists both values and their difference for every curve, so nothing has to be memorized while comparing. Curve sections drawn dashed have coherence below 0.6 - measurement noise, not quad behavior.</p>
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>⚙️</span> Analysis Methods & Controls
+            </h3>
+            <ul style="list-style: disc; padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li><strong>Welch H1 (Default):</strong> Classic cross-spectral estimate (Pxy/Pxx) with 50% overlapping windows. Window averaging produces smooth curves and enables the Coherence trust trace.</li>
+                <li><strong>Chirp Tracking:</strong> Slides an FFT window along the sweep to evaluate gyro/setpoint at the instantaneous chirp frequency. Ideal for short or custom chirp runs.</li>
+                <li><strong>Auto-Detection & Trimming:</strong> Auto-detect identifies the chirp frequency sweep signature automatically. Drag the highlighted band on the timeline to trim manually; switching axes re-runs auto-detection for that axis.</li>
+                <li><strong>Log F Toggle:</strong> Switches between logarithmic (2 Hz to 500 Hz) and linear frequency axes.</li>
+                <li><strong>Window (s):</strong> Sets FFT window length (0.5s default; 2.0s reaches sub-Hz frequencies).</li>
+                <li><strong>Show as % / Linear Axis:</strong> Converts magnitude/error dB curves into percentage of commanded stick amplitude.</li>
+            </ul>
+        </div>
 
-      <h2>The charts</h2>
-      <h3>Magnitude / delivered rate</h3>
-      <p>How much of the commanded rate the quad delivers at each frequency. 0 dB (or 100%) means it follows 1:1; where the curve falls, the quad stops keeping up. The red line marks the -3 dB bandwidth threshold (70.7% delivered) and the small dotted verticals show where each log crosses it - the BW value in the numbers panel. dB is logarithmic (every -6 dB is a halving); the checkbox in the chart switches to a linear percent axis.</p>
-      <h3>Latency</h3>
-      <p>Equivalent delay computed from phase lag at each frequency: ms = phase / (360 x f). Lower and flatter is snappier. Filters add lag that grows with frequency, feedforward removes lag; this chart shows which knob moved what. Untick the checkbox to see raw unwrapped phase in degrees.</p>
-      <h3>Coherence</h3>
-      <p>A trust meter, not a result: near 1 the gyro at that frequency is genuinely driven by the setpoint and the other charts are valid; low means noise dominates. Below the red 0.6 line, the curves in the magnitude, latency and error tabs are drawn dashed. It judges the measurement, not the quad.</p>
-      <h3>Tracking error</h3>
-      <p>The rate not delivered at the chirp frequency, |setpoint - gyro|, in deg/s. Betaflight's chirp lag filter (default 3 Hz) shrinks the excitation as frequency rises, so absolute error usually peaks in the mid band - largely driven by phase lag - and falls off at the top even while tracking keeps degrading. The checkbox switches to error as % of the commanded amplitude, which removes the excitation shaping and makes runs with different chirp settings comparable.</p>
-      <h3>Motor saturation</h3>
-      <p>The share of samples per window where any motor is pinned at its upper limit or its floor. Zero means the motors had headroom the whole sweep: the magnitude roll-off is then a bandwidth limit of tune and filtering, not missing thrust. <strong>Sat high</strong> counts a sample when a motor output is at or above that percent of its range; <strong>Sat low</strong> counts motors pinned at the bottom - set it just above the idle percentage to also catch motors that cannot slow down any further.</p>
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--blue, #3B7BF6); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>📊</span> Understanding the Charts
+            </h3>
+            <ul style="list-style: disc; padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li><strong>Magnitude / Delivered Rate:</strong> 0 dB (100%) indicates 1:1 tracking; the red line marks the -3 dB bandwidth limit (70.7% delivered rate).</li>
+                <li><strong>Latency:</strong> Equivalent millisecond delay (ms = phase / [360 × f]). Lower and flatter lines represent snappier response.</li>
+                <li><strong>Coherence:</strong> Measurement trust meter. Values near 1.0 indicate valid setpoint-driven gyro response; values below 0.6 indicate noise dominance (drawn dashed).</li>
+                <li><strong>Tracking Error:</strong> Rate not delivered (|setpoint - gyro|) in deg/s across the frequency sweep.</li>
+                <li><strong>Motor Saturation:</strong> Share of samples where any motor is pinned at max output (<strong>Sat High</strong>, default 98%) or idle floor (<strong>Sat Low</strong>, default 2%).</li>
+            </ul>
+        </div>
 
-      <h2>Workflow tips</h2>
-      <p>Fly one sweep per axis per battery state, keep throttle as steady as possible, and use identical chirp settings for every run to be compared. Compare like with like: same axis, same window, same frequency limits. To probe thrust headroom directly, fly the same sweep at two amplitudes and load them as A and B: where the louder run's magnitude drops below the quieter one, saturation has begun.</p>
-
-      <h2>Assumptions and limits</h2>
-      <p>Files must be Blackbox data version 2 (any remotely recent Betaflight) with setpoint logging enabled, which is the default field set. The decoder is header-driven, so new firmware fields are fine. Multi-flight files are supported - pick the flight from the dropdown. Gyro is scaled to deg/s using the log's own scale header; setpoint is logged in deg/s already. Auto detect looks for the chirp signature itself - a clean tone whose frequency rises over time - so it can pick the sweep out of a log that also contains normal flying; trim manually if it lands wrong. Nothing leaves the browser: files are parsed locally.</p>
+        <div>
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>💡</span> Workflow & Privacy Tips
+            </h3>
+            <ul style="list-style: disc; padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li>Fly one sweep per axis per battery state, keeping throttle steady.</li>
+                <li>Compare Log A vs Log B on the same axis with identical window settings to evaluate filter/PID tuning changes.</li>
+                <li>All processing runs 100% locally in your browser — log files never leave your device.</li>
+            </ul>
+        </div>
+    </div>
 </div>
 
 <script src="../js/blackbox-decoder.js"></script>
