@@ -234,8 +234,7 @@ function PIDDemo(){
   const historyRef=useRef([]),[history,setHistory]=useState([]);
   const animRef=useRef(null),followerRef=useRef(0),rollAngleRef=useRef(0),[rollAngle,setRollAngle]=useState(0);
   const trackRef=useRef(null),draggingHandle=useRef(false),targetRawRef=useRef(0);
-  const appRef=useRef(null),[dims,setDims]=useState({w:900,h:700});
-  useEffect(()=>{if(!appRef.current)return;const obs=new ResizeObserver(entries=>{const{width,height}=entries[0].contentRect;if(width>0&&height>0)setDims({w:width,h:height});});obs.observe(appRef.current);return()=>obs.disconnect();},[]);
+  useEffect(()=>{const update=()=>{const w=appRef.current?appRef.current.clientWidth:window.innerWidth;const h=window.innerHeight;if(w>0&&h>0)setDims({w,h});};update();window.addEventListener('resize',update);return()=>window.removeEventListener('resize',update);},[]);
 
   const isMobile=dims.w<640;
   const contentW=isMobile?dims.w-16:Math.min(dims.w-32,900);
@@ -306,7 +305,7 @@ function PIDDemo(){
       </div></div>);}
 
   return(
-    <div ref={appRef} style={{minHeight:"100%",width:"100%",overflow:"auto",background:T.bg,color:T.text,fontFamily:"'JetBrains Mono','Fira Code',monospace",display:"flex",flexDirection:"column",alignItems:"center",padding:isMobile?"8px":`${Math.round(4*scale)}px 12px`,boxSizing:"border-box",gap:isMobile?6:Math.round(4*scale)}}>
+    <div ref={appRef} style={{height:"100%",width:"100%",overflow:isMobile?"auto":"hidden",background:T.bg,color:T.text,fontFamily:"'JetBrains Mono','Fira Code',monospace",display:"flex",flexDirection:"column",alignItems:"center",padding:isMobile?"8px":`${Math.round(4*scale)}px 12px`,boxSizing:"border-box",gap:isMobile?6:Math.round(4*scale)}}>
 
       {/* Title */}
       <div style={{textAlign:"center",marginBottom:isMobile?2:0,width:contentW}}>
@@ -413,8 +412,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(
 <div id="help-content-source" style="display:none;">
     <div style="max-width: 800px; margin: 0 auto; padding: 0.5rem 0.25rem;">
         <div style="text-align: center; margin-bottom: 1.5rem;">
-            <h1 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem;">PID Simulator</h1>
-            <p style="font-size: 0.85rem; color: var(--text-dim, #71717A);">Simulate quadcopter axis dynamics, PID feedback loops, and step response in real time.</p>
+            <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--text, #FAFAFA); margin-bottom: 0.5rem;">PID Simulator</h1>
         </div>
 
         <div style="margin-bottom: 1.25rem;">

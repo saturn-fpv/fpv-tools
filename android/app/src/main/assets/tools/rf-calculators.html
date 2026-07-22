@@ -1356,8 +1356,7 @@
 <div id="help-content-source" style="display:none;">
     <div style="max-width: 800px; margin: 0 auto; padding: 0.5rem 0.25rem;">
         <div style="text-align: center; margin-bottom: 1.5rem;">
-            <h1 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem;">Radio Frequency Calculators</h1>
-            <p style="font-size: 0.85rem; color: var(--text-dim, #71717A);">Diagnostic RF tools for FPV link budget range, power, antennas, Fresnel zones, cable loss, and VSWR.</p>
+            <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--text, #FAFAFA); margin-bottom: 0.5rem;">Radio Frequency Calculators</h1>
         </div>
 
         <div style="margin-bottom: 1.25rem;">
@@ -1388,11 +1387,11 @@
             <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
                 <span>📶</span> Receiver Sensitivities (Reference Guide)
             </h3>
-            <p style="font-size: 0.8125rem; color: var(--text-dim, #71717A); margin-bottom: 0.5rem;">Typical sensitivity ratings for popular FPV control and video links. Higher negative numbers represent higher sensitivity (longer range):</p>
-            <div style="overflow-x: auto;">
+            <p style="font-size: 0.875rem; color: var(--text-dim, #A1A1AA); margin-bottom: 0.5rem;">Typical sensitivity ratings for popular FPV control and video links. Higher negative numbers represent higher sensitivity (longer range):</p>
+            <div style="overflow-x: auto; margin-bottom: 0.75rem;">
                 <table style="width: 100%; border-collapse: collapse; font-size: 0.8125rem; text-align: left;">
                     <thead>
-                        <tr style="border-bottom: 1px solid var(--border, #27272A); color: var(--blue, #3B7BF6);">
+                        <tr style="border-bottom: 1px solid var(--border, #27272A); color: var(--green, #22C55E);">
                             <th style="padding: 0.4rem;">Protocol / System</th>
                             <th style="padding: 0.4rem;">Sensitivity Range</th>
                             <th style="padding: 0.4rem;">Key Notes</th>
@@ -1459,11 +1458,11 @@
             <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--blue, #3B7BF6); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
                 <span>📡</span> ExpressLRS Packet Rate (Hz) ➔ Sensitivity Reference
             </h3>
-            <p style="font-size: 0.8125rem; color: var(--text-dim, #71717A); margin-bottom: 0.5rem;">Official ExpressLRS sensitivity limits by packet rate (Hz) for 2.4 GHz and 900 MHz bands:</p>
+            <p style="font-size: 0.875rem; color: var(--text-dim, #A1A1AA); margin-bottom: 0.5rem;">Official ExpressLRS sensitivity limits by packet rate (Hz) for 2.4 GHz and 900 MHz bands:</p>
             <div style="overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse; font-size: 0.8125rem; text-align: left;">
                     <thead>
-                        <tr style="border-bottom: 1px solid var(--border, #27272A); color: var(--blue, #3B7BF6);">
+                        <tr style="border-bottom: 1px solid var(--border, #27272A); color: var(--green, #22C55E);">
                             <th style="padding: 0.4rem;">Packet Rate (Hz)</th>
                             <th style="padding: 0.4rem;">2.4 GHz Sensitivity</th>
                             <th style="padding: 0.4rem;">900 MHz Sensitivity</th>
@@ -1511,11 +1510,11 @@
             <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
                 <span>📡</span> Typical Antenna Gains (Reference Guide)
             </h3>
-            <p style="font-size: 0.8125rem; color: var(--text-dim, #71717A); margin-bottom: 0.5rem;">Real-world antenna gain reference values (based on TrueRC, VAS, and FPV store standards):</p>
-            <div style="overflow-x: auto;">
+            <p style="font-size: 0.875rem; color: var(--text-dim, #A1A1AA); margin-bottom: 0.5rem;">Real-world antenna gain reference values (based on TrueRC, VAS, and FPV store standards):</p>
+            <div style="overflow-x: auto; margin-bottom: 0.75rem;">
                 <table style="width: 100%; border-collapse: collapse; font-size: 0.8125rem; text-align: left;">
                     <thead>
-                        <tr style="border-bottom: 1px solid var(--border, #27272A); color: var(--blue, #3B7BF6);">
+                        <tr style="border-bottom: 1px solid var(--border, #27272A); color: var(--green, #22C55E);">
                             <th style="padding: 0.4rem;">Antenna Type</th>
                             <th style="padding: 0.4rem;">Typical Gain</th>
                             <th style="padding: 0.4rem;">Beamwidth & Application</th>
@@ -1565,12 +1564,17 @@
                     </tbody>
                 </table>
             </div>
-            <p style="margin-top: 0.75rem; font-size: 0.8125rem; color: var(--text-dim, #71717A); line-height: 1.4;">
-                💡 <b>Understanding dBi vs dBiC & Polarization Mismatch Losses:</b><br>
-                • <b>dBi vs dBiC:</b> <code>1 dBiC = 1 dBi</code>. Gain rated in <b>dBiC</b> is simply isotropic gain for Circularly Polarized (CP) antennas. Enter dBiC values directly into antenna gain input fields.<br>
-                • <b>Linear ➔ Circular Mismatch:</b> Pairing a Linearly Polarized antenna (e.g. Omni whip on quad) with a Circularly Polarized antenna (e.g. RHCP/LHCP patch on goggles) incurs an inherent <b>3 dB polarization mismatch loss</b> (50% power drop).<br>
-                • <b>Opposite Handedness Mismatch:</b> Pairing opposite circular handedness (e.g. RHCP ➔ LHCP) results in severe signal rejection (<b>&gt;20 dB loss</b>).
-            </p>
+        </div>
+
+        <div>
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--blue, #3B7BF6); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>💡</span> Key Insights: Antenna Polarization & Gains
+            </h3>
+            <ul style="list-style: disc; padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li><strong>dBi vs dBiC:</strong> <code>1 dBiC = 1 dBi</code>. Gain rated in <b>dBiC</b> represents isotropic gain specifically for Circularly Polarized (CP) antennas. Enter dBiC ratings directly into antenna gain fields.</li>
+                <li><strong>Linear ➔ Circular Mismatch:</strong> Pairing a Linearly Polarized antenna (e.g. whip on quad) with a Circularly Polarized antenna (e.g. patch on goggles) incurs an inherent <b>3 dB polarization mismatch loss</b> (50% power drop).</li>
+                <li><strong>Opposite Handedness Mismatch:</strong> Pairing opposite circular polarizations (e.g. RHCP ➔ LHCP) results in severe signal rejection (<b>&gt;20 dB loss</b>).</li>
+            </ul>
         </div>
     </div>
 </div>

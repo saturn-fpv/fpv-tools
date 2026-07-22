@@ -1065,8 +1065,7 @@ window.addEventListener('message', function(event) {
 <div id="help-content-source" style="display:none;">
     <div style="max-width: 800px; margin: 0 auto; padding: 0.5rem 0.25rem;">
         <div style="text-align: center; margin-bottom: 1.5rem;">
-            <h1 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem;">Rate Converter</h1>
-            <p style="font-size: 0.85rem; color: var(--text-dim, #71717A);">Compare and convert rates across Actual, Betaflight, Quick, KISS, and RaceFlight models.</p>
+            <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--text, #FAFAFA); margin-bottom: 0.5rem;">Rate Converter</h1>
         </div>
 
         <div style="margin-bottom: 1.25rem;">
@@ -1074,7 +1073,7 @@ window.addEventListener('message', function(event) {
                 <span>📖</span> Overview
             </h3>
             <p style="font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.5;">
-                Recreate the exact stick feel when moving between different flight controllers or firmware versions. This tool models rate curves mathematically to convert stick sensitivity and maximum deg/s rotation rates across different algorithms.
+                Recreate the exact stick feel when moving between different flight controllers or firmware versions. This tool models rate curves mathematically to convert stick sensitivity and maximum deg/s rotation rates across Actual, Betaflight, Quick, KISS, and RaceFlight algorithms.
             </p>
         </div>
 
@@ -1091,11 +1090,13 @@ window.addEventListener('message', function(event) {
 
         <div>
             <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
-                <span>📊</span> Understanding the Charts
+                <span>📊</span> Understanding the Charts & Controls
             </h3>
-            <p style="font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.5;">
-                The interactive chart overlays your source curve against the target curve. The curve visualizes rotation speed (deg/s) across stick travel (0% center to 100% full deflection), allowing you to verify center stick sensitivity (RC Rate / Expo) alongside maximum spin rate.
-            </p>
+            <ul style="list-style: disc; padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li><strong>Rate Curve View:</strong> Overlays your source curve against the target curve, showing rotation speed (deg/s) from 0% center to 100% full stick deflection.</li>
+                <li><strong>Center Zoom Button:</strong> Zooms into the 0%–25% stick deflection zone for ultra-fine inspection of micro-corrections around center stick.</li>
+                <li><strong>Sensitivity Tab:</strong> Plots rate curve derivative slope (deg/s per mm of stick travel), giving you an exact mathematical visual of how linear or exponential the center stick response feels.</li>
+            </ul>
         </div>
     </div>
 </div>

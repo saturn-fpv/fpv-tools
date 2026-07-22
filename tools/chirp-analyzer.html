@@ -486,11 +486,11 @@
 
 <!-- DYNAMIC HELP CONTENT STORAGE -->
 <!-- DYNAMIC HELP CONTENT STORAGE -->
+<!-- DYNAMIC HELP CONTENT STORAGE -->
 <div id="help-content-source" style="display:none;">
     <div style="max-width: 800px; margin: 0 auto; padding: 0.5rem 0.25rem;">
         <div style="text-align: center; margin-bottom: 1.5rem;">
-            <h1 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem;">Chirp Analyzer</h1>
-            <p style="font-size: 0.85rem; color: var(--text-dim, #71717A);">Analyze closed-loop frequency response, phase lag, bandwidth, and motor saturation from Betaflight chirp logs.</p>
+            <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--text, #FAFAFA); margin-bottom: 0.5rem;">Chirp Analyzer</h1>
         </div>
 
         <div style="margin-bottom: 1.25rem;">
@@ -498,7 +498,7 @@
                 <span>📖</span> Overview
             </h3>
             <p style="font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.5;">
-                Fly Betaflight's chirp mode (4.6 and newer) to inject a swept-sine setpoint on one axis, then load the Blackbox log here. The log reveals closed-loop frequency response: delivered rate (magnitude), latency (phase lag), tracking error, and motor saturation.
+                By analyzing Blackbox logs containing swept-sine chirp setpoint signals, this tool calculates closed-loop frequency response: delivered rate (magnitude), latency (phase lag), tracking error, and motor saturation limits.
             </p>
         </div>
 
@@ -507,28 +507,42 @@
                 <span>🛠️</span> How to Use
             </h3>
             <ol style="padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
-                <li>Drag and drop your Betaflight Blackbox <code>.BBL</code> or <code>.BGF</code> log file into Slot A (or compare two logs using Slot A and Slot B).</li>
-                <li>Select the target axis (Roll, Pitch, or Yaw) to analyze. Auto-detect automatically isolates the chirp excitation region.</li>
-                <li>Review the -3 dB Bandwidth cutoff and Worst-case Error metrics in the numbers panel.</li>
+                <li>Fly Betaflight chirp mode (<strong>Betaflight 2025.12 or newer</strong>) to record a swept-sine setpoint on one axis at a steady throttle level.</li>
+                <li>Drag and drop your Blackbox <code>.BBL</code> or <code>.BGF</code> log file into Slot A (or compare two logs using Slot A and Slot B).</li>
+                <li>Select the target axis (Roll, Pitch, or Yaw). Auto-detect automatically isolates the chirp excitation region.</li>
+                <li>Review the -3 dB Bandwidth cutoff and Worst-case Error metrics in the readout panel.</li>
             </ol>
         </div>
 
         <div style="margin-bottom: 1.25rem;">
             <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>⚙️</span> Analysis Methods & Controls
+            </h3>
+            <ul style="list-style: disc; padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li><strong>Welch H1 (Default):</strong> Classic cross-spectral estimate (Pxy/Pxx) with 50% overlapping windows. Window averaging produces smooth curves and enables the Coherence trust trace.</li>
+                <li><strong>Chirp Tracking:</strong> Slides an FFT window along the sweep to evaluate gyro/setpoint at the instantaneous chirp frequency. Ideal for short or custom chirp runs.</li>
+                <li><strong>Log F Toggle:</strong> Switches between logarithmic (2 Hz to 500 Hz) and linear frequency axes.</li>
+                <li><strong>Window (s):</strong> Sets FFT window length (0.5s default; 2.0s reaches sub-Hz frequencies).</li>
+                <li><strong>Show as % / Linear Axis:</strong> Converts magnitude/error dB curves into percentage of commanded stick amplitude.</li>
+            </ul>
+        </div>
+
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--blue, #3B7BF6); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
                 <span>📊</span> Understanding the Charts
             </h3>
             <ul style="list-style: disc; padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
-                <li><strong>Magnitude / Delivered Rate:</strong> How much commanded rate the quad delivers. 0 dB (100%) indicates 1:1 tracking; the red line marks the -3 dB bandwidth limit.</li>
-                <li><strong>Latency:</strong> Equivalent millisecond delay computed from phase lag at each frequency (ms = phase / [360 × f]). Lower and flatter lines represent snappier response.</li>
-                <li><strong>Coherence:</strong> Signal trust metric. Values near 1.0 indicate valid setpoint-driven gyro response; values below 0.6 indicate noise dominance (drawn dashed).</li>
-                <li><strong>Tracking Error:</strong> Absolute rate deviation (|setpoint - gyro|) in deg/s across the frequency sweep.</li>
-                <li><strong>Motor Saturation:</strong> Percentage of samples where motors reach upper or lower range limits (high saturation indicates missing thrust headroom).</li>
+                <li><strong>Magnitude / Delivered Rate:</strong> 0 dB (100%) indicates 1:1 tracking; the red line marks the -3 dB bandwidth limit (70.7% delivered rate).</li>
+                <li><strong>Latency:</strong> Equivalent millisecond delay (ms = phase / [360 × f]). Lower and flatter lines represent snappier response.</li>
+                <li><strong>Coherence:</strong> Measurement trust meter. Values near 1.0 indicate valid setpoint-driven gyro response; values below 0.6 indicate noise dominance (drawn dashed).</li>
+                <li><strong>Tracking Error:</strong> Rate not delivered (|setpoint - gyro|) in deg/s across the frequency sweep.</li>
+                <li><strong>Motor Saturation:</strong> Share of samples where any motor is pinned at max output (<strong>Sat High</strong>, default 98%) or idle floor (<strong>Sat Low</strong>, default 2%).</li>
             </ul>
         </div>
 
         <div>
-            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--blue, #3B7BF6); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
-                <span>💡</span> Workflow & Tuning Tips
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>💡</span> Workflow & Privacy Tips
             </h3>
             <ul style="list-style: disc; padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
                 <li>Fly one sweep per axis per battery state, keeping throttle steady.</li>

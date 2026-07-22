@@ -1876,8 +1876,7 @@ function updateChartsTheme(theme) {
 <div id="help-content-source" style="display:none;">
     <div style="max-width: 800px; margin: 0 auto; padding: 0.5rem 0.25rem;">
         <div style="text-align: center; margin-bottom: 1.5rem;">
-            <h1 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem;">Telemetry Parser</h1>
-            <p style="font-size: 0.85rem; color: var(--text-dim, #71717A);">Convert EdgeTX CSV telemetry logs into Google Earth 3D KML/KMZ and GPX tracks.</p>
+            <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--text, #FAFAFA); margin-bottom: 0.5rem;">Telemetry Parser</h1>
         </div>
 
         <div style="margin-bottom: 1.25rem;">
@@ -1885,7 +1884,7 @@ function updateChartsTheme(theme) {
                 <span>📖</span> Overview
             </h3>
             <p style="font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.5;">
-                Convert EdgeTX radio <code>.csv</code> telemetry logs (CRSF or ELRS) into Google Earth and GIS compatible 3D KML/KMZ and GPX flight tracking files.
+                Convert EdgeTX radio <code>.csv</code> telemetry logs (CRSF or ELRS) into Google Earth 3D KML/KMZ and GPX flight tracking files. All processing runs 100% locally in your browser — log files are parsed client-side and never uploaded to any external server.
             </p>
         </div>
 
@@ -1895,7 +1894,7 @@ function updateChartsTheme(theme) {
             </h3>
             <ol style="padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
                 <li>Browse or drag-and-drop your EdgeTX <code>.csv</code> log file.</li>
-                <li>Select a flight segment (the parser auto-detects separate flights based on arm events and reconnects).</li>
+                <li>Select a flight segment from the auto-detected list.</li>
                 <li>Configure altitude offset, track width, and line color.</li>
                 <li>Inspect the interactive map preview and speed/altitude profiles, then click <strong>Download KML/KMZ</strong>.</li>
             </ol>
@@ -1903,7 +1902,19 @@ function updateChartsTheme(theme) {
 
         <div style="margin-bottom: 1.25rem;">
             <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
-                <span>⚙️</span> EdgeTX Logging Setup
+                <span>⚙️</span> Parser Options & Export Formats
+            </h3>
+            <ul style="list-style: disc; padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li><strong>Flight Segment Selector:</strong> Auto-detects and isolates separate flights from a single log file based on arm/disarm state and power cycles.</li>
+                <li><strong>Altitude Offset (m):</strong> Adjusts baseline ground elevation zero-level if barometric sensor or GPS altitude reported an offset.</li>
+                <li><strong>Track Line Color & Width:</strong> Customizes the visual 3D path ribbon rendered in Google Earth.</li>
+                <li><strong>KML/KMZ vs GPX Export:</strong> <strong>KML/KMZ</strong> exports 3D flight paths, altitude extrusion ribbons, and waypoints for Google Earth. <strong>GPX</strong> exports standard GPS track logs compatible with Strava, Garmin, and GIS tools.</li>
+            </ul>
+        </div>
+
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--blue, #3B7BF6); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>⚙️</span> EdgeTX Logging Setup Guide
             </h3>
             <ol style="padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
                 <li>On EdgeTX Telemetry screen, click <strong>Discover new sensors</strong> (verify GPS coordinates).</li>
@@ -1913,7 +1924,7 @@ function updateChartsTheme(theme) {
         </div>
 
         <div>
-            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--blue, #3B7BF6); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
                 <span>💡</span> GPS Smoothness & Telemetry Ratios
             </h3>
             <p style="font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.5;">
