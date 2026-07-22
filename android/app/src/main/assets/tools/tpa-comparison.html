@@ -643,7 +643,7 @@
         
         function updateCLIText(rate, bp, textId, label) {
             const rateVal = Math.round(rate * 100);
-            const text = `# ${label} Settings\nset tpa_rate = ${rateVal}\nset tpa_breakpoint = ${bp}`;
+            const text = `# ${label} Settings\nset tpa_rate = ${rateVal}\nset tpa_breakpoint = ${bp}\nsave`;
             document.getElementById(textId).innerText = text;
         }
 

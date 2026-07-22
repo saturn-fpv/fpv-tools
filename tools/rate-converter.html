@@ -756,6 +756,7 @@ function getCLIString(c) {
         lines.push("set pitch_rf_acro = " + Math.round(c.v.p3));
         lines.push("set yaw_rf_acro = " + Math.round(c.v.p3));
     }
+    lines.push("save");
     return lines.join("\n");
 }
 
