@@ -553,7 +553,7 @@ function calculate() {
 
     // CLI command
     document.getElementById('cli-box').style.display = 'block';
-    document.getElementById('cli-text').textContent = 'set current_meter_scale = ' + newScale;
+    document.getElementById('cli-text').textContent = 'set ibata_scale = ' + newScale;
 
     // Error bar
     document.getElementById('error-panel').style.display = 'block';
@@ -660,7 +660,7 @@ window.addEventListener('message', function(event) {
         <li>Fly a pack and record the **mAh consumed** reported by your OSD/Configurator.</li>
         <li>Put the battery on a charger and record the **mAh replaced** (charged).</li>
         <li>Record your current **Betaflight Current Scale** (default is usually 400).</li>
-        <li>Click Calculate and paste the resulting `set current_meter_scale` CLI command into the Betaflight console.</li>
+        <li>Click Calculate and paste the resulting `set ibata_scale` CLI command into the Betaflight console.</li>
     </ol><br>
     <p><strong>Voltage Sensor Steps:</strong></p>
     <ol style="padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
