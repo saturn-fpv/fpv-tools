@@ -153,8 +153,9 @@
             background-color: #0f172a; border: 1px solid #1e293b; border-radius: 0.375rem;
             padding: 0.6rem 0.75rem; margin-top: 0.75rem; font-family: 'Courier New', monospace;
             font-size: 0.75rem; color: #10b981; position: relative; cursor: pointer;
-            line-height: 1.4; text-align: left; white-space: pre-wrap;
+            line-height: 1.4; text-align: left;
         }
+        .cli-box span:first-child { white-space: pre-wrap; }
         .cli-box:hover { border-color: #334155; }
         .cli-box .copy-hint {
             position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);
@@ -413,10 +414,7 @@
                     <div id="accuracy-badge"></div>
                 </div>
 
-                <div class="cli-box" id="cli-box" style="display:none;" onclick="copyCLI(this)">
-                    <span id="cli-text"></span>
-                    <span class="copy-hint" id="copy-hint">Click to copy</span>
-                </div>
+                <div class="cli-box" id="cli-box" style="display:none;" onclick="copyCLI(this)"><span id="cli-text"></span><span class="copy-hint" id="copy-hint">Click to copy</span></div>
             </div>
 
             <!-- Error % Visualizer -->
@@ -481,10 +479,7 @@
                     <div class="result-sub" id="volt-result-info"></div>
                 </div>
 
-                <div class="cli-box" id="volt-cli-box" style="display:none;" onclick="copyCLI(this)">
-                    <span id="volt-cli-text"></span>
-                    <span class="copy-hint">Click to copy</span>
-                </div>
+                <div class="cli-box" id="volt-cli-box" style="display:none;" onclick="copyCLI(this)"><span id="volt-cli-text"></span><span class="copy-hint">Click to copy</span></div>
             </div>
 
             <div class="info">
