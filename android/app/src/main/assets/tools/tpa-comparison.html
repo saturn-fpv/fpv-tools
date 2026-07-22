@@ -754,15 +754,42 @@
             }
         })();
 </script>
-    <div id="help-content-source" style="display:none;">
-    <p><strong>TPA Comparison Help</strong></p><br>
-    <p>TPA (Throttle PID Attenuation) reduces PID gains at high throttle ranges to prevent mid-to-high throttle oscillations (often heard as high-frequency warbling or flutter at full punch-outs).</p><br>
-    <p><strong>Understanding the inputs:</strong></p>
-    <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-        <li><strong>TPA Rate:</strong> The percentage by which the P and D gains are reduced at 100% throttle. E.g., a rate of 0.65 reduces your gains by 65% (PIDs retain 35% strength).</li>
-        <li><strong>Breakpoint:</strong> The throttle value (in microseconds, from 1000 to 2000) where the attenuation starts. Below this breakpoint, PIDs retain 100% strength.</li>
-        <li>Use the dual control panels to overlay two different TPA profiles and compare how rapidly and aggressively they attenuate your gains.</li>
-    </ul>
+<div id="help-content-source" style="display:none;">
+    <div style="max-width: 800px; margin: 0 auto; padding: 0.5rem 0.25rem;">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <h1 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem;">TPA Comparison</h1>
+            <p style="font-size: 0.85rem; color: var(--text-dim, #71717A);">Compare Throttle PID Attenuation curves to eliminate high-throttle oscillations.</p>
+        </div>
+
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>📖</span> Overview
+            </h3>
+            <p style="font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.5;">
+                TPA (Throttle PID Attenuation) reduces PID gains at high throttle to prevent mid-to-high throttle oscillations (heard as high-frequency flutter or warbling during full-throttle punch-outs).
+            </p>
+        </div>
+
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--blue, #3B7BF6); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>🛠️</span> How to Use
+            </h3>
+            <ol style="padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li>Set <strong>TPA Rate</strong>: The percentage by which P and D gains attenuate at 100% throttle (e.g. 0.65 reduces PIDs by 65%, leaving 35% gain at full throttle).</li>
+                <li>Set <strong>Breakpoint</strong>: The throttle value (in µs, e.g. 1350 µs) where attenuation begins. PIDs remain at 100% strength below this point.</li>
+                <li>Use the dual control panels to overlay Profile A and Profile B to compare curve slopes and attenuation aggressive levels.</li>
+            </ol>
+        </div>
+
+        <div>
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>📊</span> Understanding the Charts
+            </h3>
+            <p style="font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.5;">
+                The chart displays PID multiplier strength (1.0 = 100% gain down to 0.35 = 35% gain) plotted against throttle percentage (0% to 100%). The flat line turns downward at the breakpoint, illustrating where and how sharply PID damping takes effect.
+            </p>
+        </div>
+    </div>
 </div>
 <script src="../partials/partial_tools.js"></script>
 <script>

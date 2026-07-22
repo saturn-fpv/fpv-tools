@@ -306,7 +306,7 @@ function PIDDemo(){
       </div></div>);}
 
   return(
-    <div ref={appRef} style={{height:"100%",width:"100%",overflow:isMobile?"auto":"hidden",background:T.bg,color:T.text,fontFamily:"'JetBrains Mono','Fira Code',monospace",display:"flex",flexDirection:"column",alignItems:"center",padding:isMobile?"8px":`${Math.round(4*scale)}px 12px`,boxSizing:"border-box",gap:isMobile?6:Math.round(4*scale)}}>
+    <div ref={appRef} style={{minHeight:"100%",width:"100%",overflow:"auto",background:T.bg,color:T.text,fontFamily:"'JetBrains Mono','Fira Code',monospace",display:"flex",flexDirection:"column",alignItems:"center",padding:isMobile?"8px":`${Math.round(4*scale)}px 12px`,boxSizing:"border-box",gap:isMobile?6:Math.round(4*scale)}}>
 
       {/* Title */}
       <div style={{textAlign:"center",marginBottom:isMobile?2:0,width:contentW}}>
@@ -411,43 +411,62 @@ ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(
 <!-- How It Works moved to Help Overlay -->
 
 <div id="help-content-source" style="display:none;">
-    <p><strong>PID Simulator Help</strong></p><br>
-    <p>Based on Joshua Bardwell's PID Tuning Masterclass, this tool simulates a single drone axis to help you build an intuitive feel for how each gain and physics parameter affects flight dynamics.</p><br>
-    
-    <p><strong>Core Concepts (PID & FF):</strong></p>
-    <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-        <li><strong>P (Proportional):</strong> Reacts to the present. Drives the follower toward the setpoint. Excess P causes ringing, overshoot, and rapid oscillations.</li>
-        <li><strong>I (Integral):</strong> Reacts to the past. Corrects persistent offsets (like unbalanced CG or side winds) by accumulating force over time.</li>
-        <li><strong>D (Derivative):</strong> Reacts to the future. Dampens acceleration and decelerates the follower as it approaches the setpoint. Excess D causes high-frequency noise amplification, heating up motors.</li>
-        <li><strong>FF (Feedforward):</strong> Reacts to stick velocity. Instantly adds force during stick movement to eliminate gyro latency, dropping to zero when stick stops.</li>
-        <li><strong>The Scope (Blackbox Log):</strong> The real-time Scope simulates a flight controller's Blackbox log. It records and plots Setpoint (stick input), Follower (gyro rotation), Error, and individual PID/FF trace lines so you can diagnose controller behaviors exactly like analyzing real flight logs.</li>
-    </ul><br>
+    <div style="max-width: 800px; margin: 0 auto; padding: 0.5rem 0.25rem;">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <h1 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem;">PID Simulator</h1>
+            <p style="font-size: 0.85rem; color: var(--text-dim, #71717A);">Simulate quadcopter axis dynamics, PID feedback loops, and step response in real time.</p>
+        </div>
 
-    <p><strong>Tuning Approach (How to Use):</strong></p>
-    <ol style="padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-        <li><strong>Zero Out Gains:</strong> Turn P, I, D, and FF all the way to 0 to observe the "broken" system (the follower won't move).</li>
-        <li><strong>Find P Limit:</strong> Raise P until the follower matches the setpoint. Note how P-only causes endless overshoot and oscillations (undamped ringing).</li>
-        <li><strong>Add D to Damp:</strong> Raise D to act as a brake. It counteracts P's momentum, damping the overshoot and stabilizing the line.</li>
-        <li><strong>Set I for Bias:</strong> Turn up CG (disturbance) to simulate wind or an off-center battery. Note how the follower drifts. Turn up I to correct this steady-state error.</li>
-        <li><strong>Snappiness with FF:</strong> Notice the delay between moving the target and the follower responding (due to physics/loop delay). Raise FF to inject a kick based on stick speed, making the response snappy and eliminating latency.</li>
-    </ol><br>
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>📖</span> Overview
+            </h3>
+            <p style="font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.5;">
+                Based on Joshua Bardwell's PID Tuning Masterclass, this tool simulates a single drone axis to help you build an intuitive feel for how each gain and physics parameter affects flight dynamics and Blackbox traces.
+            </p>
+        </div>
 
-    <p><strong>Physics Parameters:</strong></p>
-    <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-        <li><strong>Mass:</strong> Weight of the craft. Higher mass slows down response and demands higher P/D gains.</li>
-        <li><strong>Drag:</strong> Air resistance. Higher drag acts as natural damping (like D) but requires more continuous thrust to maintain rates.</li>
-        <li><strong>Delay:</strong> Latency in the loop (control calculations & ESC latency). <em>Critical: Higher delay makes the system highly unstable and prone to oscillation, limiting your maximum gains!</em></li>
-        <li><strong>Noise:</strong> Gyro electrical/mechanical vibration. Amplified by high D-term gains, leading to excess "Motor Heat".</li>
-        <li><strong>CG (Disturbance):</strong> Unbalanced mass/constant force. Requires I-term to prevent steady-state drift.</li>
-    </ul><br>
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--blue, #3B7BF6); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>🛠️</span> How to Use (Tuning Approach)
+            </h3>
+            <ol style="padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li><strong>Zero Out Gains:</strong> Turn P, I, D, and FF to 0 to observe an uncontrolled system.</li>
+                <li><strong>Find P Limit:</strong> Raise P until the follower responds to setpoint moves. Note how P-only causes overshoot and undamped ringing.</li>
+                <li><strong>Add D to Damp:</strong> Raise D to act as a brake, damping overshoot and locking in the line.</li>
+                <li><strong>Set I for Bias:</strong> Add CG (disturbance) to simulate wind or an off-center battery. Raise I to correct steady-state drift.</li>
+                <li><strong>Snappiness with FF:</strong> Raise Feedforward to eliminate latency during fast stick inputs.</li>
+            </ol>
+        </div>
 
-    <p><strong>Interpreting Step Response:</strong></p>
-    <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-        <li><strong>Rise Time:</strong> Snappiness. Time taken to climb from 10% to 90% of setpoint.</li>
-        <li><strong>Overshoot:</strong> Bounce. Percentage by which the follower exceeds the setpoint. Try to keep this minimal (&lt; 5%).</li>
-        <li><strong>Settle Time:</strong> Lock-in. Time required for oscillations to decay within 2% of setpoint.</li>
-        <li><strong>SS Error:</strong> Drift. The steady-state gap left when control inputs stop. Corrected by I.</li>
-    </ul>
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>📊</span> Understanding the Scope (Blackbox Log)
+            </h3>
+            <ul style="list-style: disc; padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li><strong>Setpoint (Red):</strong> Target stick position.</li>
+                <li><strong>Follower (Blue):</strong> Simulated gyro rotation of the quad.</li>
+                <li><strong>Error (Yellow):</strong> Gap between Setpoint and Follower.</li>
+                <li><strong>Step Response Metrics:</strong>
+                    <br>• <strong>Rise Time:</strong> Time taken to climb from 10% to 90% of setpoint.
+                    <br>• <strong>Overshoot:</strong> Bounce percentage past the setpoint.
+                    <br>• <strong>Settle Time:</strong> Time required for oscillations to lock within 2%.
+                </li>
+            </ul>
+        </div>
+
+        <div>
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--blue, #3B7BF6); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>⚙️</span> Physics & Environmental Parameters
+            </h3>
+            <ul style="list-style: disc; padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li><strong>Mass:</strong> Weight of craft. Higher mass slows response and demands higher P/D gains.</li>
+                <li><strong>Drag:</strong> Air resistance acting as natural damping.</li>
+                <li><strong>Delay:</strong> Loop and ESC latency. <em>Higher delay severely destabilizes the loop!</em></li>
+                <li><strong>Noise:</strong> Gyro vibration amplified by high D-term gains, generating motor heat.</li>
+            </ul>
+        </div>
+    </div>
 </div>
 <script src="../partials/partial_tools.js"></script>
 <script>

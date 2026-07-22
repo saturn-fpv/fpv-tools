@@ -1637,14 +1637,43 @@ window.addEventListener('message', function(event) {
 })();
 </script>
 <div id="help-content-source" style="display:none;">
-    <p><strong>Stator Volume Help</strong></p><br>
-    <p>Multirotor motors are designated by standard dimensions (e.g. 2207, 2306) representing their stator diameter and stator height in millimeters. Stator volume serves as a direct proxy for active magnetic material and copper volume, indicating motor torque capacity.</p><br>
-    <p><strong>Key Insights:</strong></p>
-    <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-        <li><strong>The Stator Formula:</strong> Stator volume is calculated as: V = &pi; &times; (D/2)&sup2; &times; H. Because diameter is squared, small diameter increments yield larger volume shifts than height changes. However, height contributes heavily to cooling and stator aspect ratios.</li>
-        <li><strong>Volume & Weight:</strong> Estimated motor weights are derived from statistical averages: W &asymp; 2.0g + 0.0098 &times; V.</li>
-        <li>Use the comparison charts and live cross-sections to scale, compare, and identify optimal KV ranges and propeller configurations for any motor size.</li>
-    </ul>
+    <div style="max-width: 800px; margin: 0 auto; padding: 0.5rem 0.25rem;">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <h1 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem;">Stator Volume Calculator</h1>
+            <p style="font-size: 0.85rem; color: var(--text-dim, #71717A);">Calculate stator volume, magnetic material, and torque potential across motor sizes.</p>
+        </div>
+
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>📖</span> Overview
+            </h3>
+            <p style="font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.5;">
+                Multirotor motors are designated by standard dimensions (e.g. 2207, 2306) representing stator diameter and height in millimeters. Stator volume serves as a direct proxy for active magnetic material and copper volume, indicating motor torque capacity and performance.
+            </p>
+        </div>
+
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--blue, #3B7BF6); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>🛠️</span> How to Use
+            </h3>
+            <ol style="padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li>Select a preset motor size or enter custom Stator Diameter (mm) and Stator Height (mm).</li>
+                <li>Compare Motor A and Motor B to evaluate total volume difference, aspect ratios, and estimated weight.</li>
+                <li>Use the KV & Propeller guide to match optimal motor sizing for your frame and propeller configuration.</li>
+            </ol>
+        </div>
+
+        <div>
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>💡</span> Key Insights
+            </h3>
+            <ul style="list-style: disc; padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li><strong>The Stator Formula:</strong> Volume = π × (Diameter / 2)² × Height. Because diameter is squared, diameter increases yield larger volume gains than height increases.</li>
+                <li><strong>Aspect Ratio:</strong> Wider stators (e.g. 2306) provide faster response/spool-up, while taller stators (e.g. 2207) provide higher top-end thermal mass and efficiency.</li>
+                <li><strong>Weight Estimation:</strong> Motor weights are estimated via statistical averages: Weight ≈ 2.0g + 0.0098 × Volume.</li>
+            </ul>
+        </div>
+    </div>
 </div>
 <script src="../partials/partial_tools.js"></script>
 <script>

@@ -1352,275 +1352,225 @@
 </div>
 
 <!-- DYNAMIC HELP CONTENT STORAGE -->
+<!-- DYNAMIC HELP CONTENT STORAGE -->
 <div id="help-content-source" style="display:none;">
-    <div class="about-container">
-        <div class="about-header">
-            <h1>Radio Frequency Calculators</h1>
-            <p>Diagnostic RF tools for FPV link budget range, power, antennas, Fresnel zones, cable loss, and VSWR.</p>
+    <div style="max-width: 800px; margin: 0 auto; padding: 0.5rem 0.25rem;">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <h1 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem;">Radio Frequency Calculators</h1>
+            <p style="font-size: 0.85rem; color: var(--text-dim, #71717A);">Diagnostic RF tools for FPV link budget range, power, antennas, Fresnel zones, cable loss, and VSWR.</p>
         </div>
 
-        <div class="card-grid">
-            <div class="card">
-                <div class="card-title">
-                    <span>Link Budget & Range</span>
-                </div>
-                <div class="card-content">
-                    Uses the Free Space Path Loss (FSPL) formula to estimate range based on transmitter power, antenna gains, and receiver sensitivity.
-                </div>
-            </div>
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>📖</span> Overview
+            </h3>
+            <p style="font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.5;">
+                A comprehensive suite of RF diagnostic tools designed to analyze link budgets, estimate maximum range, convert dBm/mW units, design dipole antennas, calculate Fresnel clearance, measure coaxial cable attenuation, and evaluate VSWR impedance matching.
+            </p>
+        </div>
 
-            <div class="card" style="grid-column: 1 / -1;">
-                <div class="card-title">
-                    <span>Typical Receiver Sensitivities (Reference Guide)</span>
-                </div>
-                <div class="card-content">
-                    <p style="margin-bottom: 0.5rem; color: var(--dim);">Typical sensitivity ratings for popular FPV control and video links. Higher negative numbers represent higher sensitivity (longer range):</p>
-                    <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 0.8125rem; text-align: left;">
-                            <thead>
-                                <tr style="border-bottom: 1px solid var(--border); color: var(--blue);">
-                                    <th style="padding: 0.4rem;">Protocol / System</th>
-                                    <th style="padding: 0.4rem;">Sensitivity Range</th>
-                                    <th style="padding: 0.4rem;">Key Notes</th>
-                                </tr>
-                            </thead>
-                            <tbody style="color: var(--text);">
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 0.4rem; font-weight: 600;">ExpressLRS (ELRS)</td>
-                                    <td style="padding: 0.4rem;">-105 to -123 dBm</td>
-                                    <td style="padding: 0.4rem;">Rate dependent (see Hz ➔ Sensitivity table below)</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 0.4rem; font-weight: 600;">TBS Crossfire</td>
-                                    <td style="padding: 0.4rem;">-115 dBm</td>
-                                    <td style="padding: 0.4rem;">-115dBm (50Hz mode)</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 0.4rem; font-weight: 600;">FrSky ACCST / ACCESS</td>
-                                    <td style="padding: 0.4rem;">-104 dBm</td>
-                                    <td style="padding: 0.4rem;">Standard 2.4GHz control links</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 0.4rem; font-weight: 600;">Legacy FM / AM (72/35MHz)</td>
-                                    <td style="padding: 0.4rem;">-95 to -100 dBm</td>
-                                    <td style="padding: 0.4rem;">Analog RC control systems</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 0.4rem; font-weight: 600;">Analog 5.8GHz Video</td>
-                                    <td style="padding: 0.4rem;">-90 to -93 dBm</td>
-                                    <td style="padding: 0.4rem;">Standard video snow threshold</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 0.4rem; font-weight: 600;">DJI FPV V1 / Vista</td>
-                                    <td style="padding: 0.4rem;">-93 to -95 dBm</td>
-                                    <td style="padding: 0.4rem;">Hard firmware distance cap: 13.3 km</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 0.4rem; font-weight: 600;">DJI O3 Air Unit</td>
-                                    <td style="padding: 0.4rem;">-96 to -98 dBm</td>
-                                    <td style="padding: 0.4rem;">Hard firmware distance cap: 20 km</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 0.4rem; font-weight: 600;">DJI O4 Pro</td>
-                                    <td style="padding: 0.4rem;">-100 to -102 dBm</td>
-                                    <td style="padding: 0.4rem;">Hard firmware distance cap: 32 km</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 0.4rem; font-weight: 600;">Walksnail Avatar HD</td>
-                                    <td style="padding: 0.4rem;">-94 to -96 dBm</td>
-                                    <td style="padding: 0.4rem;">1080p/720p HD digital video link (firmware cap ~20km)</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 0.4rem; font-weight: 600;">HDZero Digital</td>
-                                    <td style="padding: 0.4rem;">-92 to -95 dBm</td>
-                                    <td style="padding: 0.4rem;">Fixed latency uncompressed digital video link</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <p style="margin-top: 0.75rem; font-size: 0.75rem; color: var(--dim); line-height: 1.4;">
-                        💡 <b>Why ELRS & Crossfire Differ in Sensitivity & Link Stability:</b><br>
-                        • <b>Packet Payload & Bandwidth:</b> ELRS uses shorter over-the-air packet payloads (8-byte OTA frame) allowing narrower LoRa channel bandwidths. Narrower bandwidth lowers the thermal noise floor (<code>Noise = -174 + 10 · log₁₀(BW)</code>), giving ELRS ~5–6 dB higher sensitivity than Crossfire at equivalent frame rates (e.g. ELRS 900MHz 50Hz is -120 dBm vs Crossfire 50Hz is -115 dBm).<br>
-                        • <b>Telemetry Ratios:</b> ELRS allows low telemetry ratios (e.g. 1:64 or 1:128), devoting 99% of time to listening for control packets. This prevents low-power receiver telemetry from dropping the link at extreme distance.<br>
-                        • <b>Forward Error Correction (FEC):</b> ELRS incorporates fast packet recovery and LQI-based FEC that reconstructs lost packets smoothly near the noise floor limit.
-                    </p>
-                </div>
-            </div>
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--blue, #3B7BF6); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>🛠️</span> How to Use
+            </h3>
+            <ol style="padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li><strong>Max Range:</strong> Select a preset or input Tx Power, Antenna Gains, and Rx Sensitivity to compute Theoretical Max Range (0 dB margin) vs Real-World Range (with Fade Margin).</li>
+                <li><strong>Power Converter:</strong> Convert between milliwatts (mW) and decibel-milliwatts (dBm).</li>
+                <li><strong>Times Further:</strong> Calculate range and coverage area multipliers when upgrading Tx power or antenna gain.</li>
+                <li><strong>Antenna Designer:</strong> Compute quarter-wave/half-wave element lengths based on target frequency.</li>
+                <li><strong>Fresnel Zone:</strong> Determine line-of-sight clearance radius to prevent RF ground obstruction loss.</li>
+                <li><strong>Cable Loss & VSWR:</strong> Evaluate coaxial cable dB attenuation and antenna impedance mismatch.</li>
+            </ol>
+        </div>
 
-            <div class="card" style="grid-column: 1 / -1;">
-                <div class="card-title">
-                    <span>ExpressLRS Packet Rate (Hz) ➔ Sensitivity Reference</span>
-                </div>
-                <div class="card-content">
-                    <p style="margin-bottom: 0.5rem; color: var(--dim);">Official ExpressLRS sensitivity limits by packet rate (Hz) for 2.4 GHz and 900 MHz bands:</p>
-                    <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 0.8125rem; text-align: left;">
-                            <thead>
-                                <tr style="border-bottom: 1px solid var(--border); color: var(--blue);">
-                                    <th style="padding: 0.4rem;">Packet Rate (Hz)</th>
-                                    <th style="padding: 0.4rem;">2.4 GHz Sensitivity</th>
-                                    <th style="padding: 0.4rem;">900 MHz Sensitivity</th>
-                                    <th style="padding: 0.4rem;">Modulation / Mode</th>
-                                </tr>
-                            </thead>
-                            <tbody style="color: var(--text);">
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 0.4rem; font-weight: 600;">50 Hz</td>
-                                    <td style="padding: 0.4rem;">-115 dBm</td>
-                                    <td style="padding: 0.4rem;">-120 dBm</td>
-                                    <td style="padding: 0.4rem;">LoRa Long Range Mode</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 0.4rem; font-weight: 600;">100 Hz</td>
-                                    <td style="padding: 0.4rem;">-112 dBm</td>
-                                    <td style="padding: 0.4rem;">-117 dBm</td>
-                                    <td style="padding: 0.4rem;">LoRa Standard Mode</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 0.4rem; font-weight: 600;">250 Hz</td>
-                                    <td style="padding: 0.4rem;">-108 dBm</td>
-                                    <td style="padding: 0.4rem;">-111 dBm</td>
-                                    <td style="padding: 0.4rem;">LoRa Default Mode</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 0.4rem; font-weight: 600;">500 Hz</td>
-                                    <td style="padding: 0.4rem;">-105 dBm</td>
-                                    <td style="padding: 0.4rem;">-105 dBm</td>
-                                    <td style="padding: 0.4rem;">LoRa High Rate Mode</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 0.4rem; font-weight: 600;">1000 Hz</td>
-                                    <td style="padding: 0.4rem;">-104 dBm</td>
-                                    <td style="padding: 0.4rem;">-101 dBm</td>
-                                    <td style="padding: 0.4rem;">FLRC / FSK Ultra Low Latency</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+        <!-- Receiver Sensitivities Table -->
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>📶</span> Receiver Sensitivities (Reference Guide)
+            </h3>
+            <p style="font-size: 0.8125rem; color: var(--text-dim, #71717A); margin-bottom: 0.5rem;">Typical sensitivity ratings for popular FPV control and video links. Higher negative numbers represent higher sensitivity (longer range):</p>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.8125rem; text-align: left;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border, #27272A); color: var(--blue, #3B7BF6);">
+                            <th style="padding: 0.4rem;">Protocol / System</th>
+                            <th style="padding: 0.4rem;">Sensitivity Range</th>
+                            <th style="padding: 0.4rem;">Key Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody style="color: var(--text, #FAFAFA);">
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 0.4rem; font-weight: 600;">ExpressLRS (ELRS)</td>
+                            <td style="padding: 0.4rem;">-105 to -123 dBm</td>
+                            <td style="padding: 0.4rem;">Rate dependent (see Hz ➔ Sensitivity table below)</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 0.4rem; font-weight: 600;">TBS Crossfire</td>
+                            <td style="padding: 0.4rem;">-115 dBm</td>
+                            <td style="padding: 0.4rem;">-115dBm (50Hz mode)</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 0.4rem; font-weight: 600;">FrSky ACCST / ACCESS</td>
+                            <td style="padding: 0.4rem;">-104 dBm</td>
+                            <td style="padding: 0.4rem;">Standard 2.4GHz control links</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 0.4rem; font-weight: 600;">Legacy FM / AM (72/35MHz)</td>
+                            <td style="padding: 0.4rem;">-95 to -100 dBm</td>
+                            <td style="padding: 0.4rem;">Analog RC control systems</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 0.4rem; font-weight: 600;">Analog 5.8GHz Video</td>
+                            <td style="padding: 0.4rem;">-90 to -93 dBm</td>
+                            <td style="padding: 0.4rem;">Standard video snow threshold</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 0.4rem; font-weight: 600;">DJI FPV V1 / Vista</td>
+                            <td style="padding: 0.4rem;">-93 to -95 dBm</td>
+                            <td style="padding: 0.4rem;">Hard firmware distance cap: 13.3 km</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 0.4rem; font-weight: 600;">DJI O3 Air Unit</td>
+                            <td style="padding: 0.4rem;">-96 to -98 dBm</td>
+                            <td style="padding: 0.4rem;">Hard firmware distance cap: 20 km</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 0.4rem; font-weight: 600;">DJI O4 Pro</td>
+                            <td style="padding: 0.4rem;">-100 to -102 dBm</td>
+                            <td style="padding: 0.4rem;">Hard firmware distance cap: 32 km</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 0.4rem; font-weight: 600;">Walksnail Avatar HD</td>
+                            <td style="padding: 0.4rem;">-94 to -96 dBm</td>
+                            <td style="padding: 0.4rem;">1080p/720p HD digital video link (firmware cap ~20km)</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.4rem; font-weight: 600;">HDZero Digital</td>
+                            <td style="padding: 0.4rem;">-92 to -95 dBm</td>
+                            <td style="padding: 0.4rem;">Fixed latency uncompressed digital video link</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
+        </div>
 
-            <div class="card" style="grid-column: 1 / -1;">
-                <div class="card-title">
-                    <span>Typical Antenna Gains (Reference Guide)</span>
-                </div>
-                <div class="card-content">
-                    <p style="margin-bottom: 0.5rem; color: var(--dim);">Real-world antenna gain reference values (based on TrueRC, VAS, and FPV store standards):</p>
-                    <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 0.8125rem; text-align: left;">
-                            <thead>
-                                <tr style="border-bottom: 1px solid var(--border); color: var(--blue);">
-                                    <th style="padding: 0.4rem;">Antenna Type</th>
-                                    <th style="padding: 0.4rem;">Typical Gain</th>
-                                    <th style="padding: 0.4rem;">Beamwidth & Application</th>
-                                </tr>
-                            </thead>
-                            <tbody style="color: var(--text);">
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 0.4rem; font-weight: 600;">Monopole / Linear Whip</td>
-                                    <td style="padding: 0.4rem;">1.5 - 2.0 dBi</td>
-                                    <td style="padding: 0.4rem;">Micro quads, stock VTx / Rx linear whip antennas</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 0.4rem; font-weight: 600;">Omni Dipole / Stubby / Singularity</td>
-                                    <td style="padding: 0.4rem;">2.0 - 2.5 dBi</td>
-                                    <td style="padding: 0.4rem;">General FPV quads, 360° omnidirectional coverage</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 0.4rem; font-weight: 600;">Moxon / Super-G (Directional)</td>
-                                    <td style="padding: 0.4rem;">4.5 - 5.5 dBi</td>
-                                    <td style="padding: 0.4rem;">ELRS / Crossfire transmitter modules (180° front beam)</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 0.4rem; font-weight: 600;">Small Patch / Panel</td>
-                                    <td style="padding: 0.4rem;">6.0 - 8.5 dBi</td>
-                                    <td style="padding: 0.4rem;">Goggles patch (e.g. TrueRC Singularity Patch / DJI Goggles 3)</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 0.4rem; font-weight: 600;">3-Turn Helical / Crosshair</td>
-                                    <td style="padding: 0.4rem;">9.0 - 10.5 dBi</td>
-                                    <td style="padding: 0.4rem;">Mid-range directional video reception (~60° beamwidth)</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 0.4rem; font-weight: 600;">7-Turn Helical / High-Gain Patch</td>
-                                    <td style="padding: 0.4rem;">12.0 - 14.0 dBi</td>
-                                    <td style="padding: 0.4rem;">Long-range video reception (~35° beamwidth)</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 0.4rem; font-weight: 600;">12-Turn Helical / Antenna Array</td>
-                                    <td style="padding: 0.4rem;">15.0 - 16.5 dBi</td>
-                                    <td style="padding: 0.4rem;">Ultra long-range ground station / tracker (~20° narrow beam)</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 0.4rem; font-weight: 600;">Yagi-Uda Array</td>
-                                    <td style="padding: 0.4rem;">11.0 - 14.0 dBi</td>
-                                    <td style="padding: 0.4rem;">High-gain directional control/video antenna</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <p style="margin-top: 0.75rem; font-size: 0.75rem; color: var(--dim); line-height: 1.4;">
-                        💡 <b>Understanding dBi vs dBiC & Polarization Mismatch Losses:</b><br>
-                        • <b>dBi vs dBiC:</b> <code>1 dBiC = 1 dBi</code>. Gain rated in <b>dBiC</b> is simply isotropic gain for Circularly Polarized (CP) antennas. Enter dBiC values directly into antenna gain input fields.<br>
-                        • <b>Linear ➔ Circular Mismatch:</b> Pairing a Linearly Polarized antenna (e.g. Omni whip on quad) with a Circularly Polarized antenna (e.g. RHCP/LHCP patch on goggles) incurs an inherent <b>3 dB polarization mismatch loss</b> (50% power drop).<br>
-                        • <b>Opposite Handedness Mismatch:</b> Pairing opposite circular handedness (e.g. RHCP ➔ LHCP) results in severe signal rejection (<b>&gt;20 dB loss</b>).
-                    </p>
-                </div>
+        <!-- ELRS Packet Rate Table -->
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--blue, #3B7BF6); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>📡</span> ExpressLRS Packet Rate (Hz) ➔ Sensitivity Reference
+            </h3>
+            <p style="font-size: 0.8125rem; color: var(--text-dim, #71717A); margin-bottom: 0.5rem;">Official ExpressLRS sensitivity limits by packet rate (Hz) for 2.4 GHz and 900 MHz bands:</p>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.8125rem; text-align: left;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border, #27272A); color: var(--blue, #3B7BF6);">
+                            <th style="padding: 0.4rem;">Packet Rate (Hz)</th>
+                            <th style="padding: 0.4rem;">2.4 GHz Sensitivity</th>
+                            <th style="padding: 0.4rem;">900 MHz Sensitivity</th>
+                            <th style="padding: 0.4rem;">Modulation / Mode</th>
+                        </tr>
+                    </thead>
+                    <tbody style="color: var(--text, #FAFAFA);">
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 0.4rem; font-weight: 600;">50 Hz</td>
+                            <td style="padding: 0.4rem;">-115 dBm</td>
+                            <td style="padding: 0.4rem;">-120 dBm</td>
+                            <td style="padding: 0.4rem;">LoRa Long Range Mode</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 0.4rem; font-weight: 600;">100 Hz</td>
+                            <td style="padding: 0.4rem;">-112 dBm</td>
+                            <td style="padding: 0.4rem;">-117 dBm</td>
+                            <td style="padding: 0.4rem;">LoRa Standard Mode</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 0.4rem; font-weight: 600;">250 Hz</td>
+                            <td style="padding: 0.4rem;">-108 dBm</td>
+                            <td style="padding: 0.4rem;">-111 dBm</td>
+                            <td style="padding: 0.4rem;">LoRa Default Mode</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 0.4rem; font-weight: 600;">500 Hz</td>
+                            <td style="padding: 0.4rem;">-105 dBm</td>
+                            <td style="padding: 0.4rem;">-105 dBm</td>
+                            <td style="padding: 0.4rem;">LoRa High Rate Mode</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.4rem; font-weight: 600;">1000 Hz</td>
+                            <td style="padding: 0.4rem;">-104 dBm</td>
+                            <td style="padding: 0.4rem;">-101 dBm</td>
+                            <td style="padding: 0.4rem;">FLRC / FSK Ultra Low Latency</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
+        </div>
 
-            <div class="card">
-                <div class="card-title">
-                    <span>Power Converter</span>
-                </div>
-                <div class="card-content">
-                    Converts linear power in milliwatts to logarithmic decibels (dBm). Logarithmic math simplifies calculating system gain and path losses.
-                </div>
+        <!-- Antenna Gains Table -->
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>📡</span> Typical Antenna Gains (Reference Guide)
+            </h3>
+            <p style="font-size: 0.8125rem; color: var(--text-dim, #71717A); margin-bottom: 0.5rem;">Real-world antenna gain reference values (based on TrueRC, VAS, and FPV store standards):</p>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.8125rem; text-align: left;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border, #27272A); color: var(--blue, #3B7BF6);">
+                            <th style="padding: 0.4rem;">Antenna Type</th>
+                            <th style="padding: 0.4rem;">Typical Gain</th>
+                            <th style="padding: 0.4rem;">Beamwidth & Application</th>
+                        </tr>
+                    </thead>
+                    <tbody style="color: var(--text, #FAFAFA);">
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 0.4rem; font-weight: 600;">Monopole / Linear Whip</td>
+                            <td style="padding: 0.4rem;">1.5 - 2.0 dBi</td>
+                            <td style="padding: 0.4rem;">Micro quads, stock VTx / Rx linear whip antennas</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 0.4rem; font-weight: 600;">Omni Dipole / Stubby / Singularity</td>
+                            <td style="padding: 0.4rem;">2.0 - 2.5 dBi</td>
+                            <td style="padding: 0.4rem;">General FPV quads, 360° omnidirectional coverage</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 0.4rem; font-weight: 600;">Moxon / Super-G (Directional)</td>
+                            <td style="padding: 0.4rem;">4.5 - 5.5 dBi</td>
+                            <td style="padding: 0.4rem;">ELRS / Crossfire transmitter modules (180° front beam)</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 0.4rem; font-weight: 600;">Small Patch / Panel</td>
+                            <td style="padding: 0.4rem;">6.0 - 8.5 dBi</td>
+                            <td style="padding: 0.4rem;">Goggles patch (e.g. TrueRC Singularity Patch / DJI Goggles 3)</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 0.4rem; font-weight: 600;">3-Turn Helical / Crosshair</td>
+                            <td style="padding: 0.4rem;">9.0 - 10.5 dBi</td>
+                            <td style="padding: 0.4rem;">Mid-range directional video reception (~60° beamwidth)</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 0.4rem; font-weight: 600;">7-Turn Helical / High-Gain Patch</td>
+                            <td style="padding: 0.4rem;">12.0 - 14.0 dBi</td>
+                            <td style="padding: 0.4rem;">Long-range video reception (~35° beamwidth)</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 0.4rem; font-weight: 600;">12-Turn Helical / Antenna Array</td>
+                            <td style="padding: 0.4rem;">15.0 - 16.5 dBi</td>
+                            <td style="padding: 0.4rem;">Ultra long-range ground station / tracker (~20° narrow beam)</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.4rem; font-weight: 600;">Yagi-Uda Array</td>
+                            <td style="padding: 0.4rem;">11.0 - 14.0 dBi</td>
+                            <td style="padding: 0.4rem;">High-gain directional control/video antenna</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-
-            <div class="card">
-                <div class="card-title">
-                    <span>Times Further</span>
-                </div>
-                <div class="card-content">
-                    Calculates range and flyable area coverage changes when altering antenna gains or transmitter power. Adding +6dB doubles range and quadruples flyable area.
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">
-                    <span>Antenna Designer</span>
-                </div>
-                <div class="card-content">
-                    Computes quarter-wave and half-wave elements size based on center frequencies and conductor velocity propagation speed.
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">
-                    <span>Fresnel Zone Clearance</span>
-                </div>
-                <div class="card-content">
-                    Calculates the clearance radius needed around the line-of-sight path. Obstructions in the first 60% of the Fresnel zone degrade link reliability.
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">
-                    <span>Cable Loss</span>
-                </div>
-                <div class="card-content">
-                    Calculates the signal attenuation over coaxial cable runs, scaled by frequency. Helps quantify losses in long pigtails or ground station lines.
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">
-                    <span>VSWR Match</span>
-                </div>
-                <div class="card-content">
-                    Measures antenna impedance matching. High VSWR reflects power back to the VTx output stages as heat, lowering output and risking damage.
-                </div>
-            </div>
+            <p style="margin-top: 0.75rem; font-size: 0.8125rem; color: var(--text-dim, #71717A); line-height: 1.4;">
+                💡 <b>Understanding dBi vs dBiC & Polarization Mismatch Losses:</b><br>
+                • <b>dBi vs dBiC:</b> <code>1 dBiC = 1 dBi</code>. Gain rated in <b>dBiC</b> is simply isotropic gain for Circularly Polarized (CP) antennas. Enter dBiC values directly into antenna gain input fields.<br>
+                • <b>Linear ➔ Circular Mismatch:</b> Pairing a Linearly Polarized antenna (e.g. Omni whip on quad) with a Circularly Polarized antenna (e.g. RHCP/LHCP patch on goggles) incurs an inherent <b>3 dB polarization mismatch loss</b> (50% power drop).<br>
+                • <b>Opposite Handedness Mismatch:</b> Pairing opposite circular handedness (e.g. RHCP ➔ LHCP) results in severe signal rejection (<b>&gt;20 dB loss</b>).
+            </p>
         </div>
     </div>
 </div>

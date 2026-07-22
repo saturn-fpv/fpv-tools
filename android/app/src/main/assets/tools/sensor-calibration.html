@@ -653,21 +653,44 @@ window.addEventListener('message', function(event) {
 })();
 </script>
 <div id="help-content-source" style="display:none;">
-    <p><strong>Sensor Calibration Help</strong></p><br>
-    <p>This utility helps you calibrate your flight controller's internal current sensor and voltage dividers to guarantee accurate battery status telemetry and reliable mAh consumption readings.</p><br>
-    <p><strong>Current Sensor Steps:</strong></p>
-    <ol style="padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-        <li>Fly a pack and record the **mAh consumed** reported by your OSD/Configurator.</li>
-        <li>Put the battery on a charger and record the **mAh replaced** (charged).</li>
-        <li>Record your current **Betaflight Current Scale** (default is usually 400).</li>
-        <li>Click Calculate and paste the resulting `set ibata_scale` CLI command into the Betaflight console.</li>
-    </ol><br>
-    <p><strong>Voltage Sensor Steps:</strong></p>
-    <ol style="padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-        <li>Measure active battery voltage with a multimeter while connected to the quad.</li>
-        <li>Record the voltage shown by the Configurator and the current **Voltage Scale** (default 110).</li>
-        <li>Click Calculate and apply the `set vbat_scale` CLI command in Betaflight.</li>
-    </ol>
+    <div style="max-width: 800px; margin: 0 auto; padding: 0.5rem 0.25rem;">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <h1 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem;">Sensor Calibration</h1>
+            <p style="font-size: 0.85rem; color: var(--text-dim, #71717A);">Calibrate current sensors and voltage dividers for precise OSD battery telemetry.</p>
+        </div>
+
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>📖</span> Overview
+            </h3>
+            <p style="font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.5;">
+                Calibrate your flight controller's internal current sensor and voltage dividers to guarantee accurate battery status telemetry and reliable mAh consumption readings in your OSD.
+            </p>
+        </div>
+
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--blue, #3B7BF6); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>🛠️</span> How to Use (Current Sensor)
+            </h3>
+            <ol style="padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li>Fly a pack and record the <strong>mAh consumed</strong> reported by your OSD/Configurator.</li>
+                <li>Charge the battery back up and record the actual <strong>mAh replaced</strong> shown on your battery charger.</li>
+                <li>Enter your current <strong>Betaflight Current Scale</strong> (default is usually 400).</li>
+                <li>Click <strong>Calculate</strong> and copy the generated <code>set ibata_scale</code> CLI command into Betaflight Console.</li>
+            </ol>
+        </div>
+
+        <div>
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--blue, #3B7BF6); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>⚡</span> How to Use (Voltage Divider)
+            </h3>
+            <ol style="padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li>Measure active battery voltage with a digital multimeter while plugged into the quad.</li>
+                <li>Record the voltage reported in Betaflight Configurator and your active <strong>Voltage Scale</strong> (default 110).</li>
+                <li>Click <strong>Calculate</strong> and apply the generated <code>set vbat_scale</code> CLI command in Betaflight.</li>
+            </ol>
+        </div>
+    </div>
 </div>
 <script src="../partials/partial_tools.js"></script>
 <script>

@@ -1532,14 +1532,42 @@ window.addEventListener('message', function(event) {
 })();
 </script>
 <div id="help-content-source" style="display:none;">
-    <p><strong>Frequency Planner Help</strong></p><br>
-    <p>Organize clear, intermodulation distortion (IMD) free frequency grids for analog and digital FPV systems running multi-pilot events.</p><br>
-    <p><strong>Key Features:</strong></p>
-    <ul style="list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-        <li><strong>The Challenge:</strong> When multiple video transmitters broadcast simultaneously, they generate phantom harmonics in local receivers (IMD). Standard equal-spacing schemes amplify these conflicts.</li>
-        <li><strong>DJI O3/O4 Carrier:</strong> DJI O3/O4 systems utilize a wide carrier wave that floods the 5720-5850 MHz spectrum. This tool automatically forces analog/HDZero channels outside this zone when digital systems are active in the lineup.</li>
-        <li>Set the pilot sliders and click <strong>Auto-Assign Frequencies</strong>. The engine will search, plan, and automatically split pilots into separate heats (A, B, C...) if they cannot all safely fly in a single heat.</li>
-    </ul>
+    <div style="max-width: 800px; margin: 0 auto; padding: 0.5rem 0.25rem;">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <h1 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem;">Frequency Planner</h1>
+            <p style="font-size: 0.85rem; color: var(--text-dim, #71717A);">Organize intermodulation-free 5.8 GHz channels for multi-pilot FPV events.</p>
+        </div>
+
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>📖</span> Overview
+            </h3>
+            <p style="font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.5;">
+                Organize clear, intermodulation distortion (IMD) free frequency grids for analog, HDZero, Walksnail, and DJI FPV systems running multi-pilot events without video bleed.
+            </p>
+        </div>
+
+        <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--blue, #3B7BF6); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>🛠️</span> How to Use
+            </h3>
+            <ol style="padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li>Set the number of active pilots flying analog, HDZero, Walksnail, or DJI O3/O4.</li>
+                <li>Set minimum channel separation (MHz) to ensure adequate spectrum spacing between adjacent pilots.</li>
+                <li>Click <strong>Auto-Assign Frequencies</strong> to run the IMD solver. The tool will calculate optimal channels and split pilots into separate heats if the spectrum is saturated.</li>
+            </ol>
+        </div>
+
+        <div>
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>💡</span> Spectrum Management Insights
+            </h3>
+            <ul style="list-style: disc; padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li><strong>Intermodulation (IMD):</strong> Simultaneous VTx broadcasts generate phantom harmonics in local receivers. The solver uses non-linear channel spacing to eliminate IMD harmonics.</li>
+                <li><strong>DJI O3 / O4 Wide Channels:</strong> DJI HD systems utilize wide 20MHz/40MHz carrier channels that occupy 5720–5850 MHz. The planner automatically isolates analog and HDZero channels outside active DJI zones.</li>
+            </ul>
+        </div>
+    </div>
 </div>
 <script src="../partials/partial_tools.js"></script>
 <script>
