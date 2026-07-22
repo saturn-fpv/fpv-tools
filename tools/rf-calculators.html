@@ -583,19 +583,19 @@
             <div class="presets-grid">
                 <button class="preset-btn" onclick="loadLinkPreset('58g')">
                     <div class="ptitle">5.8GHz Video</div>
-                    <div class="pdetail">800mW • Omni ➔ Patch</div>
+                    <div class="pdetail">800mW • Omni ➔ 14dBi Patch</div>
                 </button>
                 <button class="preset-btn" onclick="loadLinkPreset('24elrs')">
                     <div class="ptitle">2.4GHz ELRS</div>
-                    <div class="pdetail">250mW • 250Hz LoRa</div>
+                    <div class="pdetail">100mW • 250Hz LoRa</div>
                 </button>
                 <button class="preset-btn" onclick="loadLinkPreset('915crsf')">
                     <div class="ptitle">915MHz Crossfire</div>
-                    <div class="pdetail">250mW • Standard</div>
+                    <div class="pdetail">100mW • 50Hz LoRa</div>
                 </button>
                 <button class="preset-btn" onclick="loadLinkPreset('dji')">
                     <div class="ptitle">DJI O4 Pro</div>
-                    <div class="pdetail">1.2W • Omni ➔ Goggles</div>
+                    <div class="pdetail">1.2W • Omni ➔ 8.5dBi Goggles</div>
                 </button>
             </div>
         </div>
@@ -621,16 +621,16 @@
                         <label>
                             <span>TX Power <span id="link-power-mw" style="color:var(--dim); font-size:0.75rem; font-weight:normal;">(800 mW)</span></span>
                             <div style="display:flex; align-items:center; gap:0.3rem;">
-                                <input class="ni" type="number" id="link-power-num" min="0" max="36" step="0.1" value="29" oninput="onLinkPowerNumInput(this.value)">
+                                <input class="ni" type="number" id="link-power-num" min="0" max="40" step="0.1" value="29" oninput="onLinkPowerNumInput(this.value)">
                                 <span class="unit" style="min-width:auto;">dBm</span>
                             </div>
                         </label>
-                        <input type="range" id="link-power" min="0" max="36" value="29" step="0.5" oninput="this.step='0.5'; updateLink()">
+                        <input type="range" id="link-power" min="0" max="40" value="29" step="0.5" oninput="this.step='0.5'; updateLink()">
                     </div>
 
                     <div class="form-row">
                         <label>
-                            <span>TX Antenna Gain</span>
+                            <span>TX Antenna Gain (dBi / dBiC)</span>
                             <div style="display:flex; align-items:center; gap:0.3rem;">
                                 <input class="ni" type="number" id="link-tx-gain-num" min="-5" max="25" step="0.1" value="2.0" oninput="onLinkTxGainNumInput(this.value)">
                                 <span class="unit" style="min-width:auto;">dBi</span>
@@ -641,7 +641,7 @@
 
                     <div class="form-row">
                         <label>
-                            <span>RX Antenna Gain</span>
+                            <span>RX Antenna Gain (dBi / dBiC)</span>
                             <div style="display:flex; align-items:center; gap:0.3rem;">
                                 <input class="ni" type="number" id="link-rx-gain-num" min="-5" max="25" step="0.1" value="8.0" oninput="onLinkRxGainNumInput(this.value)">
                                 <span class="unit" style="min-width:auto;">dBi</span>
@@ -677,25 +677,24 @@
             <!-- Results Merged to Tab Box -->
             <div>
                 <div class="sub-tabs">
-                    <button class="sub-tab active sub-blue" id="sub-btn-link-range" onclick="setSubTab('link', 'range', 'blue')">Theoretical Max <span style="color: var(--blue);">Range</span></button>
+                    <button class="sub-tab active sub-blue" id="sub-btn-link-range" onclick="setSubTab('link', 'range', 'blue')">Max <span style="color: var(--blue);">Range</span></button>
                     <button class="sub-tab" id="sub-btn-link-stats" onclick="setSubTab('link', 'stats', 'green')"><span style="color: var(--green);">Link</span> Statistics</button>
                 </div>
                 <div class="panel sub-tab-panel">
-                    <!-- Tab 1: Theoretical Max Range -->
+                    <!-- Tab 1: Max Range -->
                     <div id="sub-panel-link-range" class="sub-panel-content">
                         <div class="result-row result-row-big">
-                            <span class="rlabel">Distance</span>
-                            <span><span class="rvalue" id="range-km">--</span><span class="runit">km</span></span>
+                            <span class="rlabel">Theoretical Max (0 dB margin)</span>
+                            <span><span class="rvalue" id="range-km">--</span><span class="runit">km</span> <span style="font-size:0.75rem; color:var(--dim); font-weight:normal;">(<span id="range-miles">--</span> mi)</span></span>
                         </div>
                         <div class="result-sep"></div>
-                        <div class="result-row">
-                            <span class="rlabel">Miles</span>
-                            <span><span class="rvalue" id="range-miles">--</span><span class="runit">mi</span></span>
+                        <div class="result-row result-row-big">
+                            <span class="rlabel">Real-World Range (with Margin)</span>
+                            <span><span class="rvalue" id="range-real" style="color: var(--blue) !important;">--</span><span class="runit" style="color: var(--blue)">km</span> <span style="font-size:0.75rem; color:var(--dim); font-weight:normal;">(<span id="range-real-miles">--</span> mi)</span></span>
                         </div>
                         <div class="result-sep"></div>
-                        <div class="result-row">
-                            <span class="rlabel">Real-world (~60%)</span>
-                            <span><span class="rvalue" id="range-real" style="color: var(--orange) !important;">--</span><span class="runit" style="color: var(--orange)">km</span></span>
+                        <div style="margin-top: 0.5rem; padding: 0.5rem 0.75rem; background: rgba(59, 130, 246, 0.06); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 6px; font-size: 0.75rem; color: var(--dim); line-height: 1.4;">
+                            💡 <b>Note:</b> DJI firmware enforces hard distance caps: <b>V1/Vista (13.3 km)</b>, <b>O3 (20 km)</b>, <b>O4 Pro (32 km)</b>.
                         </div>
                     </div>
                     
@@ -1370,6 +1369,205 @@
                 </div>
             </div>
 
+            <div class="card" style="grid-column: 1 / -1;">
+                <div class="card-title">
+                    <span>Typical Receiver Sensitivities (Reference Guide)</span>
+                </div>
+                <div class="card-content">
+                    <p style="margin-bottom: 0.5rem; color: var(--dim);">Typical sensitivity ratings for popular FPV control and video links. Higher negative numbers represent higher sensitivity (longer range):</p>
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.8125rem; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--border); color: var(--blue);">
+                                    <th style="padding: 0.4rem;">Protocol / System</th>
+                                    <th style="padding: 0.4rem;">Sensitivity Range</th>
+                                    <th style="padding: 0.4rem;">Key Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody style="color: var(--text);">
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 0.4rem; font-weight: 600;">ExpressLRS (ELRS)</td>
+                                    <td style="padding: 0.4rem;">-105 to -123 dBm</td>
+                                    <td style="padding: 0.4rem;">Rate dependent (see Hz ➔ Sensitivity table below)</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 0.4rem; font-weight: 600;">TBS Crossfire</td>
+                                    <td style="padding: 0.4rem;">-115 dBm</td>
+                                    <td style="padding: 0.4rem;">-115dBm (50Hz mode)</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 0.4rem; font-weight: 600;">FrSky ACCST / ACCESS</td>
+                                    <td style="padding: 0.4rem;">-104 dBm</td>
+                                    <td style="padding: 0.4rem;">Standard 2.4GHz control links</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 0.4rem; font-weight: 600;">Legacy FM / AM (72/35MHz)</td>
+                                    <td style="padding: 0.4rem;">-95 to -100 dBm</td>
+                                    <td style="padding: 0.4rem;">Analog RC control systems</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 0.4rem; font-weight: 600;">Analog 5.8GHz Video</td>
+                                    <td style="padding: 0.4rem;">-90 to -93 dBm</td>
+                                    <td style="padding: 0.4rem;">Standard video snow threshold</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 0.4rem; font-weight: 600;">DJI FPV V1 / Vista</td>
+                                    <td style="padding: 0.4rem;">-93 to -95 dBm</td>
+                                    <td style="padding: 0.4rem;">Hard firmware distance cap: 13.3 km</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 0.4rem; font-weight: 600;">DJI O3 Air Unit</td>
+                                    <td style="padding: 0.4rem;">-96 to -98 dBm</td>
+                                    <td style="padding: 0.4rem;">Hard firmware distance cap: 20 km</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 0.4rem; font-weight: 600;">DJI O4 Pro</td>
+                                    <td style="padding: 0.4rem;">-100 to -102 dBm</td>
+                                    <td style="padding: 0.4rem;">Hard firmware distance cap: 32 km</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 0.4rem; font-weight: 600;">Walksnail Avatar HD</td>
+                                    <td style="padding: 0.4rem;">-94 to -96 dBm</td>
+                                    <td style="padding: 0.4rem;">1080p/720p HD digital video link (firmware cap ~20km)</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.4rem; font-weight: 600;">HDZero Digital</td>
+                                    <td style="padding: 0.4rem;">-92 to -95 dBm</td>
+                                    <td style="padding: 0.4rem;">Fixed latency uncompressed digital video link</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p style="margin-top: 0.75rem; font-size: 0.75rem; color: var(--dim); line-height: 1.4;">
+                        💡 <b>Why ELRS & Crossfire Differ in Sensitivity & Link Stability:</b><br>
+                        • <b>Packet Payload & Bandwidth:</b> ELRS uses shorter over-the-air packet payloads (8-byte OTA frame) allowing narrower LoRa channel bandwidths. Narrower bandwidth lowers the thermal noise floor (<code>Noise = -174 + 10 · log₁₀(BW)</code>), giving ELRS ~5–6 dB higher sensitivity than Crossfire at equivalent frame rates (e.g. ELRS 900MHz 50Hz is -120 dBm vs Crossfire 50Hz is -115 dBm).<br>
+                        • <b>Telemetry Ratios:</b> ELRS allows low telemetry ratios (e.g. 1:64 or 1:128), devoting 99% of time to listening for control packets. This prevents low-power receiver telemetry from dropping the link at extreme distance.<br>
+                        • <b>Forward Error Correction (FEC):</b> ELRS incorporates fast packet recovery and LQI-based FEC that reconstructs lost packets smoothly near the noise floor limit.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card" style="grid-column: 1 / -1;">
+                <div class="card-title">
+                    <span>ExpressLRS Packet Rate (Hz) ➔ Sensitivity Reference</span>
+                </div>
+                <div class="card-content">
+                    <p style="margin-bottom: 0.5rem; color: var(--dim);">Official ExpressLRS sensitivity limits by packet rate (Hz) for 2.4 GHz and 900 MHz bands:</p>
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.8125rem; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--border); color: var(--blue);">
+                                    <th style="padding: 0.4rem;">Packet Rate (Hz)</th>
+                                    <th style="padding: 0.4rem;">2.4 GHz Sensitivity</th>
+                                    <th style="padding: 0.4rem;">900 MHz Sensitivity</th>
+                                    <th style="padding: 0.4rem;">Modulation / Mode</th>
+                                </tr>
+                            </thead>
+                            <tbody style="color: var(--text);">
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 0.4rem; font-weight: 600;">50 Hz</td>
+                                    <td style="padding: 0.4rem;">-115 dBm</td>
+                                    <td style="padding: 0.4rem;">-120 dBm</td>
+                                    <td style="padding: 0.4rem;">LoRa Long Range Mode</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 0.4rem; font-weight: 600;">100 Hz</td>
+                                    <td style="padding: 0.4rem;">-112 dBm</td>
+                                    <td style="padding: 0.4rem;">-117 dBm</td>
+                                    <td style="padding: 0.4rem;">LoRa Standard Mode</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 0.4rem; font-weight: 600;">250 Hz</td>
+                                    <td style="padding: 0.4rem;">-108 dBm</td>
+                                    <td style="padding: 0.4rem;">-111 dBm</td>
+                                    <td style="padding: 0.4rem;">LoRa Default Mode</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 0.4rem; font-weight: 600;">500 Hz</td>
+                                    <td style="padding: 0.4rem;">-105 dBm</td>
+                                    <td style="padding: 0.4rem;">-105 dBm</td>
+                                    <td style="padding: 0.4rem;">LoRa High Rate Mode</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.4rem; font-weight: 600;">1000 Hz</td>
+                                    <td style="padding: 0.4rem;">-104 dBm</td>
+                                    <td style="padding: 0.4rem;">-101 dBm</td>
+                                    <td style="padding: 0.4rem;">FLRC / FSK Ultra Low Latency</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="grid-column: 1 / -1;">
+                <div class="card-title">
+                    <span>Typical Antenna Gains (Reference Guide)</span>
+                </div>
+                <div class="card-content">
+                    <p style="margin-bottom: 0.5rem; color: var(--dim);">Real-world antenna gain reference values (based on TrueRC, VAS, and FPV store standards):</p>
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.8125rem; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--border); color: var(--blue);">
+                                    <th style="padding: 0.4rem;">Antenna Type</th>
+                                    <th style="padding: 0.4rem;">Typical Gain</th>
+                                    <th style="padding: 0.4rem;">Beamwidth & Application</th>
+                                </tr>
+                            </thead>
+                            <tbody style="color: var(--text);">
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 0.4rem; font-weight: 600;">Monopole / Linear Whip</td>
+                                    <td style="padding: 0.4rem;">1.5 - 2.0 dBi</td>
+                                    <td style="padding: 0.4rem;">Micro quads, stock VTx / Rx linear whip antennas</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 0.4rem; font-weight: 600;">Omni Dipole / Stubby / Singularity</td>
+                                    <td style="padding: 0.4rem;">2.0 - 2.5 dBi</td>
+                                    <td style="padding: 0.4rem;">General FPV quads, 360° omnidirectional coverage</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 0.4rem; font-weight: 600;">Moxon / Super-G (Directional)</td>
+                                    <td style="padding: 0.4rem;">4.5 - 5.5 dBi</td>
+                                    <td style="padding: 0.4rem;">ELRS / Crossfire transmitter modules (180° front beam)</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 0.4rem; font-weight: 600;">Small Patch / Panel</td>
+                                    <td style="padding: 0.4rem;">6.0 - 8.5 dBi</td>
+                                    <td style="padding: 0.4rem;">Goggles patch (e.g. TrueRC Singularity Patch / DJI Goggles 3)</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 0.4rem; font-weight: 600;">3-Turn Helical / Crosshair</td>
+                                    <td style="padding: 0.4rem;">9.0 - 10.5 dBi</td>
+                                    <td style="padding: 0.4rem;">Mid-range directional video reception (~60° beamwidth)</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 0.4rem; font-weight: 600;">7-Turn Helical / High-Gain Patch</td>
+                                    <td style="padding: 0.4rem;">12.0 - 14.0 dBi</td>
+                                    <td style="padding: 0.4rem;">Long-range video reception (~35° beamwidth)</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 0.4rem; font-weight: 600;">12-Turn Helical / Antenna Array</td>
+                                    <td style="padding: 0.4rem;">15.0 - 16.5 dBi</td>
+                                    <td style="padding: 0.4rem;">Ultra long-range ground station / tracker (~20° narrow beam)</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.4rem; font-weight: 600;">Yagi-Uda Array</td>
+                                    <td style="padding: 0.4rem;">11.0 - 14.0 dBi</td>
+                                    <td style="padding: 0.4rem;">High-gain directional control/video antenna</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p style="margin-top: 0.75rem; font-size: 0.75rem; color: var(--dim); line-height: 1.4;">
+                        💡 <b>Understanding dBi vs dBiC & Polarization Mismatch Losses:</b><br>
+                        • <b>dBi vs dBiC:</b> <code>1 dBiC = 1 dBi</code>. Gain rated in <b>dBiC</b> is simply isotropic gain for Circularly Polarized (CP) antennas. Enter dBiC values directly into antenna gain input fields.<br>
+                        • <b>Linear ➔ Circular Mismatch:</b> Pairing a Linearly Polarized antenna (e.g. Omni whip on quad) with a Circularly Polarized antenna (e.g. RHCP/LHCP patch on goggles) incurs an inherent <b>3 dB polarization mismatch loss</b> (50% power drop).<br>
+                        • <b>Opposite Handedness Mismatch:</b> Pairing opposite circular handedness (e.g. RHCP ➔ LHCP) results in severe signal rejection (<b>&gt;20 dB loss</b>).
+                    </p>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-title">
                     <span>Power Converter</span>
@@ -1545,10 +1743,10 @@
     let rangeChart = null;
 
     const linkPresets = {
-        '58g': { freq: 5800, power: 29, txGain: 2, rxGain: 8, sens: -90, margin: 3 }, // 800mW VTx
-        '24elrs': { freq: 2440, power: 24, txGain: 2, rxGain: 2, sens: -115, margin: 6 }, // 250mW ELRS LoRa
-        '915crsf': { freq: 915, power: 24, txGain: 2, rxGain: 2, sens: -115, margin: 6 }, // 250mW Crossfire
-        'dji': { freq: 5800, power: 30.8, txGain: 2, rxGain: 5, sens: -95, margin: 4 } // DJI O4 Pro FCC 1.2W
+        '58g': { freq: 5800, power: 29, txGain: 2, rxGain: 14, sens: -93, margin: 12 }, // 800mW VTx + 14dBi Patch
+        '24elrs': { freq: 2440, power: 20, txGain: 2, rxGain: 2, sens: -108, margin: 12 }, // 100mW ELRS 250Hz LoRa
+        '915crsf': { freq: 915, power: 20, txGain: 2, rxGain: 2, sens: -115, margin: 12 }, // 100mW Crossfire 50Hz LoRa
+        'dji': { freq: 5800, power: 30.8, txGain: 2, rxGain: 8.5, sens: -100, margin: 12 } // DJI O4 Pro FCC 1.2W + 8.5dBi Goggles Patch
     };
 
     function loadLinkPreset(presetKey) {
@@ -1601,25 +1799,37 @@
         document.getElementById('eirp-watts').innerText = eirpWatts.toFixed(3);
         document.getElementById('sys-gain').innerText = (txGain + rxGain).toFixed(1);
 
-        // Max Path Loss = Power(dBm) + TxGain(dBi) + RxGain(dBi) - RxSensitivity(dBm) - FadeMargin(dB)
-        const maxPathLoss = powerDbm + txGain + rxGain - sens - margin;
-        document.getElementById('max-path-loss').innerText = maxPathLoss.toFixed(1);
-
-        // Max theoretical range distance in km
-        const km = rangeFromLoss(maxPathLoss, freq);
-        if (km >= 1) {
-            document.getElementById('range-km').innerText = km.toFixed(2);
-        } else {
-            document.getElementById('range-km').innerText = km.toFixed(4);
-        }
-        document.getElementById('range-miles').innerText = (km * 0.621371).toFixed(2);
+        // 1. Max Path Loss Theoretical (0 dB Fade Margin)
+        const maxPathLossTheoretical = powerDbm + txGain + rxGain - sens;
+        // 2. Max Path Loss Reliable (with user Fade Margin)
+        const maxPathLossReliable = maxPathLossTheoretical - margin;
         
-        // Realistic range (estimating general FPV environmental path/polarization loss ~ 40%)
-        const realKm = km * 0.6;
-        document.getElementById('range-real').innerText = realKm.toFixed(realKm >= 1 ? 2 : 4);
+        document.getElementById('max-path-loss').innerText = maxPathLossReliable.toFixed(1);
+
+        // Theoretical Max range distance in km (0 dB margin)
+        const kmTheoretical = rangeFromLoss(maxPathLossTheoretical, freq);
+        if (kmTheoretical >= 100) {
+            document.getElementById('range-km').innerText = Math.round(kmTheoretical);
+        } else if (kmTheoretical >= 1) {
+            document.getElementById('range-km').innerText = kmTheoretical.toFixed(2);
+        } else {
+            document.getElementById('range-km').innerText = kmTheoretical.toFixed(4);
+        }
+        document.getElementById('range-miles').innerText = (kmTheoretical * 0.621371).toFixed(2);
+        
+        // Real-world range distance in km (with user Fade Margin)
+        const kmReliable = rangeFromLoss(maxPathLossReliable, freq);
+        if (kmReliable >= 100) {
+            document.getElementById('range-real').innerText = Math.round(kmReliable);
+        } else if (kmReliable >= 1) {
+            document.getElementById('range-real').innerText = kmReliable.toFixed(2);
+        } else {
+            document.getElementById('range-real').innerText = kmReliable.toFixed(4);
+        }
+        document.getElementById('range-real-miles').innerText = (kmReliable * 0.621371).toFixed(2);
 
         // Render Received Power chart vs distance
-        renderRangeChart(freq, powerDbm, txGain, rxGain, sens, margin, km);
+        renderRangeChart(freq, powerDbm, txGain, rxGain, sens, margin, kmTheoretical);
     }
 
     function renderRangeChart(freq, powerDbm, txGain, rxGain, sens, margin, maxKm) {
@@ -2340,7 +2550,7 @@
     }
     function onLinkPowerNumInput(val) {
         const num = parseFloat(val);
-        if (!isNaN(num) && num >= 0 && num <= 36) {
+        if (!isNaN(num) && num >= 0 && num <= 40) {
             const slider = document.getElementById('link-power');
             slider.step = "0.1";
             slider.value = num;
