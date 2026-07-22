@@ -454,7 +454,7 @@
       <div class="ctl"><label for="logx">Log f</label><input type="checkbox" id="logx" checked></div>
     </div>
 
-    <p class="setuphint">The highlighted band marks the part of the flight that gets analyzed. Drag its edges to trim, drag inside to move, or drag on empty space to select a new region. Auto detect looks for the chirp signature itself - a clean tone whose frequency rises over time - so it can pick the sweep out of a log that also contains normal flying. Switching the axis re-runs it, since each sweep excites one axis at a time.</p>
+    <p class="setuphint">The highlighted band marks the analyzed flight segment. Drag its edges to trim, drag inside to move, or click empty space to select a new region.</p>
   </section>
 
   <!-- RESULTS -->
@@ -484,8 +484,6 @@
   </section>
 </div>
 
-<!-- DYNAMIC HELP CONTENT STORAGE -->
-<!-- DYNAMIC HELP CONTENT STORAGE -->
 <!-- DYNAMIC HELP CONTENT STORAGE -->
 <div id="help-content-source" style="display:none;">
     <div style="max-width: 800px; margin: 0 auto; padding: 0.5rem 0.25rem;">
@@ -521,6 +519,7 @@
             <ul style="list-style: disc; padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
                 <li><strong>Welch H1 (Default):</strong> Classic cross-spectral estimate (Pxy/Pxx) with 50% overlapping windows. Window averaging produces smooth curves and enables the Coherence trust trace.</li>
                 <li><strong>Chirp Tracking:</strong> Slides an FFT window along the sweep to evaluate gyro/setpoint at the instantaneous chirp frequency. Ideal for short or custom chirp runs.</li>
+                <li><strong>Auto-Detection & Trimming:</strong> Auto-detect identifies the chirp frequency sweep signature automatically. Drag the highlighted band on the timeline to trim manually; switching axes re-runs auto-detection for that axis.</li>
                 <li><strong>Log F Toggle:</strong> Switches between logarithmic (2 Hz to 500 Hz) and linear frequency axes.</li>
                 <li><strong>Window (s):</strong> Sets FFT window length (0.5s default; 2.0s reaches sub-Hz frequencies).</li>
                 <li><strong>Show as % / Linear Axis:</strong> Converts magnitude/error dB curves into percentage of commanded stick amplitude.</li>

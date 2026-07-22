@@ -401,7 +401,7 @@ function PIDDemo(){
         </div>
       </div>
 
-      <div style={{fontSize:11,color:T.textDim,textAlign:"center",paddingTop:2,opacity:0.6}}>Original by Joshua Bardwell - Restyled by Saturn FPV</div>
+      <div style={{fontSize:11,color:T.textDim,textAlign:"center",paddingTop:2,opacity:0.6}}>Original by Joshua Bardwell - Adapted by Saturn FPV</div>
     </div>);
 }
 
@@ -421,7 +421,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(
                 <span>📖</span> Overview
             </h3>
             <p style="font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.5;">
-                Based on Joshua Bardwell's PID Tuning Masterclass, this tool simulates a single drone axis to help you build an intuitive feel for how each gain and physics parameter affects flight dynamics and Blackbox traces.
+                Interactive PID controller simulator created by Joshua Bardwell to simulate a single drone axis and build an intuitive feel for how each gain and physics parameter affects flight dynamics and Blackbox traces.
             </p>
         </div>
 
@@ -463,6 +463,18 @@ ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(
                 <li><strong>Drag:</strong> Air resistance acting as natural damping.</li>
                 <li><strong>Delay:</strong> Loop and ESC latency. <em>Higher delay severely destabilizes the loop!</em></li>
                 <li><strong>Noise:</strong> Gyro vibration amplified by high D-term gains, generating motor heat.</li>
+            </ul>
+        </div>
+
+        <div>
+            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--orange, #E8722A); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>💡</span> Key Insights: Core Concepts (P, I, D, & FF)
+            </h3>
+            <ul style="list-style: disc; padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li><strong>P (Proportional):</strong> Reacts to the present. Drives the follower toward the setpoint. Excess P causes ringing, overshoot, and rapid oscillations.</li>
+                <li><strong>I (Integral):</strong> Reacts to the past. Corrects persistent offsets (like unbalanced CG or side winds) by accumulating force over time.</li>
+                <li><strong>D (Derivative):</strong> Reacts to the future. Dampens acceleration and decelerates the follower as it approaches the setpoint. Excess D amplifies high-frequency noise, heating up motors.</li>
+                <li><strong>FF (Feedforward):</strong> Reacts to stick velocity. Instantly adds force during stick movement to eliminate gyro latency, dropping to zero when stick stops.</li>
             </ul>
         </div>
     </div>
