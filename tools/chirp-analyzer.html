@@ -151,10 +151,13 @@
   .slot.a h2 { color: var(--blue); } .slot.a .dot { background: var(--blue); }
   .slot.b h2 { color: var(--green); } .slot.b .dot { background: var(--green); }
   
-  .drop { border: 2px dashed var(--line); border-radius: 8px; padding: 20px; cursor: pointer; transition: border-color 0.15s, background-color 0.15s; min-height: 80px; }
+  .drop { border: 2px dashed var(--line); border-radius: 8px; padding: 16px 20px; cursor: pointer; transition: border-color 0.15s, background-color 0.15s; min-height: 80px; text-align: center; }
+  .drop:hover { border-color: var(--blue); background: rgba(59,130,246,0.03); }
+  .slot.b .drop:hover { border-color: var(--green); background: rgba(16,185,129,0.03); }
   .drop.dragging { border-color: var(--blue); background: rgba(59,130,246,0.05); }
   .slot.b .drop.dragging { border-color: var(--green); background: rgba(16,185,129,0.05); }
-  .drop .prompt { color: var(--muted); font-size: 13px; text-align: center; padding: 12px 0; }
+  .drop .drop-icon { font-size: 1.6rem; margin-bottom: 0.25rem; opacity: 0.9; }
+  .drop .prompt { color: var(--muted); font-size: 13px; text-align: center; padding: 4px 0; }
   .drop .prompt strong { color: var(--text); }
   
   .fileline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -386,7 +389,7 @@
       <div class="slot a">
         <h2><span class="dot"></span>Log A</h2>
         <div class="drop" id="dropA">
-          <div class="prompt" id="promptA">Drop a <strong>.bbl / .bfl</strong> blackbox file here or click to browse</div>
+          <div class="prompt" id="promptA"><div class="drop-icon">📄</div>Drop a <strong>.bbl / .bfl</strong> Blackbox file here, or click to browse</div>
           <div id="infoA" style="display:none">
             <div class="fileline">
               <span class="fname" id="fnameA"></span>
@@ -407,7 +410,7 @@
       <div class="slot b">
         <h2><span class="dot"></span>Log B <span style="color:var(--muted);letter-spacing:0.05em">(optional, for comparison)</span></h2>
         <div class="drop" id="dropB">
-          <div class="prompt" id="promptB">Drop a <strong>.bbl / .bfl</strong> blackbox file here or click to browse</div>
+          <div class="prompt" id="promptB"><div class="drop-icon">📄</div>Drop a <strong>.bbl / .bfl</strong> Blackbox file here, or click to browse</div>
           <div id="infoB" style="display:none">
             <div class="fileline">
               <span class="fname" id="fnameB"></span>
@@ -452,9 +455,6 @@
       <div class="ctl"><label for="fmin">f min</label><input type="number" id="fmin" value="1" step="0.5" min="0.2"></div>
       <div class="ctl"><label for="fmax">f max</label><input type="number" id="fmax" value="300" step="10"></div>
       <div class="ctl"><label for="logx">Log f</label><input type="checkbox" id="logx" checked></div>
-    </div>
-
-    <p class="setuphint">The highlighted band marks the analyzed flight segment. Drag its edges to trim, drag inside to move, or click empty space to select a new region.</p>
   </section>
 
   <!-- RESULTS -->
