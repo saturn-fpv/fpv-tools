@@ -1906,7 +1906,7 @@ function updateChartsTheme(theme) {
             </h3>
             <ul style="list-style: disc; padding-left: 1.25rem; font-size: 0.875rem; color: var(--text, #FAFAFA); line-height: 1.6; display: flex; flex-direction: column; gap: 0.4rem;">
                 <li><strong>Flight Segment Selector:</strong> Auto-detects and isolates separate flights from a single log file based on arm/disarm state and power cycles.</li>
-                <li><strong>Altitude Offset (m):</strong> Adjusts baseline ground elevation zero-level if barometric sensor or GPS altitude reported an offset.</li>
+                <li><strong>Altitude Offset (m):</strong> Adjusts baseline ground elevation zero-level. If the telemetry stream captured the pre-arm state (when Betaflight reports GPS MSL altitude before zeroing relative baro altitude on arming), the parser automatically detects your ground ASL elevation and sets this offset. You can also adjust it manually for sea-level alignment in Google Earth.</li>
                 <li><strong>Track Line Color & Width:</strong> Customizes the visual 3D path ribbon rendered in Google Earth.</li>
                 <li><strong>KML/KMZ vs GPX Export:</strong> <strong>KML/KMZ</strong> exports 3D flight paths, altitude extrusion ribbons, and waypoints for Google Earth. <strong>GPX</strong> exports standard GPS track logs compatible with Strava, Garmin, and GIS tools.</li>
             </ul>
