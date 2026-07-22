@@ -1440,7 +1440,7 @@
                     </div>
                     <p style="margin-top: 0.75rem; font-size: 0.75rem; color: var(--dim); line-height: 1.4;">
                         💡 <b>Why ELRS & Crossfire Differ in Sensitivity & Link Stability:</b><br>
-                        • <b>Packet Payload & Bandwidth:</b> ELRS uses shorter over-the-air packet payloads (8-byte OTA frame) allowing narrower LoRa channel bandwidths. Narrower bandwidth lowers the thermal noise floor ($Noise = -174 + 10\log_{10}(BW)$), giving ELRS ~5–6 dB higher sensitivity than Crossfire at equivalent frame rates (e.g. ELRS 900MHz 50Hz is -120 dBm vs Crossfire 50Hz is -115 dBm).<br>
+                        • <b>Packet Payload & Bandwidth:</b> ELRS uses shorter over-the-air packet payloads (8-byte OTA frame) allowing narrower LoRa channel bandwidths. Narrower bandwidth lowers the thermal noise floor (<code>Noise = -174 + 10 · log₁₀(BW)</code>), giving ELRS ~5–6 dB higher sensitivity than Crossfire at equivalent frame rates (e.g. ELRS 900MHz 50Hz is -120 dBm vs Crossfire 50Hz is -115 dBm).<br>
                         • <b>Telemetry Ratios:</b> ELRS allows low telemetry ratios (e.g. 1:64 or 1:128), devoting 99% of time to listening for control packets. This prevents low-power receiver telemetry from dropping the link at extreme distance.<br>
                         • <b>Forward Error Correction (FEC):</b> ELRS incorporates fast packet recovery and LQI-based FEC that reconstructs lost packets smoothly near the noise floor limit.
                     </p>
@@ -1563,7 +1563,7 @@
                         💡 <b>Understanding dBi vs dBiC & Polarization Mismatch Losses:</b><br>
                         • <b>dBi vs dBiC:</b> <code>1 dBiC = 1 dBi</code>. Gain rated in <b>dBiC</b> is simply isotropic gain for Circularly Polarized (CP) antennas. Enter dBiC values directly into antenna gain input fields.<br>
                         • <b>Linear ➔ Circular Mismatch:</b> Pairing a Linearly Polarized antenna (e.g. Omni whip on quad) with a Circularly Polarized antenna (e.g. RHCP/LHCP patch on goggles) incurs an inherent <b>3 dB polarization mismatch loss</b> (50% power drop).<br>
-                        • <b>Opposite Handedness Mismatch:</b> Pairing opposite circular handedness (e.g. RHCP ➔ LHCP) results in severe signal rejection (<b>>20 dB loss</b>).
+                        • <b>Opposite Handedness Mismatch:</b> Pairing opposite circular handedness (e.g. RHCP ➔ LHCP) results in severe signal rejection (<b>&gt;20 dB loss</b>).
                     </p>
                 </div>
             </div>
