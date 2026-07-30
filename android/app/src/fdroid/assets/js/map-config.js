@@ -1,8 +1,8 @@
 window.MapConfig = {
     initLayers: function(leafletMap) {
-        const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        const osm = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attributions">CARTO</a>'
         });
 
         osm.addTo(leafletMap);
@@ -13,8 +13,8 @@ window.MapConfig = {
             defaultLayer: osm,
             roadLayer: osm,
             baseLayers: {
-                "OpenStreetMap": osm,
-                "Tactical Grid (Offline)": offlineGrid
+                "OSM": osm,
+                "Offline Grid": offlineGrid
             }
         };
     }
