@@ -6,6 +6,7 @@
     <title>EdgeTX Telemetry Parser - Saturn FPV</title>
     <link rel="stylesheet" href="../css/leaflet.css" />
     <script src="../js/leaflet.js"></script>
+    <script src="../js/map-config.js"></script>
     <script src="../js/chart.umd.min.js"></script>
     <script src="../js/jszip.min.js"></script>
     <style>
@@ -1358,37 +1359,18 @@ function initMap() {
 
     const offlineGrid = L.gridLayer.gridPattern();
 
-    if (navigator.onLine) {
-        // Prepare online road & satellite maps
-        const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            maxZoom: 19,
-            attribution: 'Esri Satellite'
-        });
-        
-        const activeTheme = document.body.classList.contains('light-theme') ? 'light' : 'dark';
-        const roadUrl = activeTheme === 'light' 
-            ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
-            : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-        const roadAttr = activeTheme === 'light' ? 'CartoDB Light' : 'CartoDB Dark';
-
-        roadLayer = L.tileLayer(roadUrl, {
-            maxZoom: 19,
-            attribution: roadAttr
-        });
-
-        // Set default to satellite when online, and add controls
-        satellite.addTo(leafletMap);
+    if (navigator.onLine && window.MapConfig) {
+        const config = MapConfig.initLayers(leafletMap);
+        roadLayer = config.roadLayer;
+        currentBaseLayers = config.baseLayers;
+    } else {
+        offlineGrid.addTo(leafletMap);
         currentBaseLayers = {
-            "Satellite": satellite,
-            "Road Map": roadLayer,
             "Tactical Grid (Offline)": offlineGrid
         };
-        
-        layersControl = L.control.layers(currentBaseLayers, null, { collapsed: false }).addTo(leafletMap);
-    } else {
-        // 100% offline fallback: use the tactical grid
-        offlineGrid.addTo(leafletMap);
     }
+
+    layersControl = L.control.layers(currentBaseLayers, null, { collapsed: false }).addTo(leafletMap);
 }
 
 function updateMap(points) {
