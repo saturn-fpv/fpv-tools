@@ -41,6 +41,8 @@ Designed with a high-contrast dark theme optimized for outdoor readability, FPV 
 * 🎮 **PID Controller Simulator**: Model overshoot, settling time, and tracking errors on an animated step-response graph to help visualize how P, I, and D parameters affect flight dynamics. *(Based on the original simulator by Joshua Bardwell, with additional improvements)*
 * 📡 **VTX Frequency Planner**: Coordinate channels for Analog and Digital video transmitters (HDZero, Walksnail, DJI O3/O4). Checks for Intermodulation Distortion (IMD) conflicts, organizes pilots into heats, and suggests optimal channel assignments.
 * 🗺️ **EdgeTX Telemetry Log Parser**: Convert raw EdgeTX, OpenTX, or FreedomTX telemetry log files (`.csv`) containing TBS Crossfire or ExpressLRS (CRSF) GPS data into KML/KMZ tracks. Applies altitude calibration for terrain-following, enabling 3D flyovers of your flights in Google Earth.
+* 📶 **RF Calculators**: Calculate line-of-sight range, link budget, convert mW to dBm, and design dipole antennas.
+* 〰️ **Chirp Analyzer**: Measure frequency response, tracking error, and motor saturation from Betaflight chirp sweeps.
 
 ---
 

@@ -11,6 +11,8 @@ Features:
 🎮 PID Controller Simulator: Model axis control feedback loops, step responses, and motor heat in real-time.
 📡 VTX Frequency Planner: Calculate safe, intermodulation-free frequency layouts and channel assignments for multi-pilot race events.
 🗺️ EdgeTX Telemetry Log Parser: Parse EdgeTX radio telemetry logs to visualize 3D flight paths and export GPX, KML, and KMZ tracks.
+📶 RF Calculators: Calculate line-of-sight range, link budget, convert mW to dBm, and design dipole antennas.
+〰️ Chirp Analyzer: Measure frequency response, tracking error, and motor saturation from Betaflight chirp sweeps.
 
 App Philosophy / Why Pilots Trust FPV Tools:
 🚫 100% Offline-First: Performs all calculations and charts locally on your device. Works at remote launch sites or race parks with no internet or cellular connection.

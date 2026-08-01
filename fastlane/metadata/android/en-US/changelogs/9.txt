@@ -1,0 +1,6 @@
+Version 1.2.2 Updates:
+- Integrated OpenStreetMap (OSM) tile configuration for 100% F-Droid FOSS compliance.
+- Added dynamic range rings and distance circles around home takeoff markers in Telemetry Parser.
+- Improved native .csv file chooser support in Android file pickers for telemetry logs.
+- Added offline tactical grid fallback when cell reception or map tiles fail.
+- Added explicit .bfl binary log file format support to Chirp Analyzer.
