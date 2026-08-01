@@ -7,7 +7,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPL_v3-blue.svg)](LICENSE)
 [![Support on Patreon](https://img.shields.io/badge/Patreon-Sponsor-orange?logo=patreon&logoColor=white)](https://www.patreon.com/SaturnFPV)
 
-FPV Tools is an open-source utility and visualization suite designed for FPV drone pilots, builders, and racers. It provides offline tools to model motor sizes, compare rate curves, plan frequencies, visualize flight telemetry, and simulate PID controllers.
+FPV Tools is an open-source utility and visualization suite designed for FPV drone pilots, builders, and racers. It provides offline tools to model motor sizes, compare rate curves, plan frequencies, visualize flight telemetry, simulate PID controllers, calculate RF link budgets, and analyze swept-sine chirp logs.
 
 Designed with a high-contrast dark theme optimized for outdoor readability, FPV Tools works completely offline, contains no ads, and respects your privacy.
 
