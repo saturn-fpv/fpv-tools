@@ -17,7 +17,7 @@ Features:
 App Philosophy / Why Pilots Trust FPV Tools:
 🚫 100% Offline-First: Performs all calculations and charts locally on your device. Works at remote launch sites or race parks with no internet or cellular connection.
 🔒 Privacy by Design: No ads, no in-app purchases, and no tracking. FPV Tools does not collect, store, or upload any of your data.
-📖 Fully Open Source: The source code is published under the GPL v3, inviting anyone to inspect, verify, and contribute.
+📖 Fully Open Source: The source code is published under the GPL v3, inviting anyone to inspect, verify, and contribute. The project is hosted on GitHub: https://github.com/saturn-fpv/fpv-tools
 ☀️ Designed for the Field: A high-contrast, battery-saving dark interface designed for readability under direct sunlight.
 
 Credits & Attributions:
