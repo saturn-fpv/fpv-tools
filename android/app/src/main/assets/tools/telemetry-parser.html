@@ -6,6 +6,7 @@
     <title>EdgeTX Telemetry Parser - Saturn FPV</title>
     <link rel="stylesheet" href="../css/leaflet.css" />
     <script src="../js/leaflet.js"></script>
+    <script src="../js/map-config.js"></script>
     <script src="../js/chart.umd.min.js"></script>
     <script src="../js/jszip.min.js"></script>
     <style>
@@ -244,6 +245,35 @@
             padding: 2rem;
             color: #6b7280;
             font-size: 0.8125rem;
+        }
+
+        .home-tooltip {
+            background: rgba(13, 13, 16, 0.88) !important;
+            border: 1px solid rgba(232, 114, 42, 0.6) !important;
+            color: #e8722a !important;
+            font-size: 11px !important;
+            font-weight: 600 !important;
+            padding: 2px 6px !important;
+            border-radius: 4px !important;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4) !important;
+        }
+
+        .ring-edge-label {
+            background: transparent !important;
+            border: none !important;
+            text-align: center;
+        }
+        .ring-edge-label span {
+            background: rgba(12, 15, 20, 0.88);
+            border: 1px solid rgba(232, 114, 42, 0.6);
+            color: #e8722a;
+            font-size: 10px;
+            font-family: monospace;
+            font-weight: 600;
+            padding: 1px 4px;
+            border-radius: 3px;
+            white-space: nowrap;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.6);
         }
 
         /* Form group */
@@ -536,6 +566,9 @@
 
                 <!-- Tab Content: Track Map -->
                 <div class="panel" id="tab-telemetry-map" style="border-top-left-radius:0; border-top-right-radius:0;">
+                    <div id="noGpsWarning" class="warn-banner hidden" style="background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd;">
+                        <strong>ℹ️ No GPS Telemetry in Log Segment:</strong> This flight segment contains no GPS coordinates (RPM / Battery / PID telemetry log only).
+                    </div>
                     <div id="sparseGpsWarning" class="warn-banner hidden">
                         <strong>⚠️ Sparse GPS Telemetry Detected:</strong> Your GPS coordinates update slowly (density: <span id="warnDensity"></span>%), likely due to a low ExpressLRS Telemetry Ratio (like 1:64). Consider using <strong>1:8</strong> or <strong>1:4</strong> in your radio's ELRS LUA script for smooth tracking, and try enabling the <strong>Interpolate sparse GPS</strong> option.
                     </div>
@@ -1330,14 +1363,44 @@ async function downloadFile() {
 // ================================================================
 //  MAP
 // ================================================================
-// Custom 100% offline tactical grid layer pattern
+// Custom 100% offline tactical grid layer pattern with adaptive metric labels
 L.GridLayer.GridPattern = L.GridLayer.extend({
     createTile: function (coords) {
-        var tile = document.createElement('div');
-        tile.style.outline = '1px solid rgba(255, 255, 255, 0.04)';
-        tile.style.background = '#0d0d10';
-        tile.style.backgroundImage = 'radial-gradient(rgba(232, 114, 42, 0.08) 1.2px, transparent 0)';
-        tile.style.backgroundSize = '32px 32px';
+        var tile = document.createElement('canvas');
+        var tileSize = this.getTileSize();
+        tile.width = tileSize.x;
+        tile.height = tileSize.y;
+        var ctx = tile.getContext('2d');
+
+        ctx.fillStyle = '#0c0f14';
+        ctx.fillRect(0, 0, tileSize.x, tileSize.y);
+
+        var step = 32;
+
+        var zoom = coords.z;
+        var n = Math.PI - 2 * Math.PI * coords.y / Math.pow(2, zoom);
+        var lat = (180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))));
+        var metersPerPx = (40075016 * Math.cos(lat * Math.PI / 180)) / (256 * Math.pow(2, zoom));
+        var cellMeters = Math.round(step * metersPerPx);
+        var distLabel = cellMeters >= 1000 ? (cellMeters / 1000).toFixed(1) + ' km' : cellMeters + ' m';
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (var x = 0; x <= tileSize.x; x += step) {
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, tileSize.y);
+        }
+        for (var y = 0; y <= tileSize.y; y += step) {
+            ctx.moveTo(0, y);
+            ctx.lineTo(tileSize.x, y);
+        }
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgba(232, 114, 42, 0.45)';
+        ctx.font = '9px monospace';
+        ctx.fillText(distLabel + ' / grid', 6, 14);
+
         return tile;
     }
 });
@@ -1348,7 +1411,65 @@ L.gridLayer.gridPattern = function(opts) {
 let layersControl = null;
 let currentBaseLayers = {};
 let roadLayer = null;
+let homeOverlayGroup = null;
+let currentHomeLatLng = null;
 
+/**
+ * Updates visible range rings and labels around the Home takeoff marker based on current map zoom level.
+ */
+function updateRangeRings() {
+    if (!leafletMap || !homeOverlayGroup || !currentHomeLatLng) return;
+    homeOverlayGroup.clearLayers();
+
+    // 1. Home Takeoff Marker (always visible)
+    L.circleMarker(currentHomeLatLng, {
+        radius: 6,
+        color: '#e8722a',
+        fillColor: '#ff8c3b',
+        fillOpacity: 0.9,
+        weight: 2
+    }).bindTooltip('📍 Home (Takeoff)', { permanent: true, direction: 'top', className: 'home-tooltip' })
+      .addTo(homeOverlayGroup);
+
+    // 2. Filter visible rings dynamically based on zoom level to eliminate off-screen SVG path lag
+    const zoom = leafletMap.getZoom();
+    let visibleRings = [];
+    if (zoom >= 16) {
+        visibleRings = [100, 250, 500, 1000];
+    } else if (zoom >= 14) {
+        visibleRings = [250, 500, 1000, 2000, 5000];
+    } else if (zoom >= 12) {
+        visibleRings = [1000, 2000, 5000, 10000, 20000];
+    } else {
+        visibleRings = [5000, 10000, 20000, 50000, 100000];
+    }
+
+    visibleRings.forEach(rMeters => {
+        const ringLabel = rMeters >= 1000 ? (rMeters / 1000) + ' km' : rMeters + ' m';
+        
+        L.circle(currentHomeLatLng, {
+            radius: rMeters,
+            color: 'rgba(232, 114, 42, 0.35)',
+            weight: 1,
+            dashArray: '4, 4',
+            fill: false
+        }).addTo(homeOverlayGroup);
+
+        const topEdgeLat = currentHomeLatLng[0] + (rMeters / 111320);
+        const labelIcon = L.divIcon({
+            className: 'ring-edge-label',
+            html: `<span>${ringLabel}</span>`,
+            iconSize: [60, 16],
+            iconAnchor: [30, 8]
+        });
+
+        L.marker([topEdgeLat, currentHomeLatLng[1]], { icon: labelIcon, interactive: false }).addTo(homeOverlayGroup);
+    });
+}
+
+/**
+ * Initializes the main Leaflet map, layer controls, and tile failure fallback listeners.
+ */
 function initMap() {
     if (leafletMap) return;
     leafletMap = L.map('map', {
@@ -1356,62 +1477,84 @@ function initMap() {
         attributionControl: false
     }).setView([0, 0], 2);
 
+    L.control.scale({ imperial: false, metric: true, position: 'bottomleft' }).addTo(leafletMap);
+
     const offlineGrid = L.gridLayer.gridPattern();
 
-    if (navigator.onLine) {
-        // Prepare online road & satellite maps
-        const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            maxZoom: 19,
-            attribution: 'Esri Satellite'
-        });
-        
-        const activeTheme = document.body.classList.contains('light-theme') ? 'light' : 'dark';
-        const roadUrl = activeTheme === 'light' 
-            ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
-            : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-        const roadAttr = activeTheme === 'light' ? 'CartoDB Light' : 'CartoDB Dark';
+    if (navigator.onLine && window.MapConfig) {
+        const config = MapConfig.initLayers(leafletMap);
+        roadLayer = config.roadLayer;
+        currentBaseLayers = config.baseLayers;
 
-        roadLayer = L.tileLayer(roadUrl, {
-            maxZoom: 19,
-            attribution: roadAttr
-        });
-
-        // Set default to satellite when online, and add controls
-        satellite.addTo(leafletMap);
-        currentBaseLayers = {
-            "Satellite": satellite,
-            "Road Map": roadLayer,
-            "Tactical Grid (Offline)": offlineGrid
-        };
-        
-        layersControl = L.control.layers(currentBaseLayers, null, { collapsed: false }).addTo(leafletMap);
+        // Fallback: If online tiles fail to load (e.g. weak cell reception), automatically add offlineGrid
+        const defaultTileLayer = config.defaultLayer || config.roadLayer;
+        if (defaultTileLayer && typeof defaultTileLayer.on === 'function') {
+            defaultTileLayer.on('tileerror', function() {
+                if (offlineGrid && !leafletMap.hasLayer(offlineGrid)) {
+                    offlineGrid.addTo(leafletMap);
+                }
+            });
+        }
     } else {
-        // 100% offline fallback: use the tactical grid
         offlineGrid.addTo(leafletMap);
+        currentBaseLayers = {
+            "Offline Grid": offlineGrid
+        };
     }
+
+    layersControl = L.control.layers(currentBaseLayers, null, { collapsed: false }).addTo(leafletMap);
+
+    // Re-filter range rings dynamically when zoom level changes
+    leafletMap.on('zoomend', updateRangeRings);
 }
 
+/**
+ * Updates the map polyline track and home overlays for the active flight points.
+ * @param {Array<Object>} points - Processed flight telemetry points with lat/lon coordinates.
+ */
 function updateMap(points) {
     if (!leafletMap) initMap();
+
+    const noGpsWarn = document.getElementById('noGpsWarning');
 
     if (trackLayer) {
         leafletMap.removeLayer(trackLayer);
         trackLayer = null;
     }
+    if (homeOverlayGroup) {
+        leafletMap.removeLayer(homeOverlayGroup);
+        homeOverlayGroup = null;
+    }
 
-    if (points.length === 0) return;
+    const validGpsPoints = points.filter(p => p && !isNaN(p.lat) && !isNaN(p.lon) && (p.lat !== 0 || p.lon !== 0));
+
+    if (validGpsPoints.length === 0) {
+        if (noGpsWarn) noGpsWarn.classList.remove('hidden');
+        currentHomeLatLng = null;
+        return;
+    } else {
+        if (noGpsWarn) noGpsWarn.classList.add('hidden');
+    }
 
     const color = document.getElementById('trackColor').value;
     const weight = parseInt(document.getElementById('lineWidth').value);
-    const latlngs = points.map(p => [p.lat, p.lon]);
+    const latlngs = validGpsPoints.map(p => [p.lat, p.lon]);
 
+    // Use smoothFactor for smooth GPU polyline rendering
     trackLayer = L.polyline(latlngs, {
         color: color,
         weight: weight,
-        opacity: 0.9
+        opacity: 0.9,
+        smoothFactor: 1.5
     }).addTo(leafletMap);
 
-    leafletMap.fitBounds(trackLayer.getBounds().pad(0.1));
+    const home = validGpsPoints[0];
+    currentHomeLatLng = [home.lat, home.lon];
+
+    homeOverlayGroup = L.layerGroup().addTo(leafletMap);
+
+    leafletMap.fitBounds(trackLayer.getBounds().pad(0.15));
+    updateRangeRings();
 }
 
 // ================================================================
