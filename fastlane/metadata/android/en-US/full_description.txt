@@ -21,7 +21,7 @@ App Philosophy / Why Pilots Trust FPV Tools:
 ☀️ Designed for the Field: A high-contrast, battery-saving dark interface designed for readability under direct sunlight.
 
 Credits & Attributions:
-The core PID simulator logic and concept are based on Joshua Bardwell's original development. He graciously granted permission to adapt his code. Since then, we have built on top of that foundation, implementing additional improvements.
+The core PID simulator logic and concept are based on Joshua Bardwell's original development. He graciously granted permission to adapt his code.
 
 Support Development:
 If you find this application useful for your builds or race events, please consider supporting future development and maintenance on Patreon (SaturnFPV).
