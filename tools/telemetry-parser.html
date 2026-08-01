@@ -1414,6 +1414,9 @@ let roadLayer = null;
 let homeOverlayGroup = null;
 let currentHomeLatLng = null;
 
+/**
+ * Updates visible range rings and labels around the Home takeoff marker based on current map zoom level.
+ */
 function updateRangeRings() {
     if (!leafletMap || !homeOverlayGroup || !currentHomeLatLng) return;
     homeOverlayGroup.clearLayers();
@@ -1464,6 +1467,9 @@ function updateRangeRings() {
     });
 }
 
+/**
+ * Initializes the main Leaflet map, layer controls, and tile failure fallback listeners.
+ */
 function initMap() {
     if (leafletMap) return;
     leafletMap = L.map('map', {
@@ -1479,6 +1485,16 @@ function initMap() {
         const config = MapConfig.initLayers(leafletMap);
         roadLayer = config.roadLayer;
         currentBaseLayers = config.baseLayers;
+
+        // Fallback: If online tiles fail to load (e.g. weak cell reception), automatically add offlineGrid
+        const defaultTileLayer = config.defaultLayer || config.roadLayer;
+        if (defaultTileLayer && typeof defaultTileLayer.on === 'function') {
+            defaultTileLayer.on('tileerror', function() {
+                if (offlineGrid && !leafletMap.hasLayer(offlineGrid)) {
+                    offlineGrid.addTo(leafletMap);
+                }
+            });
+        }
     } else {
         offlineGrid.addTo(leafletMap);
         currentBaseLayers = {
@@ -1492,6 +1508,10 @@ function initMap() {
     leafletMap.on('zoomend', updateRangeRings);
 }
 
+/**
+ * Updates the map polyline track and home overlays for the active flight points.
+ * @param {Array<Object>} points - Processed flight telemetry points with lat/lon coordinates.
+ */
 function updateMap(points) {
     if (!leafletMap) initMap();
 

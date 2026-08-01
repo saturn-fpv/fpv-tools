@@ -1,4 +1,13 @@
+/**
+ * MapConfig module for initializing Leaflet basemaps across environments.
+ * @module MapConfig
+ */
 window.MapConfig = {
+    /**
+     * Initializes and returns default base layers for the Leaflet map instance.
+     * @param {L.Map} leafletMap - The target Leaflet map instance.
+     * @returns {{defaultLayer: L.TileLayer, roadLayer: L.TileLayer, baseLayers: Object<string, L.Layer>}} Layer configuration object.
+     */
     initLayers: function(leafletMap) {
         const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             maxZoom: 19,
