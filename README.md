@@ -7,7 +7,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPL_v3-blue.svg)](LICENSE)
 [![Support on Patreon](https://img.shields.io/badge/Patreon-Sponsor-orange?logo=patreon&logoColor=white)](https://www.patreon.com/SaturnFPV)
 
-FPV Tools is an open-source utility and visualization suite designed for FPV drone pilots, builders, and racers. It provides offline tools to model motor sizes, compare rate curves, plan frequencies, visualize flight telemetry, and simulate PID controllers.
+FPV Tools is an open-source utility and visualization suite designed for FPV drone pilots, builders, and racers. It provides offline tools to model motor sizes, compare rate curves, plan frequencies, visualize flight telemetry, simulate PID controllers, calculate RF link budgets, and analyze frequency responses from Betaflight Blackbox chirp logs.
 
 Designed with a high-contrast dark theme optimized for outdoor readability, FPV Tools works completely offline, contains no ads, and respects your privacy.
 
@@ -41,6 +41,8 @@ Designed with a high-contrast dark theme optimized for outdoor readability, FPV 
 * 🎮 **PID Controller Simulator**: Model overshoot, settling time, and tracking errors on an animated step-response graph to help visualize how P, I, and D parameters affect flight dynamics. *(Based on the original simulator by Joshua Bardwell, with additional improvements)*
 * 📡 **VTX Frequency Planner**: Coordinate channels for Analog and Digital video transmitters (HDZero, Walksnail, DJI O3/O4). Checks for Intermodulation Distortion (IMD) conflicts, organizes pilots into heats, and suggests optimal channel assignments.
 * 🗺️ **EdgeTX Telemetry Log Parser**: Convert raw EdgeTX, OpenTX, or FreedomTX telemetry log files (`.csv`) containing TBS Crossfire or ExpressLRS (CRSF) GPS data into KML/KMZ tracks. Applies altitude calibration for terrain-following, enabling 3D flyovers of your flights in Google Earth.
+* 📶 **Radio Frequency Calculators**: Calculate line-of-sight range, link budget, convert mW to dBm, and design dipole antennas.
+* 〰️ **Chirp Response Analyzer**: Measure frequency response, tracking error, and motor saturation from Betaflight chirp sweeps.
 
 ---
 
