@@ -33,3 +33,6 @@ keys/
 # Temporary scratch folders
 temp/
 **/scratch/
+
+# Local Claude Code dev config (preview server, not part of the app)
+.claude/
