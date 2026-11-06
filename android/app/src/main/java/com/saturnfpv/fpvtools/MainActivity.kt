@@ -55,7 +55,7 @@ class MainActivity : ComponentActivity() {
          * OpenStreetMap's tile usage policy requires a distinct, stable
          * User-Agent that identifies the app; generic defaults are blocked.
          */
-        private const val UA_TAG = "FPVTools/1.2.2 (+https://saturnfpv.com)"
+        private const val UA_TAG = "FPVTools/1.2.3 (+https://saturnfpv.com)"
     }
 
     private val fileChooserLauncher = registerForActivityResult(
