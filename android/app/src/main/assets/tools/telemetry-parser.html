@@ -545,6 +545,10 @@
     <!-- Flight selector (hidden until file loaded) -->
     <div class="panel hidden" id="flightPanel">
         <h2><span class="icon">✈️</span> Select Flight Segment</h2>
+        <div id="parseDiagnostics" class="warn-banner hidden" style="background: rgba(59, 130, 246, 0.12); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; margin-bottom: 0.75rem;">
+            <strong>ℹ️ Rows skipped while reading this log:</strong>
+            <span id="diagSummary"></span>
+        </div>
         <div class="flight-list" id="flightList"></div>
     </div>
 
@@ -794,9 +798,15 @@ function parseCSV(text) {
         var lon = parseFloat(gpsParts[1]);
         if (isNaN(lat) || isNaN(lon) || (lat === 0 && lon === 0)) { droppedNoGps++; continue; }
 
-        var sats = colMap.sats !== -1 ? parseInt(parts[colMap.sats]) || 0 : 0;
-        // Stale GPS guard: require a usable fix
-        if (colMap.sats !== -1 && sats < 4) { droppedLowSats++; continue; }
+        // Sats: only trust the value when the cell actually holds a number.
+        // A blank cell (telemetry briefly lost) must NOT be read as "0 sats"
+        // and throw away a row whose GPS coordinates are perfectly good.
+        var satsRaw = colMap.sats !== -1 ? (parts[colMap.sats] || '').trim() : '';
+        var satsParsed = parseInt(satsRaw, 10);
+        var satsKnown = satsRaw !== '' && !isNaN(satsParsed);
+        var sats = satsKnown ? satsParsed : 0;
+        // Stale GPS guard: reject only when we positively know the fix is weak.
+        if (satsKnown && sats < 4) { droppedLowSats++; continue; }
 
         var altRaw = colMap.alt !== -1 ? parseFloat(parts[colMap.alt]) : 0;
         if (isNaN(altRaw)) altRaw = 0;
@@ -822,16 +832,49 @@ function parseCSV(text) {
         });
     }
 
-    // Second pass: walk raw points and reject big GPS jumps (> 1 km between
-    // consecutive accepted rows). These are almost always stale GPS cache
-    // from a previous power-up that briefly leaks into the log.
+    // Second pass: reject stale GPS cache leaking in from a previous power-up.
+    // The test is implied SPEED, not raw distance: with a low ELRS telemetry
+    // ratio the GPS can update only every 20-50 s, and a fast model legitimately
+    // covers more than a kilometre in that time. A flat distance limit silently
+    // deletes real track on exactly the long-range flights people most want to
+    // plot. Anything above MAX_PLAUSIBLE_MPS is not a vehicle, it is a bad fix.
+    var MAX_PLAUSIBLE_MPS = 100;   // 360 km/h - far above any FPV model
+    var STALE_WINDOW_S = 120;      // beyond this a session break is more likely
     var rows = [];
+    var lastFix = null;            // row where the CURRENT position first appeared
     for (var k = 0; k < raw.length; k++) {
-        if (rows.length === 0) { rows.push(raw[k]); continue; }
+        var cand = raw[k];
+        if (rows.length === 0) { rows.push(cand); lastFix = cand; continue; }
+
         var prev = rows[rows.length - 1];
-        var d = haversine(prev.lat, prev.lon, raw[k].lat, raw[k].lon);
-        if (d > 1000) { droppedGpsJump++; continue; }
-        rows.push(raw[k]);
+        // A repeated position is a stale cache echo, not movement: keep it and
+        // move on, there is no jump to judge.
+        if (cand.lat === prev.lat && cand.lon === prev.lon) { rows.push(cand); continue; }
+
+        // The position changed. Measure against the row where the PREVIOUS
+        // position first appeared, not against the row immediately before:
+        // with sparse telemetry the same fix repeats for many rows, so the
+        // whole movement shows up across one 1-second row boundary. Dividing
+        // by that 1 second makes every normal sparse-GPS update look like
+        // hundreds of m/s and deletes most of the track.
+        var d = haversine(lastFix.lat, lastFix.lon, cand.lat, cand.lon);
+        var tPrev = parseTime(lastFix.date, lastFix.time);
+        var tCur = parseTime(cand.date, cand.time);
+        var dtSec = (!isNaN(tPrev) && !isNaN(tCur)) ? (tCur - tPrev) / 1000 : NaN;
+
+        if (!isNaN(dtSec) && dtSec > 0) {
+            // Within a plausible continuous window, judge by speed. Past it the
+            // radio was probably off between sessions, and detectFlights splits
+            // there anyway, so no jump rejection is applied.
+            if (dtSec <= STALE_WINDOW_S && (d / dtSec) > MAX_PLAUSIBLE_MPS) {
+                droppedGpsJump++; continue;
+            }
+        } else if (d > 1000) {
+            // No usable timestamps: fall back to the old flat distance rule.
+            droppedGpsJump++; continue;
+        }
+        rows.push(cand);
+        lastFix = cand;
     }
 
     // Expose diagnostics for the UI
@@ -919,6 +962,52 @@ function parseTime(dateStr, timeStr) {
     }
 }
 
+// Detects the altitude reset that marks an arm event.
+//
+// The old rule demanded the altitude land on <= 5 m. Real logs do not oblige:
+// an ELRS sample resets 603 -> 7 m, which that rule missed entirely, leaving
+// the MSL offset at 0 and burying the whole exported track ~600 m underground.
+// What actually identifies the event is the SIZE of the collapse, so that is
+// what is tested, with a tolerant landing band.
+//
+// The stationary check stays, because a mid-flight descent through the same
+// altitude band must not be mistaken for an arm. The old throttle half of that
+// guard was dead code - it read rows[i].ch3, which parseCSV never populates,
+// and OR'd it, so the whole clause was permanently true. Measured against the
+// sample logs, real arm events sit at Thr -231..-524, nowhere near the -950
+// the old code looked for, so only a clearly raised throttle is treated as
+// evidence against an arm.
+function isArmReset(rows, i) {
+    if (!rows || i < 1 || i >= rows.length) return false;
+    var prev = rows[i - 1], cur = rows[i];
+    if (!prev || !cur) return false;
+
+    if (!(prev.alt > 50)) return false;              // was reporting MSL
+    if (!(cur.alt <= 15)) return false;              // landed near the new zero
+    if (!((prev.alt - cur.alt) > 50)) return false;  // and it was a real collapse
+
+    // Decisive test: before an arm the FC sits on the ground repeating a steady
+    // MSL figure, so the drop is preceded by a FLAT plateau. A mid-flight
+    // altitude glitch is not - in one sample the value falls 89 -> 65 -> 0 while
+    // the model is doing 83 km/h, which the old rule happily split on.
+    var PLATEAU_ROWS = 3, PLATEAU_TOL_M = 2;
+    var checked = 0;
+    for (var b = i - 1; b >= 0 && checked < PLATEAU_ROWS; b--, checked++) {
+        if (Math.abs(rows[b].alt - prev.alt) > PLATEAU_TOL_M) return false;
+    }
+    if (checked === 0) return false;
+
+    // Secondary guards. The speed bound is deliberately loose: telemetry can
+    // already show the launch (27.9 km/h in one sample) on the very row the
+    // altitude resets, so a tight "stationary" test rejects real arm events.
+    var spd = cur.speedKmh;
+    if (spd !== undefined && spd !== null && !isNaN(spd) && spd >= 60) return false;
+
+    var thr = cur.thr;
+    var throttleRaised = (thr !== undefined && thr !== null && !isNaN(thr) && thr > 0);
+    return !throttleRaised;
+}
+
 function detectFlights(rows) {
     if (rows.length === 0) return [];
 
@@ -933,14 +1022,11 @@ function detectFlights(rows) {
             var t2 = parseTime(rows[i].date, rows[i].time);
             if (!isNaN(t1) && !isNaN(t2) && (t2 - t1) > 60000) split = true;
         }
-        // (b) CRSF-style arm event: altitude drop from > 50m to <= 5m (relative altitude resets) AND drone is stationary
-        if (!split && rows[i - 1].alt > 50 && rows[i].alt <= 5) {
-            var isStationary = (rows[i].speedKmh === undefined || isNaN(rows[i].speedKmh) || rows[i].speedKmh < 10);
-            var isThrLow = (rows[i].thr === undefined || rows[i].thr < -950) || 
-                           (rows[i].ch3 === undefined || rows[i].ch3 < 1020);
-            if (isStationary && isThrLow) {
-                split = true;
-            }
+        // (b) Arm event: the FC stops reporting GPS MSL altitude and switches to
+        //     a relative altitude zeroed at the arm point, so the value collapses
+        //     from hundreds of metres to near zero in a single row.
+        if (!split && isArmReset(rows, i)) {
+            split = true;
         }
         if (split) splits.push(i);
     }
@@ -954,14 +1040,16 @@ function detectFlights(rows) {
 
         var segRows = rows.slice(startIdx, endIdx + 1);
 
-        // Pre-arm MSL: look at the row before this segment if a CRSF arm event split here
+        // Pre-arm MSL: the altitude the FC last reported before zeroing. Uses the
+        // same tolerant arm-reset test as the splitter, so the two cannot disagree.
         var preArmAlt = 0;
-        if (startIdx > 0 && rows[startIdx - 1].alt > 50 && rows[startIdx].alt <= 5) {
+        if (startIdx > 0 && isArmReset(rows, startIdx)) {
             preArmAlt = rows[startIdx - 1].alt;
         } else {
-            // Robust fallback: search the first 50 rows of the segment for a drop from > 50 to <= 5
+            // Fallback: the reset may sit just inside the segment rather than on
+            // its boundary (e.g. the log started while already powered up).
             for (var j = 0; j < Math.min(50, segRows.length - 1); j++) {
-                if (segRows[j].alt > 50 && segRows[j + 1].alt <= 5) {
+                if (isArmReset(segRows, j + 1)) {
                     preArmAlt = segRows[j].alt;
                     break;
                 }
@@ -1062,45 +1150,73 @@ function summarizeFlight(segRows) {
 // ================================================================
 //  POINT PROCESSING (altitude correction + trimming)
 // ================================================================
+// Fills in positions for rows that repeat a stale GPS fix, so a sparse track
+// draws as a smooth line instead of a staircase.
+//
+// Each synthesized point is placed by ELAPSED TIME, not by its index in the
+// array. That distinction is the whole fix: rows with no GPS value are dropped
+// during parsing, so after a telemetry dropout the array distance between two
+// fixes collapses while the real time between them does not. Spreading the
+// movement evenly across the surviving rows then crams, for example, a 415 m
+// gap into three one-second steps and reports 497 km/h for a model that never
+// exceeded 64. Weighting by timestamp puts every point where the clock says it
+// belongs.
+//
+// Synthesized points are flagged so the statistics can tell measured fixes
+// apart from drawn ones, and the logged GSpd is left untouched.
 function interpolateGPSPoints(points) {
     if (points.length < 3) return points;
     let i = 0;
     while (i < points.length) {
-        let startIdx = i;
-        let latVal = points[startIdx].lat;
-        let lonVal = points[startIdx].lon;
-        
+        const startIdx = i;
+        const latVal = points[startIdx].lat;
+        const lonVal = points[startIdx].lon;
+
         let j = startIdx + 1;
         while (j < points.length && points[j].lat === latVal && points[j].lon === lonVal) {
             j++;
         }
-        
-        let endIdx = j;
-        
+
+        const endIdx = j;
+
         if (endIdx < points.length && endIdx - startIdx > 1) {
-            let steps = endIdx - startIdx;
-            let startLat = points[startIdx].lat;
-            let startLon = points[startIdx].lon;
-            let startAlt = points[startIdx].altCorrected;
-            
-            let endLat = points[endIdx].lat;
-            let endLon = points[endIdx].lon;
-            let endAlt = points[endIdx].altCorrected;
-            
-            let totalDist = haversine(startLat, startLon, endLat, endLon);
-            let t1 = parseTime(points[startIdx].date, points[startIdx].time);
-            let t2 = parseTime(points[endIdx].date, points[endIdx].time);
-            let dt = (t2 - t1) / 1000;
-            let avgSpeedKmh = (dt > 0) ? (totalDist / dt) * 3.6 : 0;
-            
+            const steps = endIdx - startIdx;
+            const startLat = points[startIdx].lat;
+            const startLon = points[startIdx].lon;
+            const startAlt = points[startIdx].altCorrected;
+
+            const endLat = points[endIdx].lat;
+            const endLon = points[endIdx].lon;
+            const endAlt = points[endIdx].altCorrected;
+
+            const totalDist = haversine(startLat, startLon, endLat, endLon);
+            const t1 = parseTime(points[startIdx].date, points[startIdx].time);
+            const t2 = parseTime(points[endIdx].date, points[endIdx].time);
+            const span = t2 - t1;
+            const dt = span / 1000;
+            const useTime = !isNaN(span) && span > 0;
+            const avgSpeedKmh = (dt > 0) ? (totalDist / dt) * 3.6 : 0;
+
             for (let k = startIdx + 1; k < endIdx; k++) {
-                let frac = (k - startIdx) / steps;
+                let frac;
+                if (useTime) {
+                    const tk = parseTime(points[k].date, points[k].time);
+                    // Clamp: a row carrying a bad timestamp must not place a
+                    // point outside the segment it belongs to.
+                    frac = isNaN(tk) ? (k - startIdx) / steps
+                                     : Math.min(1, Math.max(0, (tk - t1) / span));
+                } else {
+                    frac = (k - startIdx) / steps;   // no clock: fall back to index
+                }
                 points[k].lat = startLat + (endLat - startLat) * frac;
                 points[k].lon = startLon + (endLon - startLon) * frac;
                 points[k].altCorrected = startAlt + (endAlt - startAlt) * frac;
-                points[k].speedKmh = avgSpeedKmh;
+                points[k].interpolated = true;
+                // Average ground speed across this gap, kept separate from the
+                // telemetry-reported GSpd so neither statistic masks the other.
+                points[k].speedKmhGps = avgSpeedKmh;
             }
-            points[startIdx].speedKmh = avgSpeedKmh;
+            points[startIdx].speedKmhGps = avgSpeedKmh;
         }
         i = endIdx;
     }
@@ -1110,7 +1226,8 @@ function interpolateGPSPoints(points) {
 function processFlightPoints(flight, altOffset, doTrim, doSmooth) {
     let points = flight.rows.map(r => ({
         ...r,
-        altCorrected: r.alt + altOffset
+        altCorrected: r.alt + altOffset,
+        interpolated: false   // set true by interpolateGPSPoints for drawn points
     }));
 
     if (doSmooth && points.length > 2) {
@@ -1668,28 +1785,44 @@ function updateStats(points) {
     document.getElementById('statDistance').textContent =
         dist > 1000 ? (dist / 1000).toFixed(2) + ' km' : Math.round(dist) + ' m';
 
-    const maxAlt = Math.max(...points.map(p => p.altCorrected));
+    // Plain loops rather than Math.max(...spread): the spread form throws
+    // RangeError past roughly 125k arguments, which a long high-rate log reaches.
+    let maxAlt = -Infinity;
+    let maxSpd = 0;
+    for (const p of points) {
+        if (p.altCorrected > maxAlt) maxAlt = p.altCorrected;
+        const s = p.speedKmh || 0;
+        if (s > maxSpd) maxSpd = s;
+    }
     document.getElementById('statMaxAlt').textContent = Math.round(maxAlt) + ' m';
 
-    // Max speed reported by the GSpd telemetry column (km/h)
-    const maxSpd = Math.max(...points.map(p => p.speedKmh || 0));
+    // Max speed reported by the GSpd telemetry column (km/h). This is now the
+    // logged value only - interpolation no longer overwrites it, so this and
+    // the GPS-derived figure below stay independent and can cross-check.
     document.getElementById('statMaxSpd').textContent =
         maxSpd > 0 ? maxSpd.toFixed(1) + ' km/h' : '-';
 
-    // Max speed COMPUTED from consecutive GPS points + timestamps.
-    // ELRS telemetry often holds stale GSpd values, so the calculated speed
-    // is a more honest signal of how fast the model actually moved.
+    // Max speed COMPUTED from the GPS fixes themselves. ELRS telemetry often
+    // holds stale GSpd values, so this is an independent read on how fast the
+    // model actually moved.
+    //
+    // Only MEASURED fixes take part. Interpolated points are positions this
+    // tool drew, not positions the receiver reported, so timing them against
+    // each other just re-reads our own straight line - and before the
+    // interpolation fix that is precisely how a 64 km/h flight came to report
+    // 497 km/h.
+    var measured = points.filter(function (p) { return !p.interpolated; });
     var maxSpdCalc = 0;
     var lastChangeIdx = 0;
-    for (var i = 1; i < points.length; i++) {
-        var prev = points[i - 1], curr = points[i];
+    for (var i = 1; i < measured.length; i++) {
+        var prev = measured[i - 1], curr = measured[i];
         if (curr.lat !== prev.lat || curr.lon !== prev.lon) {
-            var lastChangePt = points[lastChangeIdx];
+            var lastChangePt = measured[lastChangeIdx];
             if (lastChangePt.date && curr.date && lastChangePt.time && curr.time) {
                 var t1 = parseTime(lastChangePt.date, lastChangePt.time);
                 var t2 = parseTime(curr.date, curr.time);
                 var dt = (t2 - t1) / 1000;
-                if (dt > 0 && dt < 60) {
+                if (dt > 0 && dt < 120) {
                     var step = haversine(lastChangePt.lat, lastChangePt.lon, curr.lat, curr.lon);
                     var kmh = (step / dt) * 3.6;
                     if (kmh > maxSpdCalc) maxSpdCalc = kmh;
@@ -1701,11 +1834,18 @@ function updateStats(points) {
     document.getElementById('statMaxSpdCalc').textContent =
         maxSpdCalc > 0 ? maxSpdCalc.toFixed(1) + ' km/h' : '-';
 
-    // GPS density - share of distinct positions vs. total points kept.
-    // Surfaces sparse telemetry (e.g. ELRS GPS sensor updating once every
+    // GPS density - share of distinct MEASURED positions vs. rows kept.
+    // Surfaces sparse telemetry (e.g. an ELRS GPS sensor updating once every
     // 15-20 s, leaving most rows holding stale lat/lon).
+    //
+    // Interpolated points are excluded. Counting them made every smoothed track
+    // report 100% density, hiding the very condition this figure exists to
+    // expose and suppressing the sparse-telemetry warning below.
+    // Numerator counts distinct MEASURED fixes; the denominator stays the full
+    // row count, so the figure keeps meaning "share of rows carrying a new fix"
+    // and reads the same whether smoothing is on or off.
     var unique = {};
-    points.forEach(function(p) { unique[p.lat.toFixed(6) + ',' + p.lon.toFixed(6)] = 1; });
+    measured.forEach(function(p) { unique[p.lat.toFixed(6) + ',' + p.lon.toFixed(6)] = 1; });
     var density = points.length > 0 ? Math.round((Object.keys(unique).length / points.length) * 100) : 0;
     document.getElementById('statDensity').textContent = density + '%';
 
@@ -1742,6 +1882,11 @@ function onFileLoaded(text, fileName) {
     document.getElementById('fileName').textContent = fileName;
     document.getElementById('fileName').classList.remove('hidden');
 
+    // Report what the parser discarded. These counts were always computed and
+    // never shown, so a log shredded by telemetry dropouts looked identical to
+    // a clean one.
+    renderParseDiagnostics(rawRows._diagnostics);
+
     // Detect flights
     flights = detectFlights(rawRows);
     renderFlightList();
@@ -1751,6 +1896,34 @@ function onFileLoaded(text, fileName) {
     if (flights.length === 1) {
         selectFlight(0);
     }
+}
+
+/**
+ * Shows how many CSV rows were skipped and why, so sparse or damaged logs are
+ * visible rather than silently shrinking the track.
+ * @param {Object} diag - The diagnostics object attached by parseCSV.
+ * @returns {void}
+ */
+function renderParseDiagnostics(diag) {
+    const el = document.getElementById('parseDiagnostics');
+    if (!el) return;
+    if (!diag || !diag.totalDataRows) { el.classList.add('hidden'); return; }
+
+    const dropped = diag.totalDataRows - diag.kept;
+    if (dropped <= 0) { el.classList.add('hidden'); return; }
+
+    const reasons = [];
+    if (diag.droppedNoGps)      reasons.push(diag.droppedNoGps + ' with no GPS fix');
+    if (diag.droppedLowSats)    reasons.push(diag.droppedLowSats + ' below 4 satellites');
+    if (diag.droppedGpsJump)    reasons.push(diag.droppedGpsJump + ' implausible position jumps');
+    if (diag.droppedTruncated)  reasons.push(diag.droppedTruncated + ' truncated rows');
+
+    const pct = Math.round((dropped / diag.totalDataRows) * 100);
+    document.getElementById('diagSummary').textContent =
+        ' ' + dropped + ' of ' + diag.totalDataRows + ' rows (' + pct + '%) - ' +
+        (reasons.length ? reasons.join(', ') : 'reason not recorded') +
+        '. The remaining ' + diag.kept + ' rows were used.';
+    el.classList.remove('hidden');
 }
 
 function escapeHTML(str) {
@@ -1870,6 +2043,7 @@ function resetAll() {
     if (altChart) { altChart.destroy(); altChart = null; }
 
     document.getElementById('flightPanel').classList.add('hidden');
+    document.getElementById('parseDiagnostics').classList.add('hidden');
     document.getElementById('mainContent').classList.add('hidden');
     document.getElementById('fileName').classList.add('hidden');
     document.getElementById('fileInput').value = '';
