@@ -114,8 +114,9 @@ Whenever you bump the app version for a new release, you **MUST** update the ver
 2. **Sidebar UI Version:** Update the version string (e.g. `v1.1.3`) in the drawer header template in [js/sidebar.js](js/sidebar.js).
 3. **About Menu UI Version:** Update the version text in the about card header in [menu.html](menu.html).
 4. **Active Assets Sync:** Copy the updated `js/sidebar.js` and `menu.html` files to their active assets counterparts under `android/app/src/main/assets/` to ensure they are packaged in the Android APK.
-5. **Changelog Creation:** Create a new release changelog text file named after the target `versionCode` (e.g. `6.txt` for version code `6`) in `fastlane/metadata/android/en-US/changelogs/`.
-6. **Git Tagging:** Push the merged release commits to `main`, then create and push a tag named `v<versionName>` (e.g. `v1.1.3`) to GitHub so the release is tagged for Obtainium and the GitHub Releases page.
+5. **User-Agent Tag:** Update `UA_TAG` in [MainActivity.kt](android/app/src/main/java/com/saturnfpv/fpvtools/MainActivity.kt), which carries the version to tile providers.
+6. **Release Notes:** Paste them into the Play Console "What's new" box at upload time. They are **not** stored in the repo; the per-`versionCode` changelog files under `fastlane/` existed only for F-Droid and were removed in v1.2.3. The Play listing text (title, short and full description) lives in [store/](store/) for reference and manual copying.
+7. **Git Tagging:** Push the merged release commits to `main`, then create and push a tag named `v<versionName>` (e.g. `v1.1.3`) to GitHub so the release is tagged for Obtainium and the GitHub Releases page.
 
 ### 9. Guidance for AI Coding Assistants (Antigravity/Others)
 This section outlines automated workflow rules for AI agents:

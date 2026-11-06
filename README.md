@@ -13,19 +13,19 @@ Designed with a high-contrast dark theme optimized for outdoor readability, FPV 
 
 <table width="100%">
   <tr>
-    <td width="33%"><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.jpg" alt="Motor Stator Comparator"></td>
-    <td width="33%"><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.jpg" alt="Rate Curve Graphing"></td>
-    <td width="33%"><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.jpg" alt="Telemetry Flight Visualizer"></td>
+    <td width="33%"><img src="media/screenshots/1.jpg" alt="Motor Stator Comparator"></td>
+    <td width="33%"><img src="media/screenshots/2.jpg" alt="Rate Curve Graphing"></td>
+    <td width="33%"><img src="media/screenshots/3.jpg" alt="Telemetry Flight Visualizer"></td>
   </tr>
   <tr>
-    <td width="33%"><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.jpg" alt="Race Spectrum Organizer"></td>
-    <td width="33%"><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5.jpg" alt="PID Step-Response Simulator"></td>
-    <td width="33%"><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/6.jpg" alt="Throttle PID Attenuation"></td>
+    <td width="33%"><img src="media/screenshots/4.jpg" alt="Race Spectrum Organizer"></td>
+    <td width="33%"><img src="media/screenshots/5.jpg" alt="PID Step-Response Simulator"></td>
+    <td width="33%"><img src="media/screenshots/6.jpg" alt="Throttle PID Attenuation"></td>
   </tr>
   <tr>
-    <td width="33%"><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/7.jpg" alt="Prop Tip Speed Calculator"></td>
-    <td width="33%"><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/8.jpg" alt="Sensor Calibration"></td>
-    <td width="33%"><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/9.jpg" alt="Settings & Theme Toggle"></td>
+    <td width="33%"><img src="media/screenshots/7.jpg" alt="Prop Tip Speed Calculator"></td>
+    <td width="33%"><img src="media/screenshots/8.jpg" alt="Sensor Calibration"></td>
+    <td width="33%"><img src="media/screenshots/9.jpg" alt="Settings & Theme Toggle"></td>
   </tr>
 </table>
 
