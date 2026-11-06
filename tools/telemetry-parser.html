@@ -542,6 +542,16 @@
         </div>
     </div>
 
+    <!-- Shown when a log is readable but contains no usable GPS track -->
+    <div class="panel hidden" id="loadErrorPanel">
+        <h2><span class="icon">🛑</span> No Flight Track In This Log</h2>
+        <div class="warn-banner" style="margin-bottom:0;">
+            <strong id="loadErrorTitle"></strong>
+            <div id="loadErrorDetail" style="margin-top:0.45rem; font-weight:400;"></div>
+            <div id="loadErrorCounts" style="margin-top:0.55rem; font-weight:400; opacity:0.85; font-size:0.8125rem;"></div>
+        </div>
+    </div>
+
     <!-- Flight selector (hidden until file loaded) -->
     <div class="panel hidden" id="flightPanel">
         <h2><span class="icon">✈️</span> Select Flight Segment</h2>
@@ -729,17 +739,64 @@ let altChart = null;
 //   - truncated rows when telemetry is briefly lost mid-log
 //   - stale GPS cache (rows where Sats<4 or jump > 1 km from previous)
 // ================================================================
+// Splits one CSV line, honouring double-quoted fields.
+//
+// A plain split(',') misaligns every column after a quoted field that contains
+// a comma, and EdgeTX already quotes the flight-mode field (e.g. "AIR*"), so a
+// mode name with a comma in it would silently shift GPS, Alt and Sats one
+// column to the right. Doubled quotes inside a quoted field ("") are literal.
+function splitCsvLine(line) {
+    var out = [];
+    var field = '';
+    var inQuotes = false;
+    for (var i = 0; i < line.length; i++) {
+        var c = line[i];
+        if (inQuotes) {
+            if (c === '"') {
+                if (line[i + 1] === '"') { field += '"'; i++; }   // escaped quote
+                else inQuotes = false;
+            } else field += c;
+        } else if (c === '"') {
+            inQuotes = true;
+        } else if (c === ',') {
+            out.push(field); field = '';
+        } else field += c;
+    }
+    out.push(field);
+    return out;
+}
+
 function parseCSV(text) {
     const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(l => l.trim());
-    if (lines.length < 2) return [];
+    if (lines.length < 2) {
+        var emptyRows = [];
+        emptyRows._diagnostics = {
+            totalDataRows: Math.max(0, lines.length - 1), kept: 0,
+            droppedTruncated: 0, droppedNoGps: 0, droppedLowSats: 0, droppedGpsJump: 0,
+            fatal: 'empty',
+            fatalDetail: 'The file has no data rows - only a header, or nothing at all.'
+        };
+        return emptyRows;
+    }
 
-    const headers = lines[0].split(',').map(h => h.trim());
+    const headers = splitCsvLine(lines[0]).map(h => h.trim());
 
     // First-pass column lookup
     const gpsCol = findCol(headers, ['GPS']);
     if (gpsCol === -1) {
-        alert('Could not find GPS column in CSV. Make sure this is an EdgeTX telemetry log with GPS data.');
-        return [];
+        // No blocking alert(): the caller renders this as an in-page message so
+        // the user can see the file name and what to do about it.
+        var noGpsRows = [];
+        noGpsRows._diagnostics = {
+            totalDataRows: lines.length - 1, kept: 0,
+            droppedTruncated: 0, droppedNoGps: 0, droppedLowSats: 0, droppedGpsJump: 0,
+            fatal: 'noGpsColumn',
+            fatalDetail: 'This log has no GPS column, so there is no flight path to draw. ' +
+                         'It is most likely an RPM, battery or PID log. In EdgeTX, open the ' +
+                         'Telemetry screen and run "Discover new sensors" with the model powered ' +
+                         'and a GPS fix acquired, then log a new flight.'
+        };
+        return noGpsRows;
     }
 
     // Alt: when duplicate Alt(m) columns exist (baro + GPS, as in some EdgeTX
@@ -771,6 +828,14 @@ function parseCSV(text) {
     else if (/mph/i.test(speedHeader))  speedScale = 1.609344;
     // (cm/ is treated as km/h - see comment above)
 
+    // Altitude unit normalisation -> metres. Speed has always been normalised;
+    // altitude was not, so a radio set to imperial units exported its feet
+    // values as if they were metres (a 1000 m flight became 3280 "m" ASL).
+    // EdgeTX truncates unit suffixes, so match loosely on the header text.
+    var altHeader = colMap.alt !== -1 ? headers[colMap.alt] : '';
+    var altScale = 1.0; // multiplier to convert source -> metres
+    if (/\bft\b|feet/i.test(altHeader)) altScale = 0.3048;
+
     // Track diagnostics so the UI can explain sparse-telemetry cases later
     var dataRowCount = 0;       // total non-empty data rows
     var droppedTruncated = 0;   // rows shorter than the header
@@ -782,7 +847,7 @@ function parseCSV(text) {
     var raw = [];
     var minColsExpected = headers.length - 1; // tolerate one trailing trim
     for (var i = 1; i < lines.length; i++) {
-        var parts = lines[i].split(',');
+        var parts = splitCsvLine(lines[i]);
         dataRowCount++;
 
         // Truncated row (telemetry was briefly lost; fewer fields than header)
@@ -810,6 +875,7 @@ function parseCSV(text) {
 
         var altRaw = colMap.alt !== -1 ? parseFloat(parts[colMap.alt]) : 0;
         if (isNaN(altRaw)) altRaw = 0;
+        altRaw = altRaw * altScale;
 
         var spdRaw = colMap.speed !== -1 ? parseFloat(parts[colMap.speed]) : 0;
         if (isNaN(spdRaw)) spdRaw = 0;
@@ -929,7 +995,7 @@ function findCol(headers, candidates, preferAfterCol) {
 //  Two strategies layered together:
 //   (a) CRSF-style arm event: prev row had MSL altitude > 50 m and the
 //       next row dropped to <= 5 m. Original Tango 2 behaviour.
-//   (b) ELRS-style session boundary: a time gap > 30 s between consecutive
+//   (b) ELRS-style session boundary: a time gap > 60 s between consecutive
 //       rows, or a GPS jump > 200 m. Triggers when the radio was turned
 //       off and on, or a new battery was inserted.
 //  For each detected segment we compute summary metrics that the UI uses
@@ -1275,6 +1341,39 @@ function totalDistance(points) {
     return d;
 }
 
+/**
+ * Formats a log timestamp as an ISO 8601 string carrying a real UTC offset.
+ *
+ * EdgeTX writes the radio's LOCAL wall-clock time with no timezone marker. The
+ * exporter used to append "Z", declaring it UTC, so Strava, Garmin and other
+ * GPX consumers placed every flight at the wrong time of day - out by the whole
+ * UTC offset. Emitting the offset explicitly keeps the instant correct.
+ *
+ * Assumption: the device reading the log is in the same timezone the flight was
+ * recorded in. The offset is taken for the log's own date, so DST is handled;
+ * only a log flown in a different timezone and opened elsewhere would be off.
+ *
+ * @param {string} dateStr - Log date column (YYYY-MM-DD).
+ * @param {string} timeStr - Log time column (HH:MM:SS.mmm).
+ * @returns {string} ISO 8601 timestamp with offset, or '' if unparseable.
+ */
+function toIsoLocal(dateStr, timeStr) {
+    var ms = parseTime(dateStr, timeStr);
+    if (isNaN(ms)) return '';
+    var d = new Date(ms);
+    var pad = function (n, w) {
+        var s = String(Math.abs(n));
+        while (s.length < (w || 2)) s = '0' + s;
+        return s;
+    };
+    // getTimezoneOffset() counts minutes BEHIND UTC, so the sign is inverted.
+    var off = -d.getTimezoneOffset();
+    var offStr = (off >= 0 ? '+' : '-') + pad(Math.floor(Math.abs(off) / 60)) + ':' + pad(Math.abs(off) % 60);
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+           'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) +
+           '.' + pad(d.getMilliseconds(), 3) + offStr;
+}
+
 function formatDuration(startDate, startTime, endDate, endTime) {
     try {
         const t1 = parseTime(startDate, startTime);
@@ -1303,7 +1402,7 @@ function generateKML(points, opts) {
     // Main track line
     placemarks += `
       <Placemark>
-        <name><![CDATA[${escXml(opts.name)}]]></name>
+        <name><![CDATA[${cdata(opts.name)}]]></name>
         <description><![CDATA[Generated by Saturn FPV EdgeTX Telemetry Parser]]></description>
         <Style>
           <LineStyle>
@@ -1356,7 +1455,7 @@ function generateKML(points, opts) {
     return `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <Document>
-    <name><![CDATA[${escXml(opts.name)}]]></name>
+    <name><![CDATA[${cdata(opts.name)}]]></name>
     <visibility>1</visibility>
     <open>1</open>
     <Folder id="Tracks">
@@ -1378,7 +1477,17 @@ function hexToKMLColor(hex, alpha) {
 }
 
 function escXml(s) {
-    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return String(s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+}
+
+// Wraps text for a CDATA section. Inside CDATA, XML entities are NOT decoded,
+// so running escXml() here turned "Bob & Alice" into a literal "Bob &amp; Alice"
+// in Google Earth. The only sequence CDATA cannot contain is "]]>", which is
+// split across two sections instead.
+function cdata(s) {
+    return String(s).split(']]>').join(']]]]><![CDATA[>');
 }
 
 // ================================================================
@@ -1397,7 +1506,8 @@ function generateGPX(points, opts) {
             if (p.curr !== null) extInner += `<curr>${p.curr}</curr>`;
             if (extInner) ext = `<extensions>${extInner}</extensions>`;
         }
-        const time = p.date && p.time ? `<time>${p.date}T${p.time}Z</time>` : '';
+        const iso = (p.date && p.time) ? toIsoLocal(p.date, p.time) : '';
+        const time = iso ? `<time>${iso}</time>` : '';
         trkpts += `      <trkpt lat="${p.lat.toFixed(7)}" lon="${p.lon.toFixed(7)}">
         <ele>${p.altCorrected.toFixed(1)}</ele>
         ${time}
@@ -1877,10 +1987,18 @@ function updateStats(points) {
 // ================================================================
 function onFileLoaded(text, fileName) {
     rawRows = parseCSV(text);
-    if (rawRows.length === 0) return;
 
+    // Always acknowledge the file, even when it turns out to be unusable.
     document.getElementById('fileName').textContent = fileName;
     document.getElementById('fileName').classList.remove('hidden');
+
+    // A log with no usable GPS used to fail completely silently: the function
+    // returned before even showing the file name, so nothing on screen changed
+    // and there was no way to tell a rejected file from a mis-click.
+    if (rawRows.length === 0) {
+        renderLoadError(rawRows._diagnostics);
+        return;
+    }
 
     // Report what the parser discarded. These counts were always computed and
     // never shown, so a log shredded by telemetry dropouts looked identical to
@@ -1892,10 +2010,72 @@ function onFileLoaded(text, fileName) {
     renderFlightList();
     document.getElementById('flightPanel').classList.remove('hidden');
 
-    // Auto-select if only one flight
-    if (flights.length === 1) {
+    // Auto-select the segment actually worth looking at.
+    //
+    // Testing for "exactly one segment" almost never held in practice: nearly
+    // every ELRS log starts with a few stationary pre-arm rows, which split off
+    // as their own tiny "ground test" segment, so the real flight always needed
+    // a manual click. Pick it automatically when exactly one segment is
+    // substantive, and leave genuine multi-flight logs for the user to choose.
+    var substantive = [];
+    flights.forEach(function (f, i) {
+        var s = f.summary || {};
+        if (f.rows.length >= 10 && !s.isGroundTest) substantive.push(i);
+    });
+    if (substantive.length === 1) {
+        selectFlight(substantive[0]);
+    } else if (flights.length === 1) {
         selectFlight(0);
     }
+}
+
+/**
+ * Explains why a log produced no usable flight track.
+ *
+ * Distinguishes "this file has no GPS column at all" from "it has one, but no
+ * row ever carried a usable fix", and names the specific reason rows were
+ * rejected, so the user can tell a wrong file from a genuinely GPS-less flight.
+ *
+ * @param {Object} diag - The diagnostics object attached by parseCSV.
+ * @returns {void}
+ */
+function renderLoadError(diag) {
+    const panel = document.getElementById('loadErrorPanel');
+    if (!panel) return;
+    diag = diag || {};
+
+    var title, detail;
+    if (diag.fatal === 'noGpsColumn' || diag.fatal === 'empty') {
+        title = (diag.fatal === 'empty') ? 'This file contains no data rows.'
+                                         : 'No GPS column found in this log.';
+        detail = diag.fatalDetail || '';
+    } else {
+        // A GPS column exists, but every row was rejected. Lead with whichever
+        // reason actually accounted for the rows.
+        title = 'The GPS sensor never recorded a usable position in this log.';
+        if (diag.droppedLowSats && diag.droppedLowSats >= (diag.droppedNoGps || 0)) {
+            detail = 'Every row was logged with fewer than 4 satellites, which is not a ' +
+                     'position fix. The model most likely never acquired GPS lock - give it ' +
+                     'a clear view of the sky and wait for a solid lock before arming.';
+        } else {
+            detail = 'Every row has an empty or zero GPS value. The GPS sensor was discovered ' +
+                     'by EdgeTX but sent no coordinates, which usually means it had no lock, ' +
+                     'or the telemetry link dropped before it did.';
+        }
+    }
+
+    document.getElementById('loadErrorTitle').textContent = title;
+    document.getElementById('loadErrorDetail').textContent = detail;
+
+    var counts = [];
+    if (diag.totalDataRows) counts.push(diag.totalDataRows + ' data rows read');
+    if (diag.droppedNoGps) counts.push(diag.droppedNoGps + ' with no GPS value');
+    if (diag.droppedLowSats) counts.push(diag.droppedLowSats + ' below 4 satellites');
+    if (diag.droppedGpsJump) counts.push(diag.droppedGpsJump + ' implausible position jumps');
+    if (diag.droppedTruncated) counts.push(diag.droppedTruncated + ' truncated rows');
+    document.getElementById('loadErrorCounts').textContent = counts.join(' - ');
+
+    panel.classList.remove('hidden');
 }
 
 /**
@@ -2044,6 +2224,7 @@ function resetAll() {
 
     document.getElementById('flightPanel').classList.add('hidden');
     document.getElementById('parseDiagnostics').classList.add('hidden');
+    document.getElementById('loadErrorPanel').classList.add('hidden');
     document.getElementById('mainContent').classList.add('hidden');
     document.getElementById('fileName').classList.add('hidden');
     document.getElementById('fileInput').value = '';
