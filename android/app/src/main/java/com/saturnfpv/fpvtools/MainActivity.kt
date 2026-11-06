@@ -9,10 +9,12 @@ import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
+import androidx.webkit.WebViewAssetLoader
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -34,6 +36,27 @@ class MainActivity : ComponentActivity() {
     private lateinit var webView: WebView
     private lateinit var container: FrameLayout
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
+    private lateinit var assetLoader: WebViewAssetLoader
+
+    companion object {
+        /**
+         * Reserved host that WebViewAssetLoader maps to the app's own assets.
+         * Serving the UI from https://... instead of file:// gives the WebView a
+         * real web origin, so it sends a Referer header. OpenStreetMap's tile
+         * servers answer requests without one with a 403 "Access blocked" tile,
+         * which is why the map previously had to fall back to another provider
+         * inside the app. It also gives all tool pages ONE shared localStorage
+         * origin, which file:// does not guarantee.
+         */
+        private const val ASSET_HOST = "appassets.androidplatform.net"
+        private const val ASSET_BASE_URL = "https://$ASSET_HOST/assets/"
+
+        /**
+         * OpenStreetMap's tile usage policy requires a distinct, stable
+         * User-Agent that identifies the app; generic defaults are blocked.
+         */
+        private const val UA_TAG = "FPVTools/1.2.2 (+https://saturnfpv.com)"
+    }
 
     private val fileChooserLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -58,15 +81,24 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         webView = WebView(this)
-        
+
+        // Serves src/main/assets under https://appassets.androidplatform.net/assets/
+        assetLoader = WebViewAssetLoader.Builder()
+            .setDomain(ASSET_HOST)
+            .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
+            .build()
+
         webView.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
-            allowFileAccess = true
+            // Assets are now served over https by the loader, so the WebView
+            // never needs to read file:// URLs itself.
+            allowFileAccess = false
             allowFileAccessFromFileURLs = false
             allowUniversalAccessFromFileURLs = false
             databaseEnabled = false
             mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
+            userAgentString = "$userAgentString $UA_TAG"
         }
 
         // Add Java-to-JS bridge interface
@@ -92,16 +124,27 @@ class MainActivity : ComponentActivity() {
         }
 
         webView.webViewClient = object : WebViewClient() {
+            // Resolves https://appassets.androidplatform.net/assets/... from the
+            // APK. Anything else returns null and goes to the network as usual.
+            override fun shouldInterceptRequest(
+                view: WebView?,
+                request: WebResourceRequest?
+            ): WebResourceResponse? {
+                val url = request?.url ?: return null
+                return assetLoader.shouldInterceptRequest(url)
+            }
+
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                val url = request?.url?.toString() ?: return false
-                // Restrict webview navigation strictly to local assets
-                if (url.startsWith("file:///android_asset/")) {
+                val uri = request?.url ?: return false
+                val url = uri.toString()
+                // Restrict in-app navigation strictly to the bundled assets.
+                if (uri.scheme == "https" && uri.host == ASSET_HOST) {
                     return false
                 }
-                // Open external http/https links in the user's browser
+                // Open every other http/https link in the user's browser
                 if (url.startsWith("http://") || url.startsWith("https://")) {
                     try {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        val intent = Intent(Intent.ACTION_VIEW, uri)
                         this@MainActivity.startActivity(intent)
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -162,8 +205,8 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState != null) {
             webView.restoreState(savedInstanceState)
         } else {
-            // Load the index.html from Android Assets folder
-            webView.loadUrl("file:///android_asset/index.html")
+            // Served from the APK's assets by assetLoader, over an https origin
+            webView.loadUrl(ASSET_BASE_URL + "index.html")
         }
     }
 

@@ -31,5 +31,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: fpv-tools-debug-apk
-          path: android/app/build/outputs/apk/*/debug/*.apk
+          # Single unflavoured build, so the APK lands directly in apk/debug/.
+          path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error

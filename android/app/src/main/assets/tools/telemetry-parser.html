@@ -681,7 +681,7 @@
                     <div class="toggle-row">
                         <span>Extrude (drop lines to ground)</span>
                         <label class="toggle">
-                            <input type="checkbox" id="extrude" checked>
+                            <input type="checkbox" id="extrude">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -2147,8 +2147,7 @@ window.addEventListener('message', function(event) {
             document.body.classList.remove('light-theme');
         }
         updateChartsTheme(theme);
-        // Tile sources live in js/map-config.js so the F-Droid flavour can
-        // override them without touching this file.
+        // Tile sources live in js/map-config.js; tool pages never hard-code them.
         if (roadLayer && window.MapConfig && MapConfig.setRoadTheme) {
             MapConfig.setRoadTheme(roadLayer, theme);
         }

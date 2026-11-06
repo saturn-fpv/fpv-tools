@@ -1,10 +1,7 @@
 /**
  * MapConfig module for initializing Leaflet basemaps across environments.
  *
- * This is the Google Play / Saturn FPV Website configuration. The F-Droid
- * flavour ships its own copy at android/app/src/fdroid/assets/js/map-config.js
- * which Gradle substitutes at build time; both files must expose the same
- * public API (initLayers + setRoadTheme).
+ * Shared by the Android app and the Saturn FPV Website.
  *
  * Tile provider constraints that drove these choices:
  *
@@ -14,10 +11,10 @@
  *
  *  - tile.openstreetmap.org rejects requests that carry no Referer header,
  *    answering with a 403 "Access blocked" tile. Browsers never send a Referer
- *    from a file:// origin, which covers BOTH local file testing AND the
- *    Android WebView (file:///android_asset/...). OSM therefore works on the
- *    website but not inside the app, so the street layer falls back to Esri
- *    World Street Map whenever no Referer will be sent. See resolveStreet().
+ *    from a file:// origin. The Android app avoids this by serving its assets
+ *    over https via WebViewAssetLoader, so OSM works there too; the Esri
+ *    fallback in resolveStreet() now only covers an HTML file opened directly
+ *    from disk, which has no origin to send.
  *
  *  - Esri ArcGIS REST basemaps need no key and work without a Referer, which
  *    is why the Satellite layer has always worked inside the app.
