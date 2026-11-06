@@ -1472,10 +1472,13 @@ function updateRangeRings() {
  */
 function initMap() {
     if (leafletMap) return;
+    // Attribution must stay visible: the OpenStreetMap tile usage policy and
+    // OpenTopoMap's CC-BY-SA licence both require on-map credit.
     leafletMap = L.map('map', {
         zoomControl: true,
-        attributionControl: false
+        attributionControl: true
     }).setView([0, 0], 2);
+    leafletMap.attributionControl.setPrefix('');
 
     L.control.scale({ imperial: false, metric: true, position: 'bottomleft' }).addTo(leafletMap);
 

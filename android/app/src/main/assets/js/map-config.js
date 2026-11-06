@@ -6,46 +6,73 @@
  * which Gradle substitutes at build time; both files must expose the same
  * public API (initLayers + setRoadTheme).
  *
- * Tile sources are deliberately limited to providers that serve raster tiles
- * without an API key. CARTO basemaps (basemaps.cartocdn.com) were used here
- * previously and now return an "API KEY REQUIRED" watermark tile instead of
- * map data, so they must not be reintroduced.
+ * Tile provider constraints that drove these choices:
+ *
+ *  - CARTO (basemaps.cartocdn.com) now requires an API key on every basemap.
+ *    It answers HTTP 200 with a ~2 KB "API KEY REQUIRED" watermark, so Leaflet
+ *    sees no tile error and silently renders the watermark. Do not reintroduce.
+ *
+ *  - tile.openstreetmap.org rejects requests that carry no Referer header,
+ *    answering with a 403 "Access blocked" tile. Browsers never send a Referer
+ *    from a file:// origin, which covers BOTH local file testing AND the
+ *    Android WebView (file:///android_asset/...). OSM therefore works on the
+ *    website but not inside the app, so the street layer falls back to Esri
+ *    World Street Map whenever no Referer will be sent. See resolveStreet().
+ *
+ *  - Esri ArcGIS REST basemaps need no key and work without a Referer, which
+ *    is why the Satellite layer has always worked inside the app.
  *
  * @module MapConfig
  */
 window.MapConfig = {
     /**
-     * Street basemap definitions keyed by UI theme.
-     * Light: standard OpenStreetMap raster tiles.
-     * Dark:  Esri Dark Gray Canvas - same provider as the satellite layer,
-     *        free and key-less. Esri publishes this basemap to zoom 16
-     *        worldwide, so maxNativeZoom caps tile requests there and lets
-     *        Leaflet upscale beyond it rather than show blank tiles.
+     * Tile definitions. `street` is chosen at runtime by resolveStreet().
      * @type {Object<string, {url: string, maxNativeZoom: (number|undefined), attribution: string}>}
      */
-    roadTiles: {
-        light: {
+    tiles: {
+        satellite: {
+            url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            maxNativeZoom: undefined,
+            attribution: 'Tiles &copy; Esri'
+        },
+        // Preferred street map: richest detail (landcover, trails, place labels).
+        // Only usable where the browser will send a Referer.
+        osm: {
             url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
             maxNativeZoom: undefined,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         },
-        dark: {
-            url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
-            maxNativeZoom: 16,
-            attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ'
+        // Referer-free fallback for file:// origins (Android app, local testing).
+        esriStreet: {
+            url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+            maxNativeZoom: undefined,
+            attribution: 'Tiles &copy; Esri'
+        },
+        // Contour + hillshade topo, useful for mountain flying. Serves without a
+        // Referer. Volunteer-run hobby project with no uptime guarantee, so it is
+        // an opt-in layer rather than a default.
+        topo: {
+            url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+            maxNativeZoom: 17,
+            attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, SRTM | Style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)'
         }
     },
 
     /**
-     * Resolves the active UI theme without depending on the caller.
-     * @returns {string} Either 'light' or 'dark'.
+     * True when the page origin will cause a Referer header to be sent.
+     * file:, content: and android_asset origins send none.
+     * @returns {boolean} Whether outgoing tile requests will carry a Referer.
      */
-    resolveTheme: function () {
-        try {
-            if (document.body && document.body.classList.contains('light-theme')) return 'light';
-            if (localStorage.getItem('fpv-tools-theme') === 'light') return 'light';
-        } catch (e) { /* localStorage may be blocked under file:// */ }
-        return 'dark';
+    sendsReferer: function () {
+        return location.protocol === 'http:' || location.protocol === 'https:';
+    },
+
+    /**
+     * Picks the street basemap that actually works in the current context.
+     * @returns {{url: string, maxNativeZoom: (number|undefined), attribution: string}} Tile definition.
+     */
+    resolveStreet: function () {
+        return this.sendsReferer() ? this.tiles.osm : this.tiles.esriStreet;
     },
 
     /**
@@ -54,19 +81,15 @@ window.MapConfig = {
      * @returns {{defaultLayer: L.TileLayer, roadLayer: L.TileLayer, baseLayers: Object<string, L.Layer>}} Layer configuration object.
      */
     initLayers: function (leafletMap) {
-        const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        const mk = (def) => L.tileLayer(def.url, {
             maxZoom: 19,
-            attribution: 'Esri Satellite'
+            maxNativeZoom: def.maxNativeZoom,
+            attribution: def.attribution
         });
 
-        const theme = this.resolveTheme();
-        const tiles = this.roadTiles[theme];
-
-        const road = L.tileLayer(tiles.url, {
-            maxZoom: 19,
-            maxNativeZoom: tiles.maxNativeZoom,
-            attribution: tiles.attribution
-        });
+        const satellite = mk(this.tiles.satellite);
+        const street = mk(this.resolveStreet());
+        const topo = mk(this.tiles.topo);
 
         satellite.addTo(leafletMap);
 
@@ -74,29 +97,26 @@ window.MapConfig = {
 
         return {
             defaultLayer: satellite,
-            roadLayer: road,
+            roadLayer: street,
             baseLayers: {
                 "Satellite": satellite,
-                "OSM": road,
+                "Street": street,
+                "Topo": topo,
                 "Offline Grid": offlineGrid
             }
         };
     },
 
     /**
-     * Repoints the street basemap at the tile set matching the active theme.
-     * Safe to call when the layer is not currently on the map.
+     * Theme hook. The street basemap is deliberately the same bright map in
+     * both light and dark themes, so this is a no-op; it exists so tool pages
+     * can call it unconditionally and so a themed variant can be added later
+     * without touching every tool.
      * @param {L.TileLayer} roadLayer - The street layer returned by initLayers.
-     * @param {string} theme - Either 'light' or 'dark'.
+     * @param {string} theme - Either 'light' or 'dark'. Ignored.
      * @returns {void}
      */
     setRoadTheme: function (roadLayer, theme) {
-        if (!roadLayer || typeof roadLayer.setUrl !== 'function') return;
-        const tiles = this.roadTiles[theme === 'light' ? 'light' : 'dark'];
-        if (!tiles) return;
-        // maxNativeZoom differs per provider, so update it before the refetch.
-        roadLayer.options.maxNativeZoom = tiles.maxNativeZoom;
-        roadLayer.options.attribution = tiles.attribution;
-        roadLayer.setUrl(tiles.url);
+        /* Intentionally empty - see doc comment. */
     }
 };

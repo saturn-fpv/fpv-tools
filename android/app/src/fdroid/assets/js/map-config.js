@@ -5,8 +5,17 @@
  * the fdroid flavour. It must expose the same public API as that file
  * (initLayers + setRoadTheme) so the tool pages work unchanged.
  *
- * Only OpenStreetMap tiles are used here: Esri satellite and canvas layers
+ * Only OpenStreetMap tiles are used here. Esri satellite and street layers
  * would trigger F-Droid's NonFreeNet anti-feature.
+ *
+ * KNOWN LIMITATION: tile.openstreetmap.org returns a 403 "Access blocked"
+ * tile when a request carries no Referer header, and browsers send none from
+ * a file:// origin - which is how the WebView loads these assets
+ * (file:///android_asset/...). The street layer therefore cannot render in
+ * this flavour until the WebView serves its assets from an https origin
+ * (androidx.webkit WebViewAssetLoader, i.e. https://appassets.androidplatform.net/).
+ * Until then the Offline Grid is the dependable layer here, and it is the
+ * default for that reason.
  *
  * @module MapConfig
  */
@@ -32,16 +41,18 @@ window.MapConfig = {
             attribution: this.roadTiles.attribution
         });
 
-        osm.addTo(leafletMap);
-
         const offlineGrid = L.gridLayer.gridPattern();
 
+        // The offline grid is the default here: OSM tiles are blocked from the
+        // WebView's file:// origin (see the module comment above).
+        offlineGrid.addTo(leafletMap);
+
         return {
-            defaultLayer: osm,
+            defaultLayer: offlineGrid,
             roadLayer: osm,
             baseLayers: {
-                "OSM": osm,
-                "Offline Grid": offlineGrid
+                "Offline Grid": offlineGrid,
+                "Street": osm
             }
         };
     },
