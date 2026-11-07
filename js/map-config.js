@@ -30,12 +30,17 @@ window.MapConfig = {
         satellite: {
             url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
             maxNativeZoom: undefined,
-            attribution: 'Tiles &copy; Esri'
+            // Esri requires the service's own data-source credits, not just
+            // "Esri". Taken verbatim from the MapServer's copyrightText.
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community'
         },
         // Preferred street map: richest detail (landcover, trails, place labels).
         // Only usable where the browser will send a Referer.
         osm: {
-            url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            // No {s}: Leaflet would expand it to the a/b/c hostnames, which the
+            // OSM tile usage policy deprecates and may withdraw without notice.
+            // Sharding is pointless over HTTP/2 anyway.
+            url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
             maxNativeZoom: undefined,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         },
@@ -43,7 +48,7 @@ window.MapConfig = {
         esriStreet: {
             url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
             maxNativeZoom: undefined,
-            attribution: 'Tiles &copy; Esri'
+            attribution: 'Tiles &copy; Esri &mdash; Sources: Esri, HERE, Garmin, USGS, Intermap, INCREMENT P, NRCan, Esri Japan, METI, Esri China (Hong Kong), Esri Korea, Esri (Thailand), NGCC, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, and the GIS User Community'
         },
         // Contour + hillshade topo, useful for mountain flying. Serves without a
         // Referer. Volunteer-run hobby project with no uptime guarantee, so it is

@@ -906,8 +906,41 @@ function parseCSV(text) {
     // plot. Anything above MAX_PLAUSIBLE_MPS is not a vehicle, it is a bad fix.
     var MAX_PLAUSIBLE_MPS = 100;   // 360 km/h - far above any FPV model
     var STALE_WINDOW_S = 120;      // beyond this a session break is more likely
+    var RESEED_RUN = 3;            // agreeing fixes needed to overrule a bad seed
+
+    // True when travelling a -> b is physically impossible.
+    //
+    // Measure against the row where the PREVIOUS position first appeared, not
+    // the row immediately before: with sparse telemetry the same fix repeats
+    // for many rows, so the whole movement shows up across one 1-second row
+    // boundary. Dividing by that 1 second makes every normal sparse-GPS update
+    // look like hundreds of m/s and deletes most of the track.
+    function implausibleStep(a, b) {
+        var d = haversine(a.lat, a.lon, b.lat, b.lon);
+        var ta = parseTime(a.date, a.time);
+        var tb = parseTime(b.date, b.time);
+        var dt = (!isNaN(ta) && !isNaN(tb)) ? (tb - ta) / 1000 : NaN;
+        if (!isNaN(dt) && dt > 0) {
+            // Within a plausible continuous window, judge by speed. Past it the
+            // radio was probably off between sessions, and detectFlights splits
+            // there anyway, so no jump rejection is applied.
+            return dt <= STALE_WINDOW_S && (d / dt) > MAX_PLAUSIBLE_MPS;
+        }
+        // No usable timestamps: fall back to the old flat distance rule.
+        return d > 1000;
+    }
+
     var rows = [];
     var lastFix = null;            // row where the CURRENT position first appeared
+    // The very first fix is accepted with nothing to check it against. If it is
+    // itself a stale cache entry, every genuine fix afterwards disagrees with it
+    // and gets dropped until the 120 s window lapses - silently deleting up to
+    // two minutes of real flight and leaving the bogus point in the output.
+    // Every later lastFix was accepted *because* it agreed with an earlier one,
+    // so only the seed is uncorroborated, and only the seed may be overruled.
+    var seedTrusted = false;
+    var pending = [];              // consecutive fixes rejected against an untrusted seed
+
     for (var k = 0; k < raw.length; k++) {
         var cand = raw[k];
         if (rows.length === 0) { rows.push(cand); lastFix = cand; continue; }
@@ -917,31 +950,43 @@ function parseCSV(text) {
         // move on, there is no jump to judge.
         if (cand.lat === prev.lat && cand.lon === prev.lon) { rows.push(cand); continue; }
 
-        // The position changed. Measure against the row where the PREVIOUS
-        // position first appeared, not against the row immediately before:
-        // with sparse telemetry the same fix repeats for many rows, so the
-        // whole movement shows up across one 1-second row boundary. Dividing
-        // by that 1 second makes every normal sparse-GPS update look like
-        // hundreds of m/s and deletes most of the track.
-        var d = haversine(lastFix.lat, lastFix.lon, cand.lat, cand.lon);
-        var tPrev = parseTime(lastFix.date, lastFix.time);
-        var tCur = parseTime(cand.date, cand.time);
-        var dtSec = (!isNaN(tPrev) && !isNaN(tCur)) ? (tCur - tPrev) / 1000 : NaN;
-
-        if (!isNaN(dtSec) && dtSec > 0) {
-            // Within a plausible continuous window, judge by speed. Past it the
-            // radio was probably off between sessions, and detectFlights splits
-            // there anyway, so no jump rejection is applied.
-            if (dtSec <= STALE_WINDOW_S && (d / dtSec) > MAX_PLAUSIBLE_MPS) {
-                droppedGpsJump++; continue;
-            }
-        } else if (d > 1000) {
-            // No usable timestamps: fall back to the old flat distance rule.
-            droppedGpsJump++; continue;
+        if (!implausibleStep(lastFix, cand)) {
+            // A distinct fix agrees with lastFix, so that position is now
+            // corroborated by something other than itself.
+            if (pending.length) { droppedGpsJump += pending.length; pending = []; }
+            rows.push(cand);
+            lastFix = cand;
+            seedTrusted = true;
+            continue;
         }
-        rows.push(cand);
-        lastFix = cand;
+
+        if (seedTrusted) { droppedGpsJump++; continue; }
+
+        // The seed has never been corroborated, so the candidate may be right
+        // and the seed wrong. Hold rejected fixes and watch whether they agree
+        // with each other.
+        if (pending.length === 0 || !implausibleStep(pending[pending.length - 1], cand)) {
+            pending.push(cand);
+        } else {
+            // Not even self-consistent: scattered noise, not a real position.
+            droppedGpsJump += pending.length;
+            pending = [cand];
+        }
+
+        if (pending.length >= RESEED_RUN) {
+            // Several consecutive fixes agree with each other but not with the
+            // seed. The seed was the outlier. Drop it - nothing else has been
+            // accepted yet, so rows holds only the seed and its echoes - and
+            // restart the track from this run.
+            droppedGpsJump += rows.length;
+            rows = pending.slice();
+            lastFix = pending[pending.length - 1];
+            pending = [];
+            seedTrusted = true;
+        }
     }
+    // A run that never reached RESEED_RUN stays rejected.
+    if (pending.length) { droppedGpsJump += pending.length; pending = []; }
 
     // Expose diagnostics for the UI
     rows._diagnostics = {
@@ -1736,15 +1781,25 @@ function initMap() {
         roadLayer = config.roadLayer;
         currentBaseLayers = config.baseLayers;
 
-        // Fallback: If online tiles fail to load (e.g. weak cell reception), automatically add offlineGrid
-        const defaultTileLayer = config.defaultLayer || config.roadLayer;
-        if (defaultTileLayer && typeof defaultTileLayer.on === 'function') {
-            defaultTileLayer.on('tileerror', function() {
-                if (offlineGrid && !leafletMap.hasLayer(offlineGrid)) {
-                    offlineGrid.addTo(leafletMap);
-                }
-            });
-        }
+        // initLayers builds its own grid instance and lists it in the layer
+        // control. Use that one rather than the local fallback, or the control
+        // and the map disagree about which grid is showing and picking
+        // "Offline Grid" stacks a second copy on top of the first.
+        const grid = currentBaseLayers['Offline Grid'] || offlineGrid;
+
+        // Fallback: if online tiles fail to load (e.g. weak cell reception),
+        // show the grid. Bind to EVERY tile layer, not just the default one: a
+        // user who switches to Street or Topo and then loses signal would
+        // otherwise be left staring at blank tiles with no grid at all.
+        const showGrid = function () {
+            if (grid && !leafletMap.hasLayer(grid)) grid.addTo(leafletMap);
+        };
+        Object.keys(currentBaseLayers).forEach(function (name) {
+            const layer = currentBaseLayers[name];
+            // Only real tile layers fetch anything and can emit tileerror; the
+            // grid draws itself locally and never fails.
+            if (layer instanceof L.TileLayer) layer.on('tileerror', showGrid);
+        });
     } else {
         offlineGrid.addTo(leafletMap);
         currentBaseLayers = {
