@@ -973,14 +973,43 @@ function parseCSV(text) {
             pending = [cand];
         }
 
-        if (pending.length >= RESEED_RUN) {
-            // Several consecutive fixes agree with each other but not with the
+        // Count DISTINCT positions, not rows. The echo guard above only compares
+        // against the last ACCEPTED row, so a repeat of a pending position is
+        // not caught there; it falls through, is rejected against the seed, and
+        // is appended here - and a zero-distance step always looks plausible.
+        // Counting rows would therefore let one stray fix that merely repeats
+        // overrule a perfectly good seed, which with sparse telemetry is the
+        // normal case rather than a corner case. Repeats stay in `pending` so a
+        // restarted track keeps its hold times.
+        var distinctPending = pending.length ? 1 : 0;
+        for (var q = 1; q < pending.length; q++) {
+            if (pending[q].lat !== pending[q - 1].lat || pending[q].lon !== pending[q - 1].lon) {
+                distinctPending++;
+            }
+        }
+
+        if (distinctPending >= RESEED_RUN) {
+            // Several distinct fixes agree with each other but not with the
             // seed. The seed was the outlier. Drop it - nothing else has been
             // accepted yet, so rows holds only the seed and its echoes - and
             // restart the track from this run.
             droppedGpsJump += rows.length;
             rows = pending.slice();
-            lastFix = pending[pending.length - 1];
+            // lastFix must be the row where the final position FIRST appeared,
+            // the same rule the main loop follows. Picking the last entry would
+            // pick an echo with a later timestamp, shortening dt for the next
+            // genuine fix and making it look impossibly fast - which would then
+            // drop real track for up to STALE_WINDOW_S.
+            var tail = pending[pending.length - 1];
+            var firstOfTail = tail;
+            for (var r = pending.length - 1; r >= 0; r--) {
+                if (pending[r].lat === tail.lat && pending[r].lon === tail.lon) {
+                    firstOfTail = pending[r];
+                } else {
+                    break;
+                }
+            }
+            lastFix = firstOfTail;
             pending = [];
             seedTrusted = true;
         }
@@ -1791,15 +1820,45 @@ function initMap() {
         // show the grid. Bind to EVERY tile layer, not just the default one: a
         // user who switches to Street or Topo and then loses signal would
         // otherwise be left staring at blank tiles with no grid at all.
-        const showGrid = function () {
-            if (grid && !leafletMap.hasLayer(grid)) grid.addTo(leafletMap);
+        //
+        // Grid tiles are painted with an opaque background, so reacting to a
+        // single tileerror would hide a map whose other tiles are loading
+        // perfectly well. OpenTopoMap in particular is a volunteer service with
+        // no uptime guarantee and drops the odd tile. Require a sustained run of
+        // failures, and take the grid away again once tiles come back.
+        const GRID_AFTER_ERRORS = 8;   // about one viewport's worth of tiles
+        let tileErrors = 0;
+        let gridAutoShown = false;
+
+        const onTileError = function () {
+            if (++tileErrors < GRID_AFTER_ERRORS) return;
+            if (grid && !leafletMap.hasLayer(grid)) {
+                grid.addTo(leafletMap);
+                gridAutoShown = true;
+            }
         };
+        const onTileLoad = function () {
+            tileErrors = 0;
+            // Only remove a grid we added ourselves. If the user picked
+            // "Offline Grid" in the layer control, it is theirs to dismiss.
+            if (gridAutoShown && grid && leafletMap.hasLayer(grid)) {
+                leafletMap.removeLayer(grid);
+                gridAutoShown = false;
+            }
+        };
+
         Object.keys(currentBaseLayers).forEach(function (name) {
             const layer = currentBaseLayers[name];
             // Only real tile layers fetch anything and can emit tileerror; the
             // grid draws itself locally and never fails.
-            if (layer instanceof L.TileLayer) layer.on('tileerror', showGrid);
+            if (layer instanceof L.TileLayer) {
+                layer.on('tileerror', onTileError);
+                layer.on('tileload', onTileLoad);
+            }
         });
+        // A fresh layer starts with a clean slate; the previous layer's failures
+        // say nothing about this one.
+        leafletMap.on('baselayerchange', function () { tileErrors = 0; });
     } else {
         offlineGrid.addTo(leafletMap);
         currentBaseLayers = {
