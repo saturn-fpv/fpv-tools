@@ -2,6 +2,17 @@
 
 This file outlines the project architecture, versioning protocol, and coding standards for developers working on this repository.
 
+**Start here.** This is the entry point for contributors and for AI coding
+assistants; everything else hangs off it.
+
+| Document | What it covers |
+|---|---|
+| `DEVELOPER.md` (this file) | architecture, synchronization, build and release protocol, coding rules |
+| [test/README.md](test/README.md) | running the tests, how fixtures are split, what is deliberately not covered |
+| [ROADMAP.md](ROADMAP.md) | deferred features and known gaps, each with the reasoning behind it |
+| [store/README.md](store/README.md) | Play Store listing text and its field limits |
+| [README.md](README.md) | what the app is, written for users rather than developers |
+
 ### 1. Project Architecture & Synchronization (CRITICAL)
 * This is a hybrid Android app consisting of a simple Kotlin Android wrapper loading offline web views (Note: Compose UI and compose-navigation layers have been removed to keep the application lightweight and WebView-focused):
   * **Master Source Files**: Located in the workspace root (`/tools`, `/css`, `/js`, `index.html`, `menu.html`, `app_icon.png`).
@@ -12,6 +23,11 @@ This file outlines the project architecture, versioning protocol, and coding sta
 * All cryptographic keys (`*.jks`, `*.keystore`) and local properties files (`secrets.properties`, `local.properties`) are strictly gitignored.
 
 ### 3. Build & Verification Protocol
+* After modifying any web asset, run the test suite. It needs no dependencies and no install:
+  * `node --test test/*.test.js`
+  * The tests that read real radio logs skip automatically when `temp/` is empty, so a clean checkout runs fewer of them than a machine with logs. Real logs stay out of the repository; see [test/README.md](test/README.md).
+  * The same suite runs in CI on every pull request, alongside the APK build.
+  * `test/sync.test.js` catches the single easiest mistake in this repo: editing a root file and forgetting to copy it into `android/app/src/main/assets/` (see section 1).
 * After modifying any Kotlin files or web assets, always verify that the project builds and lint checks pass cleanly using the local Gradle wrapper:
   * `.\gradlew.bat lintDebug assembleDebug`
   * Note that the `java` on `PATH` may be an old JRE. Point `JAVA_HOME` at Android Studio's bundled JDK first, e.g. `$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"`.
