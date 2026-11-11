@@ -8,6 +8,23 @@ on:
   workflow_dispatch:
 
 jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      # No dependencies to install: the suite uses node's built-in test runner.
+      # The real-log tests skip here, since temp/ is gitignored.
+      - name: Run tests
+        run: node --test test/*.test.js
+
   build:
     name: Build APK
     # Ubuntu 26.04 is in preview on GitHub Actions as of June 2026, so we use Ubuntu
