@@ -71,6 +71,29 @@ a 4.6 MB APK, for something Google Earth already does better from the exported K
 
 ---
 
+## 12. JSDoc coverage in the telemetry parser
+
+Only 6 of 36 top-level functions in `tools/telemetry-parser.html` carry a `/** */`
+block. The rest are explained with ordinary `//` comments, which read fine in place
+but give editors and tooling nothing to work with, and no `@param` / `@returns`.
+
+Raised by the CodeRabbit docstring-coverage check on PR #31 and deliberately left
+out of that PR: documenting two dozen untouched functions inside a bug-fix diff
+mixes in churn nobody reviews carefully. It is a pass of its own.
+
+Start with the parsing and export path, where the argument types are least obvious:
+
+- `parseCSV`, `splitCsvLine`, `findCol`, `parseTime`
+- `implausibleStep`, `isArmReset`, `detectFlights`, `summarizeFlight`
+- `interpolateGPSPoints`, `processFlightPoints`
+- `dedupeCoords`, `generateKML`, `generateGPX`, `escXml`, `cdata`
+
+The UI helpers (`renderFlightList`, `setTelemetryTab`, `updateChartsTheme` and the
+rest) matter less and can follow. `js/map-config.js` is already fully documented and
+is the style to copy.
+
+---
+
 ## Known copy issues
 
 - The sparse-GPS warning and the help section both attribute slow GPS updates to a
