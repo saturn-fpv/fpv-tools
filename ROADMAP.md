@@ -71,7 +71,23 @@ a 4.6 MB APK, for something Google Earth already does better from the exported K
 
 ---
 
-## 12. JSDoc coverage in the telemetry parser
+## 12. Extend the test suite
+
+`test/` now covers CSV parsing, the GPS filter, exports, map configuration and
+the Android asset sync, and runs with `node --test test/*.test.js`. Gaps worth
+closing as the parser changes:
+
+- `isArmReset` and `detectFlights` segmentation, which is the subtlest logic in
+  the file and full of tuned constants (50 m, 15 m, 3 rows, 2 m, 60 km/h).
+- MSL offset detection against logs where it both does and does not fire.
+- A large generated log through `updateStats`, guarding the stack overflow that
+  `Math.max(...spread)` used to cause.
+- Midnight rollover, and a log with no Date column.
+
+Rendering stays out of scope: Leaflet and Chart.js are stubbed, so the suite
+says nothing about how the map looks.
+
+## 13. JSDoc coverage in the telemetry parser
 
 Only 6 of 36 top-level functions in `tools/telemetry-parser.html` carry a `/** */`
 block. The rest are explained with ordinary `//` comments, which read fine in place
