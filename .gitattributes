@@ -1,0 +1,52 @@
+# Line endings.
+#
+# Without this file, normalisation depends on each clone's local core.autocrlf,
+# which is a machine setting and is not cloned. A contributor whose git is set
+# differently can commit CRLF and produce a diff that touches every line of a
+# file for no reason. These rules live in the repository, so they apply to
+# everyone: Linux, macOS, Windows and CI alike.
+#
+# text=auto  -> git decides whether a file is text, and always stores LF.
+#               The working tree still follows core.autocrlf, so Windows
+#               checkouts keep getting CRLF on disk as before.
+* text=auto
+
+# Scripts whose interpreter cares about the ending, regardless of platform.
+*.bat    text eol=crlf
+*.cmd    text eol=crlf
+*.ps1    text eol=crlf
+*.sh     text eol=lf
+gradlew  text eol=lf
+
+# Web and source files are served and diffed as LF everywhere.
+*.html   text eol=lf
+*.js     text eol=lf
+*.css    text eol=lf
+*.md     text eol=lf
+*.json   text eol=lf
+*.xml    text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+*.kt     text eol=lf
+*.kts    text eol=lf
+*.toml   text eol=lf
+*.properties text eol=lf
+*.txt    text eol=lf
+
+# Binaries: never touch these. A single byte changed by newline conversion
+# corrupts a font, an image or an archive.
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.webp   binary
+*.gif    binary
+*.ico    binary
+*.ttf    binary
+*.otf    binary
+*.woff   binary
+*.woff2  binary
+*.jar    binary
+*.apk    binary
+*.aab    binary
+*.keystore binary
+*.jks    binary
