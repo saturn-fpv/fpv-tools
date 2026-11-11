@@ -542,9 +542,23 @@
         </div>
     </div>
 
+    <!-- Shown when a log is readable but contains no usable GPS track -->
+    <div class="panel hidden" id="loadErrorPanel">
+        <h2><span class="icon">🛑</span> No Flight Track In This Log</h2>
+        <div class="warn-banner" style="margin-bottom:0;">
+            <strong id="loadErrorTitle"></strong>
+            <div id="loadErrorDetail" style="margin-top:0.45rem; font-weight:400;"></div>
+            <div id="loadErrorCounts" style="margin-top:0.55rem; font-weight:400; opacity:0.85; font-size:0.8125rem;"></div>
+        </div>
+    </div>
+
     <!-- Flight selector (hidden until file loaded) -->
     <div class="panel hidden" id="flightPanel">
         <h2><span class="icon">✈️</span> Select Flight Segment</h2>
+        <div id="parseDiagnostics" class="warn-banner hidden" style="background: rgba(59, 130, 246, 0.12); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; margin-bottom: 0.75rem;">
+            <strong>ℹ️ Rows skipped while reading this log:</strong>
+            <span id="diagSummary"></span>
+        </div>
         <div class="flight-list" id="flightList"></div>
     </div>
 
@@ -590,12 +604,12 @@
                             <span class="stat-label">Max Alt</span>
                             <span class="stat-value" id="statMaxAlt">-</span>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Max Spd (GSpd)</span>
+                        <div class="stat-item" title="Highest ground speed reported by the GPS module itself, as logged by the radio. Horizontal only.">
+                            <span class="stat-label">Max GND Spd (Sensor)</span>
                             <span class="stat-value" id="statMaxSpd">-</span>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Max Spd (GPS)</span>
+                        <div class="stat-item" title="Highest ground speed measured by this tool from consecutive GPS fixes. Horizontal only. A large gap from the sensor value means stale telemetry.">
+                            <span class="stat-label">Max GND Spd (Calc)</span>
                             <span class="stat-value" id="statMaxSpdCalc">-</span>
                         </div>
                         <div class="stat-item">
@@ -633,7 +647,7 @@
                         </label>
                     </div>
                     <div class="toggle-row">
-                        <span>Interpolate sparse GPS (smooth)</span>
+                        <span>Interpolate sparse GPS</span>
                         <label class="toggle">
                             <input type="checkbox" id="smoothGps" checked>
                             <span class="slider"></span>
@@ -677,7 +691,7 @@
                     <div class="toggle-row">
                         <span>Extrude (drop lines to ground)</span>
                         <label class="toggle">
-                            <input type="checkbox" id="extrude" checked>
+                            <input type="checkbox" id="extrude">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -725,17 +739,64 @@ let altChart = null;
 //   - truncated rows when telemetry is briefly lost mid-log
 //   - stale GPS cache (rows where Sats<4 or jump > 1 km from previous)
 // ================================================================
+// Splits one CSV line, honouring double-quoted fields.
+//
+// A plain split(',') misaligns every column after a quoted field that contains
+// a comma, and EdgeTX already quotes the flight-mode field (e.g. "AIR*"), so a
+// mode name with a comma in it would silently shift GPS, Alt and Sats one
+// column to the right. Doubled quotes inside a quoted field ("") are literal.
+function splitCsvLine(line) {
+    var out = [];
+    var field = '';
+    var inQuotes = false;
+    for (var i = 0; i < line.length; i++) {
+        var c = line[i];
+        if (inQuotes) {
+            if (c === '"') {
+                if (line[i + 1] === '"') { field += '"'; i++; }   // escaped quote
+                else inQuotes = false;
+            } else field += c;
+        } else if (c === '"') {
+            inQuotes = true;
+        } else if (c === ',') {
+            out.push(field); field = '';
+        } else field += c;
+    }
+    out.push(field);
+    return out;
+}
+
 function parseCSV(text) {
     const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(l => l.trim());
-    if (lines.length < 2) return [];
+    if (lines.length < 2) {
+        var emptyRows = [];
+        emptyRows._diagnostics = {
+            totalDataRows: Math.max(0, lines.length - 1), kept: 0,
+            droppedTruncated: 0, droppedNoGps: 0, droppedLowSats: 0, droppedGpsJump: 0,
+            fatal: 'empty',
+            fatalDetail: 'The file has no data rows - only a header, or nothing at all.'
+        };
+        return emptyRows;
+    }
 
-    const headers = lines[0].split(',').map(h => h.trim());
+    const headers = splitCsvLine(lines[0]).map(h => h.trim());
 
     // First-pass column lookup
     const gpsCol = findCol(headers, ['GPS']);
     if (gpsCol === -1) {
-        alert('Could not find GPS column in CSV. Make sure this is an EdgeTX telemetry log with GPS data.');
-        return [];
+        // No blocking alert(): the caller renders this as an in-page message so
+        // the user can see the file name and what to do about it.
+        var noGpsRows = [];
+        noGpsRows._diagnostics = {
+            totalDataRows: lines.length - 1, kept: 0,
+            droppedTruncated: 0, droppedNoGps: 0, droppedLowSats: 0, droppedGpsJump: 0,
+            fatal: 'noGpsColumn',
+            fatalDetail: 'This log has no GPS column, so there is no flight path to draw. ' +
+                         'It is most likely an RPM, battery or PID log. In EdgeTX, open the ' +
+                         'Telemetry screen and run "Discover new sensors" with the model powered ' +
+                         'and a GPS fix acquired, then log a new flight.'
+        };
+        return noGpsRows;
     }
 
     // Alt: when duplicate Alt(m) columns exist (baro + GPS, as in some EdgeTX
@@ -767,6 +828,14 @@ function parseCSV(text) {
     else if (/mph/i.test(speedHeader))  speedScale = 1.609344;
     // (cm/ is treated as km/h - see comment above)
 
+    // Altitude unit normalisation -> metres. Speed has always been normalised;
+    // altitude was not, so a radio set to imperial units exported its feet
+    // values as if they were metres (a 1000 m flight became 3280 "m" ASL).
+    // EdgeTX truncates unit suffixes, so match loosely on the header text.
+    var altHeader = colMap.alt !== -1 ? headers[colMap.alt] : '';
+    var altScale = 1.0; // multiplier to convert source -> metres
+    if (/\bft\b|feet/i.test(altHeader)) altScale = 0.3048;
+
     // Track diagnostics so the UI can explain sparse-telemetry cases later
     var dataRowCount = 0;       // total non-empty data rows
     var droppedTruncated = 0;   // rows shorter than the header
@@ -778,7 +847,7 @@ function parseCSV(text) {
     var raw = [];
     var minColsExpected = headers.length - 1; // tolerate one trailing trim
     for (var i = 1; i < lines.length; i++) {
-        var parts = lines[i].split(',');
+        var parts = splitCsvLine(lines[i]);
         dataRowCount++;
 
         // Truncated row (telemetry was briefly lost; fewer fields than header)
@@ -794,12 +863,19 @@ function parseCSV(text) {
         var lon = parseFloat(gpsParts[1]);
         if (isNaN(lat) || isNaN(lon) || (lat === 0 && lon === 0)) { droppedNoGps++; continue; }
 
-        var sats = colMap.sats !== -1 ? parseInt(parts[colMap.sats]) || 0 : 0;
-        // Stale GPS guard: require a usable fix
-        if (colMap.sats !== -1 && sats < 4) { droppedLowSats++; continue; }
+        // Sats: only trust the value when the cell actually holds a number.
+        // A blank cell (telemetry briefly lost) must NOT be read as "0 sats"
+        // and throw away a row whose GPS coordinates are perfectly good.
+        var satsRaw = colMap.sats !== -1 ? (parts[colMap.sats] || '').trim() : '';
+        var satsParsed = parseInt(satsRaw, 10);
+        var satsKnown = satsRaw !== '' && !isNaN(satsParsed);
+        var sats = satsKnown ? satsParsed : 0;
+        // Stale GPS guard: reject only when we positively know the fix is weak.
+        if (satsKnown && sats < 4) { droppedLowSats++; continue; }
 
         var altRaw = colMap.alt !== -1 ? parseFloat(parts[colMap.alt]) : 0;
         if (isNaN(altRaw)) altRaw = 0;
+        altRaw = altRaw * altScale;
 
         var spdRaw = colMap.speed !== -1 ? parseFloat(parts[colMap.speed]) : 0;
         if (isNaN(spdRaw)) spdRaw = 0;
@@ -822,17 +898,124 @@ function parseCSV(text) {
         });
     }
 
-    // Second pass: walk raw points and reject big GPS jumps (> 1 km between
-    // consecutive accepted rows). These are almost always stale GPS cache
-    // from a previous power-up that briefly leaks into the log.
-    var rows = [];
-    for (var k = 0; k < raw.length; k++) {
-        if (rows.length === 0) { rows.push(raw[k]); continue; }
-        var prev = rows[rows.length - 1];
-        var d = haversine(prev.lat, prev.lon, raw[k].lat, raw[k].lon);
-        if (d > 1000) { droppedGpsJump++; continue; }
-        rows.push(raw[k]);
+    // Second pass: reject stale GPS cache leaking in from a previous power-up.
+    // The test is implied SPEED, not raw distance: with a low ELRS telemetry
+    // ratio the GPS can update only every 20-50 s, and a fast model legitimately
+    // covers more than a kilometre in that time. A flat distance limit silently
+    // deletes real track on exactly the long-range flights people most want to
+    // plot. Anything above MAX_PLAUSIBLE_MPS is not a vehicle, it is a bad fix.
+    var MAX_PLAUSIBLE_MPS = 100;   // 360 km/h - far above any FPV model
+    var STALE_WINDOW_S = 120;      // beyond this a session break is more likely
+    var RESEED_RUN = 3;            // agreeing fixes needed to overrule a bad seed
+
+    // True when travelling a -> b is physically impossible.
+    //
+    // Measure against the row where the PREVIOUS position first appeared, not
+    // the row immediately before: with sparse telemetry the same fix repeats
+    // for many rows, so the whole movement shows up across one 1-second row
+    // boundary. Dividing by that 1 second makes every normal sparse-GPS update
+    // look like hundreds of m/s and deletes most of the track.
+    function implausibleStep(a, b) {
+        var d = haversine(a.lat, a.lon, b.lat, b.lon);
+        var ta = parseTime(a.date, a.time);
+        var tb = parseTime(b.date, b.time);
+        var dt = (!isNaN(ta) && !isNaN(tb)) ? (tb - ta) / 1000 : NaN;
+        if (!isNaN(dt) && dt > 0) {
+            // Within a plausible continuous window, judge by speed. Past it the
+            // radio was probably off between sessions, and detectFlights splits
+            // there anyway, so no jump rejection is applied.
+            return dt <= STALE_WINDOW_S && (d / dt) > MAX_PLAUSIBLE_MPS;
+        }
+        // No usable timestamps: fall back to the old flat distance rule.
+        return d > 1000;
     }
+
+    var rows = [];
+    var lastFix = null;            // row where the CURRENT position first appeared
+    // The very first fix is accepted with nothing to check it against. If it is
+    // itself a stale cache entry, every genuine fix afterwards disagrees with it
+    // and gets dropped until the 120 s window lapses - silently deleting up to
+    // two minutes of real flight and leaving the bogus point in the output.
+    // Every later lastFix was accepted *because* it agreed with an earlier one,
+    // so only the seed is uncorroborated, and only the seed may be overruled.
+    var seedTrusted = false;
+    var pending = [];              // consecutive fixes rejected against an untrusted seed
+
+    for (var k = 0; k < raw.length; k++) {
+        var cand = raw[k];
+        if (rows.length === 0) { rows.push(cand); lastFix = cand; continue; }
+
+        var prev = rows[rows.length - 1];
+        // A repeated position is a stale cache echo, not movement: keep it and
+        // move on, there is no jump to judge.
+        if (cand.lat === prev.lat && cand.lon === prev.lon) { rows.push(cand); continue; }
+
+        if (!implausibleStep(lastFix, cand)) {
+            // A distinct fix agrees with lastFix, so that position is now
+            // corroborated by something other than itself.
+            if (pending.length) { droppedGpsJump += pending.length; pending = []; }
+            rows.push(cand);
+            lastFix = cand;
+            seedTrusted = true;
+            continue;
+        }
+
+        if (seedTrusted) { droppedGpsJump++; continue; }
+
+        // The seed has never been corroborated, so the candidate may be right
+        // and the seed wrong. Hold rejected fixes and watch whether they agree
+        // with each other.
+        if (pending.length === 0 || !implausibleStep(pending[pending.length - 1], cand)) {
+            pending.push(cand);
+        } else {
+            // Not even self-consistent: scattered noise, not a real position.
+            droppedGpsJump += pending.length;
+            pending = [cand];
+        }
+
+        // Count DISTINCT positions, not rows. The echo guard above only compares
+        // against the last ACCEPTED row, so a repeat of a pending position is
+        // not caught there; it falls through, is rejected against the seed, and
+        // is appended here - and a zero-distance step always looks plausible.
+        // Counting rows would therefore let one stray fix that merely repeats
+        // overrule a perfectly good seed, which with sparse telemetry is the
+        // normal case rather than a corner case. Repeats stay in `pending` so a
+        // restarted track keeps its hold times.
+        var distinctPending = pending.length ? 1 : 0;
+        for (var q = 1; q < pending.length; q++) {
+            if (pending[q].lat !== pending[q - 1].lat || pending[q].lon !== pending[q - 1].lon) {
+                distinctPending++;
+            }
+        }
+
+        if (distinctPending >= RESEED_RUN) {
+            // Several distinct fixes agree with each other but not with the
+            // seed. The seed was the outlier. Drop it - nothing else has been
+            // accepted yet, so rows holds only the seed and its echoes - and
+            // restart the track from this run.
+            droppedGpsJump += rows.length;
+            rows = pending.slice();
+            // lastFix must be the row where the final position FIRST appeared,
+            // the same rule the main loop follows. Picking the last entry would
+            // pick an echo with a later timestamp, shortening dt for the next
+            // genuine fix and making it look impossibly fast - which would then
+            // drop real track for up to STALE_WINDOW_S.
+            var tail = pending[pending.length - 1];
+            var firstOfTail = tail;
+            for (var r = pending.length - 1; r >= 0; r--) {
+                if (pending[r].lat === tail.lat && pending[r].lon === tail.lon) {
+                    firstOfTail = pending[r];
+                } else {
+                    break;
+                }
+            }
+            lastFix = firstOfTail;
+            pending = [];
+            seedTrusted = true;
+        }
+    }
+    // A run that never reached RESEED_RUN stays rejected.
+    if (pending.length) { droppedGpsJump += pending.length; pending = []; }
 
     // Expose diagnostics for the UI
     rows._diagnostics = {
@@ -886,7 +1069,7 @@ function findCol(headers, candidates, preferAfterCol) {
 //  Two strategies layered together:
 //   (a) CRSF-style arm event: prev row had MSL altitude > 50 m and the
 //       next row dropped to <= 5 m. Original Tango 2 behaviour.
-//   (b) ELRS-style session boundary: a time gap > 30 s between consecutive
+//   (b) ELRS-style session boundary: a time gap > 60 s between consecutive
 //       rows, or a GPS jump > 200 m. Triggers when the radio was turned
 //       off and on, or a new battery was inserted.
 //  For each detected segment we compute summary metrics that the UI uses
@@ -919,6 +1102,52 @@ function parseTime(dateStr, timeStr) {
     }
 }
 
+// Detects the altitude reset that marks an arm event.
+//
+// The old rule demanded the altitude land on <= 5 m. Real logs do not oblige:
+// an ELRS sample resets 603 -> 7 m, which that rule missed entirely, leaving
+// the MSL offset at 0 and burying the whole exported track ~600 m underground.
+// What actually identifies the event is the SIZE of the collapse, so that is
+// what is tested, with a tolerant landing band.
+//
+// The stationary check stays, because a mid-flight descent through the same
+// altitude band must not be mistaken for an arm. The old throttle half of that
+// guard was dead code - it read rows[i].ch3, which parseCSV never populates,
+// and OR'd it, so the whole clause was permanently true. Measured against the
+// sample logs, real arm events sit at Thr -231..-524, nowhere near the -950
+// the old code looked for, so only a clearly raised throttle is treated as
+// evidence against an arm.
+function isArmReset(rows, i) {
+    if (!rows || i < 1 || i >= rows.length) return false;
+    var prev = rows[i - 1], cur = rows[i];
+    if (!prev || !cur) return false;
+
+    if (!(prev.alt > 50)) return false;              // was reporting MSL
+    if (!(cur.alt <= 15)) return false;              // landed near the new zero
+    if (!((prev.alt - cur.alt) > 50)) return false;  // and it was a real collapse
+
+    // Decisive test: before an arm the FC sits on the ground repeating a steady
+    // MSL figure, so the drop is preceded by a FLAT plateau. A mid-flight
+    // altitude glitch is not - in one sample the value falls 89 -> 65 -> 0 while
+    // the model is doing 83 km/h, which the old rule happily split on.
+    var PLATEAU_ROWS = 3, PLATEAU_TOL_M = 2;
+    var checked = 0;
+    for (var b = i - 1; b >= 0 && checked < PLATEAU_ROWS; b--, checked++) {
+        if (Math.abs(rows[b].alt - prev.alt) > PLATEAU_TOL_M) return false;
+    }
+    if (checked === 0) return false;
+
+    // Secondary guards. The speed bound is deliberately loose: telemetry can
+    // already show the launch (27.9 km/h in one sample) on the very row the
+    // altitude resets, so a tight "stationary" test rejects real arm events.
+    var spd = cur.speedKmh;
+    if (spd !== undefined && spd !== null && !isNaN(spd) && spd >= 60) return false;
+
+    var thr = cur.thr;
+    var throttleRaised = (thr !== undefined && thr !== null && !isNaN(thr) && thr > 0);
+    return !throttleRaised;
+}
+
 function detectFlights(rows) {
     if (rows.length === 0) return [];
 
@@ -933,14 +1162,11 @@ function detectFlights(rows) {
             var t2 = parseTime(rows[i].date, rows[i].time);
             if (!isNaN(t1) && !isNaN(t2) && (t2 - t1) > 60000) split = true;
         }
-        // (b) CRSF-style arm event: altitude drop from > 50m to <= 5m (relative altitude resets) AND drone is stationary
-        if (!split && rows[i - 1].alt > 50 && rows[i].alt <= 5) {
-            var isStationary = (rows[i].speedKmh === undefined || isNaN(rows[i].speedKmh) || rows[i].speedKmh < 10);
-            var isThrLow = (rows[i].thr === undefined || rows[i].thr < -950) || 
-                           (rows[i].ch3 === undefined || rows[i].ch3 < 1020);
-            if (isStationary && isThrLow) {
-                split = true;
-            }
+        // (b) Arm event: the FC stops reporting GPS MSL altitude and switches to
+        //     a relative altitude zeroed at the arm point, so the value collapses
+        //     from hundreds of metres to near zero in a single row.
+        if (!split && isArmReset(rows, i)) {
+            split = true;
         }
         if (split) splits.push(i);
     }
@@ -954,14 +1180,16 @@ function detectFlights(rows) {
 
         var segRows = rows.slice(startIdx, endIdx + 1);
 
-        // Pre-arm MSL: look at the row before this segment if a CRSF arm event split here
+        // Pre-arm MSL: the altitude the FC last reported before zeroing. Uses the
+        // same tolerant arm-reset test as the splitter, so the two cannot disagree.
         var preArmAlt = 0;
-        if (startIdx > 0 && rows[startIdx - 1].alt > 50 && rows[startIdx].alt <= 5) {
+        if (startIdx > 0 && isArmReset(rows, startIdx)) {
             preArmAlt = rows[startIdx - 1].alt;
         } else {
-            // Robust fallback: search the first 50 rows of the segment for a drop from > 50 to <= 5
+            // Fallback: the reset may sit just inside the segment rather than on
+            // its boundary (e.g. the log started while already powered up).
             for (var j = 0; j < Math.min(50, segRows.length - 1); j++) {
-                if (segRows[j].alt > 50 && segRows[j + 1].alt <= 5) {
+                if (isArmReset(segRows, j + 1)) {
                     preArmAlt = segRows[j].alt;
                     break;
                 }
@@ -1062,45 +1290,73 @@ function summarizeFlight(segRows) {
 // ================================================================
 //  POINT PROCESSING (altitude correction + trimming)
 // ================================================================
+// Fills in positions for rows that repeat a stale GPS fix, so a sparse track
+// draws as a smooth line instead of a staircase.
+//
+// Each synthesized point is placed by ELAPSED TIME, not by its index in the
+// array. That distinction is the whole fix: rows with no GPS value are dropped
+// during parsing, so after a telemetry dropout the array distance between two
+// fixes collapses while the real time between them does not. Spreading the
+// movement evenly across the surviving rows then crams, for example, a 415 m
+// gap into three one-second steps and reports 497 km/h for a model that never
+// exceeded 64. Weighting by timestamp puts every point where the clock says it
+// belongs.
+//
+// Synthesized points are flagged so the statistics can tell measured fixes
+// apart from drawn ones, and the logged GSpd is left untouched.
 function interpolateGPSPoints(points) {
     if (points.length < 3) return points;
     let i = 0;
     while (i < points.length) {
-        let startIdx = i;
-        let latVal = points[startIdx].lat;
-        let lonVal = points[startIdx].lon;
-        
+        const startIdx = i;
+        const latVal = points[startIdx].lat;
+        const lonVal = points[startIdx].lon;
+
         let j = startIdx + 1;
         while (j < points.length && points[j].lat === latVal && points[j].lon === lonVal) {
             j++;
         }
-        
-        let endIdx = j;
-        
+
+        const endIdx = j;
+
         if (endIdx < points.length && endIdx - startIdx > 1) {
-            let steps = endIdx - startIdx;
-            let startLat = points[startIdx].lat;
-            let startLon = points[startIdx].lon;
-            let startAlt = points[startIdx].altCorrected;
-            
-            let endLat = points[endIdx].lat;
-            let endLon = points[endIdx].lon;
-            let endAlt = points[endIdx].altCorrected;
-            
-            let totalDist = haversine(startLat, startLon, endLat, endLon);
-            let t1 = parseTime(points[startIdx].date, points[startIdx].time);
-            let t2 = parseTime(points[endIdx].date, points[endIdx].time);
-            let dt = (t2 - t1) / 1000;
-            let avgSpeedKmh = (dt > 0) ? (totalDist / dt) * 3.6 : 0;
-            
+            const steps = endIdx - startIdx;
+            const startLat = points[startIdx].lat;
+            const startLon = points[startIdx].lon;
+            const startAlt = points[startIdx].altCorrected;
+
+            const endLat = points[endIdx].lat;
+            const endLon = points[endIdx].lon;
+            const endAlt = points[endIdx].altCorrected;
+
+            const totalDist = haversine(startLat, startLon, endLat, endLon);
+            const t1 = parseTime(points[startIdx].date, points[startIdx].time);
+            const t2 = parseTime(points[endIdx].date, points[endIdx].time);
+            const span = t2 - t1;
+            const dt = span / 1000;
+            const useTime = !isNaN(span) && span > 0;
+            const avgSpeedKmh = (dt > 0) ? (totalDist / dt) * 3.6 : 0;
+
             for (let k = startIdx + 1; k < endIdx; k++) {
-                let frac = (k - startIdx) / steps;
+                let frac;
+                if (useTime) {
+                    const tk = parseTime(points[k].date, points[k].time);
+                    // Clamp: a row carrying a bad timestamp must not place a
+                    // point outside the segment it belongs to.
+                    frac = isNaN(tk) ? (k - startIdx) / steps
+                                     : Math.min(1, Math.max(0, (tk - t1) / span));
+                } else {
+                    frac = (k - startIdx) / steps;   // no clock: fall back to index
+                }
                 points[k].lat = startLat + (endLat - startLat) * frac;
                 points[k].lon = startLon + (endLon - startLon) * frac;
                 points[k].altCorrected = startAlt + (endAlt - startAlt) * frac;
-                points[k].speedKmh = avgSpeedKmh;
+                points[k].interpolated = true;
+                // Average ground speed across this gap, kept separate from the
+                // telemetry-reported GSpd so neither statistic masks the other.
+                points[k].speedKmhGps = avgSpeedKmh;
             }
-            points[startIdx].speedKmh = avgSpeedKmh;
+            points[startIdx].speedKmhGps = avgSpeedKmh;
         }
         i = endIdx;
     }
@@ -1110,7 +1366,8 @@ function interpolateGPSPoints(points) {
 function processFlightPoints(flight, altOffset, doTrim, doSmooth) {
     let points = flight.rows.map(r => ({
         ...r,
-        altCorrected: r.alt + altOffset
+        altCorrected: r.alt + altOffset,
+        interpolated: false   // set true by interpolateGPSPoints for drawn points
     }));
 
     if (doSmooth && points.length > 2) {
@@ -1158,6 +1415,39 @@ function totalDistance(points) {
     return d;
 }
 
+/**
+ * Formats a log timestamp as an ISO 8601 string carrying a real UTC offset.
+ *
+ * EdgeTX writes the radio's LOCAL wall-clock time with no timezone marker. The
+ * exporter used to append "Z", declaring it UTC, so Strava, Garmin and other
+ * GPX consumers placed every flight at the wrong time of day - out by the whole
+ * UTC offset. Emitting the offset explicitly keeps the instant correct.
+ *
+ * Assumption: the device reading the log is in the same timezone the flight was
+ * recorded in. The offset is taken for the log's own date, so DST is handled;
+ * only a log flown in a different timezone and opened elsewhere would be off.
+ *
+ * @param {string} dateStr - Log date column (YYYY-MM-DD).
+ * @param {string} timeStr - Log time column (HH:MM:SS.mmm).
+ * @returns {string} ISO 8601 timestamp with offset, or '' if unparseable.
+ */
+function toIsoLocal(dateStr, timeStr) {
+    var ms = parseTime(dateStr, timeStr);
+    if (isNaN(ms)) return '';
+    var d = new Date(ms);
+    var pad = function (n, w) {
+        var s = String(Math.abs(n));
+        while (s.length < (w || 2)) s = '0' + s;
+        return s;
+    };
+    // getTimezoneOffset() counts minutes BEHIND UTC, so the sign is inverted.
+    var off = -d.getTimezoneOffset();
+    var offStr = (off >= 0 ? '+' : '-') + pad(Math.floor(Math.abs(off) / 60)) + ':' + pad(Math.abs(off) % 60);
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+           'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) +
+           '.' + pad(d.getMilliseconds(), 3) + offStr;
+}
+
 function formatDuration(startDate, startTime, endDate, endTime) {
     try {
         const t1 = parseTime(startDate, startTime);
@@ -1174,19 +1464,39 @@ function formatDuration(startDate, startTime, endDate, endTime) {
 // ================================================================
 //  KML GENERATION
 // ================================================================
+// Removes consecutive duplicates from a list of formatted KML coordinate tuples.
+// Only exact repeats are dropped; a point that shares lat/lon with its predecessor
+// but differs in altitude is a real vertical segment and is kept.
+function dedupeCoords(tuples) {
+    var out = [];
+    for (var i = 0; i < tuples.length; i++) {
+        if (i === 0 || tuples[i] !== tuples[i - 1]) out.push(tuples[i]);
+    }
+    return out;
+}
+
 function generateKML(points, opts) {
     const colorKML = hexToKMLColor(opts.color, 'ff');
     const polyColor = hexToKMLColor(opts.color, 'cc');
-    const coords = points.map(p =>
+    // Collapse runs of byte-identical coordinates before they reach the LineString.
+    // A held GPS position is written once per log row, so a 38 s dropout becomes
+    // ~19 identical tuples, i.e. 18 zero-length segments. Those have no direction
+    // vector, and Google Earth Web's WebGL line renderer drops the segment that
+    // follows them -- the track visibly breaks at every stale-GPS run. Google Earth
+    // Pro renders the same file correctly, so the file was never malformed, but a
+    // zero-length segment carries no information in a LineString either way.
+    // De-duplicate on the FORMATTED tuple: two points can differ in the raw data
+    // and still round to the same six decimals.
+    const coords = dedupeCoords(points.map(p =>
         p.lon.toFixed(6) + ',' + p.lat.toFixed(6) + ',' + Math.round(p.altCorrected)
-    ).join(' ');
+    )).join(' ');
 
     let placemarks = '';
 
     // Main track line
     placemarks += `
       <Placemark>
-        <name><![CDATA[${escXml(opts.name)}]]></name>
+        <name><![CDATA[${cdata(opts.name)}]]></name>
         <description><![CDATA[Generated by Saturn FPV EdgeTX Telemetry Parser]]></description>
         <Style>
           <LineStyle>
@@ -1239,7 +1549,7 @@ function generateKML(points, opts) {
     return `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <Document>
-    <name><![CDATA[${escXml(opts.name)}]]></name>
+    <name><![CDATA[${cdata(opts.name)}]]></name>
     <visibility>1</visibility>
     <open>1</open>
     <Folder id="Tracks">
@@ -1261,7 +1571,17 @@ function hexToKMLColor(hex, alpha) {
 }
 
 function escXml(s) {
-    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return String(s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+}
+
+// Wraps text for a CDATA section. Inside CDATA, XML entities are NOT decoded,
+// so running escXml() here turned "Bob & Alice" into a literal "Bob &amp; Alice"
+// in Google Earth. The only sequence CDATA cannot contain is "]]>", which is
+// split across two sections instead.
+function cdata(s) {
+    return String(s).split(']]>').join(']]]]><![CDATA[>');
 }
 
 // ================================================================
@@ -1280,7 +1600,8 @@ function generateGPX(points, opts) {
             if (p.curr !== null) extInner += `<curr>${p.curr}</curr>`;
             if (extInner) ext = `<extensions>${extInner}</extensions>`;
         }
-        const time = p.date && p.time ? `<time>${p.date}T${p.time}Z</time>` : '';
+        const iso = (p.date && p.time) ? toIsoLocal(p.date, p.time) : '';
+        const time = iso ? `<time>${iso}</time>` : '';
         trkpts += `      <trkpt lat="${p.lat.toFixed(7)}" lon="${p.lon.toFixed(7)}">
         <ele>${p.altCorrected.toFixed(1)}</ele>
         ${time}
@@ -1472,10 +1793,13 @@ function updateRangeRings() {
  */
 function initMap() {
     if (leafletMap) return;
+    // Attribution must stay visible: the OpenStreetMap tile usage policy and
+    // OpenTopoMap's CC-BY-SA licence both require on-map credit.
     leafletMap = L.map('map', {
         zoomControl: true,
-        attributionControl: false
+        attributionControl: true
     }).setView([0, 0], 2);
+    leafletMap.attributionControl.setPrefix('');
 
     L.control.scale({ imperial: false, metric: true, position: 'bottomleft' }).addTo(leafletMap);
 
@@ -1486,15 +1810,55 @@ function initMap() {
         roadLayer = config.roadLayer;
         currentBaseLayers = config.baseLayers;
 
-        // Fallback: If online tiles fail to load (e.g. weak cell reception), automatically add offlineGrid
-        const defaultTileLayer = config.defaultLayer || config.roadLayer;
-        if (defaultTileLayer && typeof defaultTileLayer.on === 'function') {
-            defaultTileLayer.on('tileerror', function() {
-                if (offlineGrid && !leafletMap.hasLayer(offlineGrid)) {
-                    offlineGrid.addTo(leafletMap);
-                }
-            });
-        }
+        // initLayers builds its own grid instance and lists it in the layer
+        // control. Use that one rather than the local fallback, or the control
+        // and the map disagree about which grid is showing and picking
+        // "Offline Grid" stacks a second copy on top of the first.
+        const grid = currentBaseLayers['Offline Grid'] || offlineGrid;
+
+        // Fallback: if online tiles fail to load (e.g. weak cell reception),
+        // show the grid. Bind to EVERY tile layer, not just the default one: a
+        // user who switches to Street or Topo and then loses signal would
+        // otherwise be left staring at blank tiles with no grid at all.
+        //
+        // Grid tiles are painted with an opaque background, so reacting to a
+        // single tileerror would hide a map whose other tiles are loading
+        // perfectly well. OpenTopoMap in particular is a volunteer service with
+        // no uptime guarantee and drops the odd tile. Require a sustained run of
+        // failures, and take the grid away again once tiles come back.
+        const GRID_AFTER_ERRORS = 8;   // about one viewport's worth of tiles
+        let tileErrors = 0;
+        let gridAutoShown = false;
+
+        const onTileError = function () {
+            if (++tileErrors < GRID_AFTER_ERRORS) return;
+            if (grid && !leafletMap.hasLayer(grid)) {
+                grid.addTo(leafletMap);
+                gridAutoShown = true;
+            }
+        };
+        const onTileLoad = function () {
+            tileErrors = 0;
+            // Only remove a grid we added ourselves. If the user picked
+            // "Offline Grid" in the layer control, it is theirs to dismiss.
+            if (gridAutoShown && grid && leafletMap.hasLayer(grid)) {
+                leafletMap.removeLayer(grid);
+                gridAutoShown = false;
+            }
+        };
+
+        Object.keys(currentBaseLayers).forEach(function (name) {
+            const layer = currentBaseLayers[name];
+            // Only real tile layers fetch anything and can emit tileerror; the
+            // grid draws itself locally and never fails.
+            if (layer instanceof L.TileLayer) {
+                layer.on('tileerror', onTileError);
+                layer.on('tileload', onTileLoad);
+            }
+        });
+        // A fresh layer starts with a clean slate; the previous layer's failures
+        // say nothing about this one.
+        leafletMap.on('baselayerchange', function () { tileErrors = 0; });
     } else {
         offlineGrid.addTo(leafletMap);
         currentBaseLayers = {
@@ -1665,28 +2029,44 @@ function updateStats(points) {
     document.getElementById('statDistance').textContent =
         dist > 1000 ? (dist / 1000).toFixed(2) + ' km' : Math.round(dist) + ' m';
 
-    const maxAlt = Math.max(...points.map(p => p.altCorrected));
+    // Plain loops rather than Math.max(...spread): the spread form throws
+    // RangeError past roughly 125k arguments, which a long high-rate log reaches.
+    let maxAlt = -Infinity;
+    let maxSpd = 0;
+    for (const p of points) {
+        if (p.altCorrected > maxAlt) maxAlt = p.altCorrected;
+        const s = p.speedKmh || 0;
+        if (s > maxSpd) maxSpd = s;
+    }
     document.getElementById('statMaxAlt').textContent = Math.round(maxAlt) + ' m';
 
-    // Max speed reported by the GSpd telemetry column (km/h)
-    const maxSpd = Math.max(...points.map(p => p.speedKmh || 0));
+    // Max speed reported by the GSpd telemetry column (km/h). This is now the
+    // logged value only - interpolation no longer overwrites it, so this and
+    // the GPS-derived figure below stay independent and can cross-check.
     document.getElementById('statMaxSpd').textContent =
         maxSpd > 0 ? maxSpd.toFixed(1) + ' km/h' : '-';
 
-    // Max speed COMPUTED from consecutive GPS points + timestamps.
-    // ELRS telemetry often holds stale GSpd values, so the calculated speed
-    // is a more honest signal of how fast the model actually moved.
+    // Max speed COMPUTED from the GPS fixes themselves. ELRS telemetry often
+    // holds stale GSpd values, so this is an independent read on how fast the
+    // model actually moved.
+    //
+    // Only MEASURED fixes take part. Interpolated points are positions this
+    // tool drew, not positions the receiver reported, so timing them against
+    // each other just re-reads our own straight line - and before the
+    // interpolation fix that is precisely how a 64 km/h flight came to report
+    // 497 km/h.
+    var measured = points.filter(function (p) { return !p.interpolated; });
     var maxSpdCalc = 0;
     var lastChangeIdx = 0;
-    for (var i = 1; i < points.length; i++) {
-        var prev = points[i - 1], curr = points[i];
+    for (var i = 1; i < measured.length; i++) {
+        var prev = measured[i - 1], curr = measured[i];
         if (curr.lat !== prev.lat || curr.lon !== prev.lon) {
-            var lastChangePt = points[lastChangeIdx];
+            var lastChangePt = measured[lastChangeIdx];
             if (lastChangePt.date && curr.date && lastChangePt.time && curr.time) {
                 var t1 = parseTime(lastChangePt.date, lastChangePt.time);
                 var t2 = parseTime(curr.date, curr.time);
                 var dt = (t2 - t1) / 1000;
-                if (dt > 0 && dt < 60) {
+                if (dt > 0 && dt < 120) {
                     var step = haversine(lastChangePt.lat, lastChangePt.lon, curr.lat, curr.lon);
                     var kmh = (step / dt) * 3.6;
                     if (kmh > maxSpdCalc) maxSpdCalc = kmh;
@@ -1698,11 +2078,18 @@ function updateStats(points) {
     document.getElementById('statMaxSpdCalc').textContent =
         maxSpdCalc > 0 ? maxSpdCalc.toFixed(1) + ' km/h' : '-';
 
-    // GPS density - share of distinct positions vs. total points kept.
-    // Surfaces sparse telemetry (e.g. ELRS GPS sensor updating once every
+    // GPS density - share of distinct MEASURED positions vs. rows kept.
+    // Surfaces sparse telemetry (e.g. an ELRS GPS sensor updating once every
     // 15-20 s, leaving most rows holding stale lat/lon).
+    //
+    // Interpolated points are excluded. Counting them made every smoothed track
+    // report 100% density, hiding the very condition this figure exists to
+    // expose and suppressing the sparse-telemetry warning below.
+    // Numerator counts distinct MEASURED fixes; the denominator stays the full
+    // row count, so the figure keeps meaning "share of rows carrying a new fix"
+    // and reads the same whether smoothing is on or off.
     var unique = {};
-    points.forEach(function(p) { unique[p.lat.toFixed(6) + ',' + p.lon.toFixed(6)] = 1; });
+    measured.forEach(function(p) { unique[p.lat.toFixed(6) + ',' + p.lon.toFixed(6)] = 1; });
     var density = points.length > 0 ? Math.round((Object.keys(unique).length / points.length) * 100) : 0;
     document.getElementById('statDensity').textContent = density + '%';
 
@@ -1734,20 +2121,123 @@ function updateStats(points) {
 // ================================================================
 function onFileLoaded(text, fileName) {
     rawRows = parseCSV(text);
-    if (rawRows.length === 0) return;
 
+    // Always acknowledge the file, even when it turns out to be unusable.
     document.getElementById('fileName').textContent = fileName;
     document.getElementById('fileName').classList.remove('hidden');
+
+    // A log with no usable GPS used to fail completely silently: the function
+    // returned before even showing the file name, so nothing on screen changed
+    // and there was no way to tell a rejected file from a mis-click.
+    if (rawRows.length === 0) {
+        renderLoadError(rawRows._diagnostics);
+        return;
+    }
+
+    // Report what the parser discarded. These counts were always computed and
+    // never shown, so a log shredded by telemetry dropouts looked identical to
+    // a clean one.
+    renderParseDiagnostics(rawRows._diagnostics);
 
     // Detect flights
     flights = detectFlights(rawRows);
     renderFlightList();
     document.getElementById('flightPanel').classList.remove('hidden');
 
-    // Auto-select if only one flight
-    if (flights.length === 1) {
+    // Auto-select the segment actually worth looking at.
+    //
+    // Testing for "exactly one segment" almost never held in practice: nearly
+    // every ELRS log starts with a few stationary pre-arm rows, which split off
+    // as their own tiny "ground test" segment, so the real flight always needed
+    // a manual click. Pick it automatically when exactly one segment is
+    // substantive, and leave genuine multi-flight logs for the user to choose.
+    var substantive = [];
+    flights.forEach(function (f, i) {
+        var s = f.summary || {};
+        if (f.rows.length >= 10 && !s.isGroundTest) substantive.push(i);
+    });
+    if (substantive.length === 1) {
+        selectFlight(substantive[0]);
+    } else if (flights.length === 1) {
         selectFlight(0);
     }
+}
+
+/**
+ * Explains why a log produced no usable flight track.
+ *
+ * Distinguishes "this file has no GPS column at all" from "it has one, but no
+ * row ever carried a usable fix", and names the specific reason rows were
+ * rejected, so the user can tell a wrong file from a genuinely GPS-less flight.
+ *
+ * @param {Object} diag - The diagnostics object attached by parseCSV.
+ * @returns {void}
+ */
+function renderLoadError(diag) {
+    const panel = document.getElementById('loadErrorPanel');
+    if (!panel) return;
+    diag = diag || {};
+
+    var title, detail;
+    if (diag.fatal === 'noGpsColumn' || diag.fatal === 'empty') {
+        title = (diag.fatal === 'empty') ? 'This file contains no data rows.'
+                                         : 'No GPS column found in this log.';
+        detail = diag.fatalDetail || '';
+    } else {
+        // A GPS column exists, but every row was rejected. Lead with whichever
+        // reason actually accounted for the rows.
+        title = 'The GPS sensor never recorded a usable position in this log.';
+        if (diag.droppedLowSats && diag.droppedLowSats >= (diag.droppedNoGps || 0)) {
+            detail = 'Every row was logged with fewer than 4 satellites, which is not a ' +
+                     'position fix. The model most likely never acquired GPS lock - give it ' +
+                     'a clear view of the sky and wait for a solid lock before arming.';
+        } else {
+            detail = 'Every row has an empty or zero GPS value. The GPS sensor was discovered ' +
+                     'by EdgeTX but sent no coordinates, which usually means it had no lock, ' +
+                     'or the telemetry link dropped before it did.';
+        }
+    }
+
+    document.getElementById('loadErrorTitle').textContent = title;
+    document.getElementById('loadErrorDetail').textContent = detail;
+
+    var counts = [];
+    if (diag.totalDataRows) counts.push(diag.totalDataRows + ' data rows read');
+    if (diag.droppedNoGps) counts.push(diag.droppedNoGps + ' with no GPS value');
+    if (diag.droppedLowSats) counts.push(diag.droppedLowSats + ' below 4 satellites');
+    if (diag.droppedGpsJump) counts.push(diag.droppedGpsJump + ' implausible position jumps');
+    if (diag.droppedTruncated) counts.push(diag.droppedTruncated + ' truncated rows');
+    document.getElementById('loadErrorCounts').textContent = counts.join(' - ');
+
+    panel.classList.remove('hidden');
+}
+
+/**
+ * Shows how many CSV rows were skipped and why, so sparse or damaged logs are
+ * visible rather than silently shrinking the track.
+ * @param {Object} diag - The diagnostics object attached by parseCSV.
+ * @returns {void}
+ */
+function renderParseDiagnostics(diag) {
+    const el = document.getElementById('parseDiagnostics');
+    if (!el) return;
+    if (!diag || !diag.totalDataRows) { el.classList.add('hidden'); return; }
+
+    const dropped = diag.totalDataRows - diag.kept;
+    if (dropped <= 0) { el.classList.add('hidden'); return; }
+
+    const reasons = [];
+    if (diag.droppedNoGps)      reasons.push(diag.droppedNoGps + ' with no GPS fix');
+    if (diag.droppedLowSats)    reasons.push(diag.droppedLowSats + ' below 4 satellites');
+    if (diag.droppedGpsJump)    reasons.push(diag.droppedGpsJump + ' implausible position jumps');
+    if (diag.droppedTruncated)  reasons.push(diag.droppedTruncated + ' truncated rows');
+
+    const pct = Math.round((dropped / diag.totalDataRows) * 100);
+    document.getElementById('diagSummary').textContent =
+        ' ' + dropped + ' of ' + diag.totalDataRows + ' rows (' + pct + '%) - ' +
+        (reasons.length ? reasons.join(', ') : 'reason not recorded') +
+        '. The remaining ' + diag.kept + ' rows were used.';
+    el.classList.remove('hidden');
 }
 
 function escapeHTML(str) {
@@ -1867,6 +2357,8 @@ function resetAll() {
     if (altChart) { altChart.destroy(); altChart = null; }
 
     document.getElementById('flightPanel').classList.add('hidden');
+    document.getElementById('parseDiagnostics').classList.add('hidden');
+    document.getElementById('loadErrorPanel').classList.add('hidden');
     document.getElementById('mainContent').classList.add('hidden');
     document.getElementById('fileName').classList.add('hidden');
     document.getElementById('fileInput').value = '';
@@ -1970,12 +2462,9 @@ window.addEventListener('message', function(event) {
             document.body.classList.remove('light-theme');
         }
         updateChartsTheme(theme);
-        if (roadLayer) {
-            if (theme === 'light') {
-                roadLayer.setUrl('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png');
-            } else {
-                roadLayer.setUrl('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png');
-            }
+        // Tile sources live in js/map-config.js; tool pages never hard-code them.
+        if (roadLayer && window.MapConfig && MapConfig.setRoadTheme) {
+            MapConfig.setRoadTheme(roadLayer, theme);
         }
     }
 });
@@ -2051,6 +2540,8 @@ function updateChartsTheme(theme) {
                 <li><strong>Flight Segment Selector:</strong> Auto-detects and isolates separate flights from a single log file based on arm/disarm state and power cycles.</li>
                 <li><strong>Altitude Offset (m):</strong> Adjusts baseline ground elevation zero-level. If the telemetry stream captured the pre-arm state (when Betaflight reports GPS MSL altitude before zeroing relative baro altitude on arming), the parser automatically detects your ground ASL elevation and sets this offset. You can also adjust it manually for sea-level alignment in Google Earth.</li>
                 <li><strong>Track Line Color & Width:</strong> Customizes the visual 3D path ribbon rendered in Google Earth.</li>
+                <li><strong>Interpolate sparse GPS:</strong> When the GPS repeats the same position for several rows (lost or lagging telemetry), this inserts points along a straight line between the last and next real fix, spaced by elapsed time. It fills gaps &mdash; it does not round off sharp turns.</li>
+                <li><strong>Max GND Spd (Sensor) vs (Calc):</strong> Both are horizontal ground speed; neither includes climb rate. <em>Sensor</em> is the speed the GPS module itself reported, as logged by the radio. <em>Calc</em> is measured by this tool from consecutive position fixes. A large difference between the two means the telemetry was lagging or repeating stale values.</li>
                 <li><strong>KML/KMZ vs GPX Export:</strong> <strong>KML/KMZ</strong> exports 3D flight paths, altitude extrusion ribbons, and waypoints for Google Earth. <strong>GPX</strong> exports standard GPS track logs compatible with Strava, Garmin, and GIS tools.</li>
             </ul>
         </div>

@@ -19,21 +19,10 @@ android {
         applicationId = "com.saturnfpv.fpvtools"
         minSdk = 24
         targetSdk = 36
-        versionCode = 9
-        versionName = "1.2.2"
+        versionCode = 10
+        versionName = "1.2.3"
         manifestPlaceholders["appName"] = "FPV Tools"
     }
-
-    flavorDimensions.add("distribution")
-    productFlavors {
-        create("play") {
-            dimension = "distribution"
-        }
-        create("fdroid") {
-            dimension = "distribution"
-        }
-    }
-
 
     signingConfigs {
         create("release") {
@@ -89,6 +78,10 @@ dependencies {
   implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.activity)
+
+  // WebViewAssetLoader: serves the bundled assets over an https origin so the
+  // WebView sends a Referer, which OpenStreetMap's tile servers require.
+  implementation(libs.androidx.webkit)
 
   // Local tests: jUnit, coroutines, Android runner
   testImplementation(libs.junit)

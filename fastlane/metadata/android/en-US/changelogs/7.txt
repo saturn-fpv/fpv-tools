@@ -1,4 +1,0 @@
-Added new flight tools and interface improvements:
-- Integrated Chirp Analyzer tool for flight logs.
-- Added RF Calculators (range, budget, mW/dBm, dipole design).
-- Redesigned sidebar navigation drawer and menu icons.

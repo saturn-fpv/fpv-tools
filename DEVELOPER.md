@@ -12,9 +12,9 @@ This file outlines the project architecture, versioning protocol, and coding sta
 * All cryptographic keys (`*.jks`, `*.keystore`) and local properties files (`secrets.properties`, `local.properties`) are strictly gitignored.
 
 ### 3. Build & Verification Protocol
-* After modifying any Kotlin files or web assets, always verify that the project builds and lint checks pass cleanly using the local Gradle wrapper for the target distribution flavor:
-  * Play Store Build: `.\gradlew.bat lintPlayDebug assemblePlayDebug`
-  * F-Droid Build: `.\gradlew.bat lintFdroidDebug assembleFdroidDebug`
+* After modifying any Kotlin files or web assets, always verify that the project builds and lint checks pass cleanly using the local Gradle wrapper:
+  * `.\gradlew.bat lintDebug assembleDebug`
+  * Note that the `java` on `PATH` may be an old JRE. Point `JAVA_HOME` at Android Studio's bundled JDK first, e.g. `$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"`.
 * If a physical device or emulator is connected, launch the app to visually inspect and verify the UI changes.
 
 ### 4. Typography & Styling
@@ -70,19 +70,43 @@ The Master Source Files under `/tools/`, `/js/`, and `/css/` are shared directly
   }
   ```
 
-### 7. F-Droid & Google Play Distribution (Flavors)
-To comply with F-Droid's strict open-source policy while retaining optimized file loading on Google Play and the Saturn FPV Website, the Android app is split into two product flavors under the `distribution` dimension:
-* **`play` (Google Play Build):**
-  * Packages assets directly from `src/main/assets/` (which inherits minified JS libraries from the root `js/` folder).
-  * Compiled using: `.\gradlew.bat assemblePlayRelease` / `bundlePlayRelease`
-* **`fdroid` (F-Droid Build):**
-  * Packages unminified development versions of third-party JS libraries (React, React DOM, Babel standalone, Leaflet, JSZip) stored in `android/app/src/fdroid/assets/js/`.
-  * **Naming Override Strategy:** To prevent modifying any HTML files or script tags, the unminified JS libraries inside the `src/fdroid/` directory are named identically to the minified libraries (e.g. the unminified React development build is saved as `react.production.min.js`). Gradle automatically overrides the minified version in `main` with this unminified version during compilation of the F-Droid flavor.
-  * **Map Layer Override Strategy (`map-config.js`):** To prevent triggering `AntiFeatures: NonFreeNet` on F-Droid while preserving Satellite maps on Google Play and the Web, map tile initialization is decoupled into `js/map-config.js`. The default `src/main/assets/js/map-config.js` (and root `js/map-config.js`) initializes Esri Satellite & Carto tiles for Google Play and the Website. The `src/fdroid/assets/js/map-config.js` file overrides this configuration with standard OpenStreetMap tiles (`tile.openstreetmap.org`) during compilation of the F-Droid flavor.
-  * Compiled automatically by F-Droid's build servers from your release tags using: `.\gradlew.bat assembleFdroidRelease`
-  * **Build Server Constraints (Important):** F-Droid requires fully offline, secure, and reproducible builds. Dynamic JDK toolchain resolution plugins (such as `org.gradle.toolchains.foojay-resolver-convention` in `settings.gradle.kts`) are strictly blocked by the F-Droid source scanner and will fail compilation. Ensure all JDK requirements are resolved locally.
+### 7. Distribution & Map Tile Providers
+The app ships as a **single unflavoured build** for Google Play. The former
+`distribution` flavour dimension (`play` / `fdroid`) was removed along with the
+`android/app/src/fdroid/` source set, since an F-Droid release is no longer
+planned. Build with `.\gradlew.bat assembleRelease` / `bundleRelease`.
+
+* **Asset Serving & the WebView Origin (CRITICAL):**
+  * `MainActivity` serves `src/main/assets/` through `WebViewAssetLoader` at
+    `https://appassets.androidplatform.net/assets/`, **not** `file:///android_asset/`.
+  * This is not cosmetic. `tile.openstreetmap.org` answers any request that
+    carries no `Referer` header with a 403 "Access blocked" tile, and browsers
+    send no Referer from a `file://` origin. Serving over https gives the
+    WebView a real web origin, so OSM tiles load inside the app.
+  * It also gives every tool page one shared `localStorage` origin, which
+    `file://` does not guarantee (see the theme-persistence note in section 6).
+  * The WebView appends an identifying User-Agent tag (`FPVTools/<version>`),
+    which the OSM tile usage policy requires of applications.
+  * Consequences to respect: `allowFileAccess` is now `false`, in-app navigation
+    is restricted to the `appassets.androidplatform.net` host, and any new tool
+    must keep using **relative** asset paths so it resolves under `/assets/`.
+
+* **Tile Providers (`js/map-config.js`):**
+  * Map tile initialization is centralised in `js/map-config.js`; tool pages must
+    not hard-code tile URLs.
+  * **Never use CARTO** (`basemaps.cartocdn.com`). Every CARTO basemap now
+    requires an API key and returns HTTP 200 with a ~2 KB "API KEY REQUIRED"
+    watermark, so Leaflet reports no tile error and silently shows the watermark.
+  * Current layers: Esri World Imagery (Satellite), OpenStreetMap (Street, with
+    an Esri World Street Map fallback for any origin that sends no Referer, such
+    as an HTML file opened directly from disk), OpenTopoMap (Topo) and the
+    offline grid.
+  * The Leaflet attribution control must stay enabled: the OSM tile usage policy
+    requires visible credit, and OpenTopoMap's tiles are CC-BY-SA.
+
 * **Saturn FPV Website Compatibility:**
-  * The website build copies files directly from the root folders (`js/`, `css/`, etc.). Because the unminified F-Droid files reside isolated inside `android/app/src/fdroid/`, the website continues to use the root minified assets with zero changes.
+  * The website build copies files directly from the root folders (`js/`, `css/`,
+    etc.) and is served over https, so it uses the OpenStreetMap tiles directly.
 
 ### 8. Version Management & Release Protocol
 Whenever you bump the app version for a new release, you **MUST** update the version parameters in all of the following locations:
@@ -90,8 +114,9 @@ Whenever you bump the app version for a new release, you **MUST** update the ver
 2. **Sidebar UI Version:** Update the version string (e.g. `v1.1.3`) in the drawer header template in [js/sidebar.js](js/sidebar.js).
 3. **About Menu UI Version:** Update the version text in the about card header in [menu.html](menu.html).
 4. **Active Assets Sync:** Copy the updated `js/sidebar.js` and `menu.html` files to their active assets counterparts under `android/app/src/main/assets/` to ensure they are packaged in the Android APK.
-5. **Changelog Creation:** Create a new release changelog text file named after the target `versionCode` (e.g. `6.txt` for version code `6`) in `fastlane/metadata/android/en-US/changelogs/`.
-6. **Git Tagging:** Push the merged release commits to `main`, then create and push a tag named `v<versionName>` (e.g. `v1.1.3`) to GitHub to trigger F-Droid's autoupdate check.
+5. **User-Agent Tag:** Update `UA_TAG` in [MainActivity.kt](android/app/src/main/java/com/saturnfpv/fpvtools/MainActivity.kt), which carries the version to tile providers.
+6. **Release Notes:** Paste them into the Play Console "What's new" box at upload time. They are **not** stored in the repo; the per-`versionCode` changelog files under `fastlane/` existed only for F-Droid and were removed in v1.2.3. The Play listing text (title, short and full description) lives in [store/](store/) for reference and manual copying.
+7. **Git Tagging:** Push the merged release commits to `main`, then create and push a tag named `v<versionName>` (e.g. `v1.1.3`) to GitHub so the release is tagged for Obtainium and the GitHub Releases page.
 
 ### 9. Guidance for AI Coding Assistants (Antigravity/Others)
 This section outlines automated workflow rules for AI agents:
@@ -100,7 +125,7 @@ This section outlines automated workflow rules for AI agents:
 * **Code Integrity:** Always adhere strictly to the project architecture, file synchronization requirements, and relative directory constraints specified in this file.
 
 ### 10. Shared JavaScript Libraries
-To maintain a DRY codebase, keep tools lightweight, and respect F-Droid's open-source compliance, several general-purpose libraries are maintained in the shared `js/` directory. Developers and AI coding assistants **MUST** reuse these libraries instead of copying duplicate code block implementations directly into individual tool HTML pages:
+To maintain a DRY codebase and keep tools lightweight, several general-purpose libraries are maintained in the shared `js/` directory. Developers and AI coding assistants **MUST** reuse these libraries instead of copying duplicate code block implementations directly into individual tool HTML pages:
 
 1. **`js/blackbox-decoder.js` (Custom):** A generic Betaflight Blackbox V2 binary log decoder (`BBL` module). Parses raw `.bbl`/`.bfl` file buffers, handles predictors, and outputs raw signal arrays (`time`, `setpoint`, `gyro`, `motor`). Essential for any flight log analytics tool.
 2. **`js/chart.umd.min.js` (Vendored):** Chart.js library used for rendering customizable telemetry and data charts offline.
