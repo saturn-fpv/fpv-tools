@@ -87,6 +87,35 @@ closing as the parser changes:
 Rendering stays out of scope: Leaflet and Chart.js are stubbed, so the suite
 says nothing about how the map looks.
 
+### Cover the other nine tools
+
+The suite is aimed at the telemetry parser, which was simply where the bugs
+were. Two of its files are already repo-wide - `sync.test.js` checks the whole
+asset mirror and `mapconfig.test.js` covers the shared `js/map-config.js` - but
+the other nine tools have nothing.
+
+They should be *easier* than the parser, not harder. The parser was awkward
+because it digests messy real-world data; the rest are calculators with one
+correct answer:
+
+| Tool | What a test would pin down |
+|---|---|
+| `rate-converter.html` | Betaflight/KISS/Actual curves against values the firmware itself produces |
+| `prop-tip-speed.html` | tip speed and Mach from diameter and RPM |
+| `stator-volume.html` | volume from stator dimensions, and the comparison ratios |
+| `tpa-comparison.html` | the attenuation curve at breakpoint, below it and above it |
+| `pid-simulator.html` | step response stays stable; known gains give known overshoot |
+| `frequency-planner.html` | channel separation and the conflicts it reports |
+| `rf-calculators.html` | link budget, Fresnel zone, free-space path loss |
+| `chirp-analyzer.html` | a synthesised sweep of known frequency comes back as that frequency |
+
+`js/blackbox-decoder.js` is the strongest candidate of all: 722 lines of binary
+frame decoding with predictors and no coverage whatsoever. Feed it a small
+recorded `.bbl` and assert the decoded arrays.
+
+`harness.js` names `tools/telemetry-parser.html` in one place. Parameterising
+that is a few lines and everything else carries over unchanged.
+
 ## 13. JSDoc coverage in the telemetry parser
 
 Only 6 of 36 top-level functions in `tools/telemetry-parser.html` carry a `/** */`

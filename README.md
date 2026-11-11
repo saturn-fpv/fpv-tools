@@ -87,7 +87,7 @@ If you find this application useful for your builds or race events, please consi
 FPV Tools is a hybrid Android app. The user interface and calculation engines are written in standard web technologies (HTML, CSS, JS) located in the root directory, which are loaded via an offline WebView wrapper in the `android/` directory.
 
 ### Quick Start / Web Testing
-To test or edit the web tools, you do not need to build the Android app. Simply open [index.html](file:///d:/Temp/Antigravity/FPV%20Tools/index.html) in any modern web browser.
+To test or edit the web tools, you do not need to build the Android app. Simply open [index.html](index.html) in any modern web browser.
 
 ### Building the Android App
 To compile the Android app, ensure you have **JDK 17** and the **Android SDK** installed, then run the following commands from the `android/` directory:
@@ -115,7 +115,7 @@ Release builds are signed using a keystore configuration loaded from `android/se
 2. Place your keystore file (e.g. `fpvtools-upload-key.jks`) in `android/app/`.
 3. Run the assemble release command: `./gradlew assembleRelease` (or `.\gradlew.bat assembleRelease` on Windows).
 
-For more detailed codebase standards and architecture guidelines, see [DEVELOPER.md](file:///d:/Temp/Antigravity/FPV%20Tools/DEVELOPER.md).
+For more detailed codebase standards and architecture guidelines, see [DEVELOPER.md](DEVELOPER.md).
 
 ---
 
